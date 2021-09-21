@@ -11,14 +11,15 @@ SmashBot that helps the player in practicing edgeguarding. Based on the work of 
 (NOTE: recoveries involving platforms are not yet supported, and the bot has only been extensively tested on Final Destination so far)
 
 # How to get Started
-1. Clone this repository to somewhere on your computer (ideally, a place where you do not need to elevate your permissions to access, such as your Documents folder).
-2. Follow the setup steps found on AltF4's Smashbot, including the part where you run the SmashBot executable.
-3. When the game starts, navigate to the Character Select Screen. The bot will select a character.
-4. It's recommended that you change the settings of the match if you plan to practice edgeguarding for an extended time.
-5. Pick a supported stage to get started.
+1. **The bot only functions correctly with Slippi up to version 2.3.1**, so if you do not have that version of Slippi installed, you need to install it separately.
+2. Clone this repository to somewhere on your computer (ideally, a place where you do not need to elevate your permissions to access, such as your Documents folder).
+3. Follow the setup steps found on AltF4's Smashbot, including the part where you run the SmashBot executable.
+4. When the game starts, navigate to the Character Select Screen. The bot will select a character.
+5. It's recommended that you change the settings of the match if you plan to practice edgeguarding for an extended time.
+6. Pick a supported stage to get started.
 
 # Difficulty Settings
-The SmashBot has a few preset difficulty settings that change how the bot will recover back onto stage.
+The SmashBot has a few preset difficulty settings that change how it will recover back onto stage.
 ## Difficulty 0: Beginner
 - One recovery option is chosen (usually Up Special)
 - Recovery always starts as high as possible
@@ -71,9 +72,11 @@ The SmashBot has a few preset difficulty settings that change how the bot will r
 - More complicated extra recovery tactics are always performed, and safely
 
 # Limitations & Problems
+- **The bot only functions correctly with Slippi up to version 2.3.1**
 - The bot will frequently bug out the Character Select Screen when you go to change the game optiond. The workaround is to not go into those settings more than once
 - The bot will not adjust recovery based on any action the player is doing (apart from hit mitigation such as DI'ing and teching)
 - The bot will not recover to side or top platforms
+- The bot will occasionally SD or perform an obviously wrong option as a result of many of its actions needing to be frame-perfect
 
 # Eventual Goals
 - Support for recovering to platforms on stages (probably not Randall on Yoshi's Story anytime soon)
