@@ -19,7 +19,7 @@ SmashBot that helps the player in practicing edgeguarding. Based on the work of 
 6. Pick a supported stage to get started.
 
 # Difficulty Settings
-The SmashBot has a few preset difficulty settings that change how it will recover back onto stage.
+The SmashBot has a few preset difficulty settings that change how it will recover back onto stage. You can change the difficulty when running the <code>smashbot.py</code> command with the <code>-i</code> argument.
 ## Difficulty 0: Beginner
 - One recovery option is chosen (usually Up Special)
 - Recovery always starts as high as possible
