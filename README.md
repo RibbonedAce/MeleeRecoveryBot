@@ -30,6 +30,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Amsah teching is never performed
 - Ledge teching is never performed
 - No extra recovery tactics are performed
+- Meteor canceling is not performed
 ## Difficulty 1: Easy
 - Two recovery options are chosen (usually Side Special, and Up Special if first option cannot make it)
 - Recovery can start as high as possible or sweet-spot to the ledge
@@ -40,6 +41,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Amsah teching is never performed
 - Ledge teching is never performed
 - Simple extra recovery tactics are performed regardless of safety (e.g. Falcon Kick)
+- Meteor canceling is performed very slowly
 ## Difficulty 2: Normal
 - Three recovery options are chosen evenly (usually Side Special, Air Dodge, and Up Special if neither previous option can make it)
 - Recovery can start as high as possible, sweet-spot to the ledge, or sweet-spot on stage
@@ -50,6 +52,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Amsah teching is always performed, even when unsafe to do so
 - Ledge teching is performed some of the time if possible
 - Simple extra recovery tactics are performed more safely
+- Meteor canceling is performed slowly
 ## Difficulty 3: Hard
 - Three recovery options are chosen (usually Side Special, Up Special, and Air Dodge)
 - Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
@@ -60,6 +63,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Amsah teching is performed only when safe to do so, and slide-offs are preferred if it will send the bot to the ledge
 - Ledge teching is always performed if possible
 - More complicated extra recovery tactics are occasionally performed, and safely
+- Meteor canceling is performed perfectly
 ## Difficulty 4: TAS
 - Three recovery options are chosen (Up Special most common, occaisionally chooses options like Side Special or Air Dodge)
 - Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
@@ -70,6 +74,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Amsah teching is performed only when safe to do so, and slide-offs are preferred if it will send the bot to the ledge
 - Ledge teching is always performed if possible (extra Smash DI makes them far more frequent)
 - More complicated extra recovery tactics are always performed, and safely
+- Meteor canceling is performed perfectly
 
 # Limitations & Problems
 - **The bot only functions correctly with Slippi up to version 2.3.1**
