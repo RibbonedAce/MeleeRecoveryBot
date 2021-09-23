@@ -43,6 +43,7 @@ class FastFall(Chain):
         trajectory = FrameDataUtils.create_trajectory_frames(smashbot_state.character, -term_velocity)
         angle = PlayerStateUtils.get_knockback_angle(smashbot_state, opponent_state)
         magnitude = PlayerStateUtils.get_knockback_magnitude(smashbot_state, opponent_state)
+        facing_inward = PlayerStateUtils.is_facing_inwards(smashbot_state)
 
         x_vel = abs(smashbot_state.speed_air_x_self)
         x = abs(smashbot_state.position.x)
@@ -66,7 +67,7 @@ class FastFall(Chain):
                 return False
 
             if y_vel < 0 and (x < stage_edge and y >= 0 and true_x_vel < 0 or
-                              x < stage_edge + Utils.LEDGE_GRAB_AREA[0] and -Utils.LEDGE_GRAB_AREA[1] <= y <= -Utils.LEDGE_GRAB_AREA_HIGH[1]):
+                              facing_inward and x < stage_edge + Utils.LEDGE_GRAB_AREA[0] and -Utils.LEDGE_GRAB_AREA[1] <= y <= -Utils.LEDGE_GRAB_AREA_HIGH[1]):
                 return True
 
     def __init__(self):
