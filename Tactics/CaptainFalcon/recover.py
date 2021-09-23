@@ -152,6 +152,7 @@ class Recover(Tactic):
         if self.ledge:
             target = (stage_edge + Utils.LEDGE_GRAB_AREA[0], -Utils.LEDGE_GRAB_AREA[1])
 
+        # Air dodge
         if Chains.AirDodge.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.AIR_DODGE and \
                 (PlayerStateUtils.is_facing_inwards(smashbot_state) or not self.ledge) and \
                 AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
@@ -159,6 +160,7 @@ class Recover(Tactic):
             self.pick_chain(Chains.AirDodge, [target, self.fade_back_mode, self.ledge])
             return
 
+        # Raptor Boost
         if Chains.CaptainFalcon.RaptorBoost.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.SECONDARY and \
                 RaptorBoost.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
             self.chain = None
