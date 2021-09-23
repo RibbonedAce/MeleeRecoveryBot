@@ -23,13 +23,13 @@ class GameStateUtils:
         return game_state.custom[attribute][game_state.custom["opponent_port"]]
 
     def __init__(self):
-        self.ledge_grab_count = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.tech_lockout = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.meteor_jump_lockout = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.meteor_ff_lockout = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.percent = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.prev_percent = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
-        self.stock_duration = {1 : 0, 2 : 0, 3 : 0, 4 : 0}
+        self.ledge_grab_count = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.tech_lockout = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.meteor_jump_lockout = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.meteor_ff_lockout = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.percent = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.prev_percent = {1: 0, 2: 0, 3: 0, 4: 0}
+        self.stock_duration = {1: 0, 2: 0, 3: 0, 4: 0}
 
     def update_gs_custom(self, game_state, smashbot_port, opponent_port):
         # Save ports for easier access

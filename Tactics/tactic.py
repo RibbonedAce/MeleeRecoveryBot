@@ -5,7 +5,7 @@ class Tactic(metaclass=ABCMeta):
     chain = None
 
     @staticmethod
-    def should_use(game_state, smashbot_state, opponent_state):
+    def should_use(propagate):
         return False
 
     def __init__(self, logger, controller, difficulty):

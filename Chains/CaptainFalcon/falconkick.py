@@ -1,6 +1,7 @@
 from melee import Button, Action
 
-from Chains import Chain, FalconDive
+from Chains import Chain
+from Chains.CaptainFalcon import FalconDive
 from Utils.difficultysettings import DifficultySettings
 from Utils.enums import FALCON_KICK_MODE
 from Utils.framedatautils import FrameDataUtils

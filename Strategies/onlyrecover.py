@@ -1,7 +1,7 @@
 import Tactics
 from Strategies.strategy import Strategy
+from Tactics import Recover
 from Tactics.mitigate import Mitigate
-from Tactics.recover import Recover
 from Tactics.wait import Wait
 
 
@@ -30,7 +30,7 @@ class OnlyRecover(Strategy):
     def step(self, game_state, smashbot_state, opponent_state):
         self._propagate = (game_state, smashbot_state, opponent_state)
 
-        if Mitigate.needs_mitigation(smashbot_state):
+        if Mitigate.should_use(self._propagate):
             self.pick_tactic(Tactics.Mitigate)
             return
 
@@ -44,7 +44,7 @@ class OnlyRecover(Strategy):
             self.pick_tactic(Tactics.Wait)
             return
 
-        if Recover.should_use(game_state, smashbot_state, opponent_state):
+        if Recover.should_use(self._propagate):
             self.pick_tactic(Tactics.Recover)
             return
 

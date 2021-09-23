@@ -3,14 +3,11 @@ from Chains.amsahtech import AmsahTech
 from Chains.chain import Chain
 from Chains.driftin import DriftIn
 from Chains.edgedash import EdgeDash
-from Chains.falcondive import FalconDive
-from Chains.falconkick import FalconKick
 from Chains.fastfall import FastFall
 from Chains.jumpinward import JumpInward
 from Chains.jumpoutward import JumpOutward
 from Chains.ledgetech import LedgeTech
 from Chains.nothing import Nothing
-from Chains.raptorboost import RaptorBoost
 from Chains.sdi import SDI
 from Chains.struggle import Struggle
 from Chains.tdi import TDI
