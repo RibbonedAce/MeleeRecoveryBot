@@ -14,7 +14,7 @@ class Tactic(metaclass=ABCMeta):
         self.difficulty = difficulty
         self._propagate = None
 
-    def pick_chain(self, chain, args=None):
+    def pick_chain(self, chain, args=None) -> object:
         if args is None:
             args = []
 

@@ -1,14 +1,18 @@
 import melee
 from melee.enums import Action
 
-import Chains
+from Chains import Nothing
 from Tactics.tactic import Tactic
 from Utils.framedatautils import FrameDataUtils
 
 
 class Wait(Tactic):
     @staticmethod
-    def should_use(game_state, smashbot_state, opponent_state):
+    def should_use(propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
+        opponent_state = propagate[2]
+
         # Make an exception for shine states, since we're still actionable for them
         if smashbot_state.action in [Action.DOWN_B_GROUND_START, Action.DOWN_B_GROUND, Action.DOWN_B_STUN]:
             return False
@@ -42,4 +46,4 @@ class Wait(Tactic):
         return False
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
-        self.pick_chain(Chains.Nothing)
+        self.pick_chain(Nothing)

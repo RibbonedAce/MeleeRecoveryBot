@@ -1,7 +1,6 @@
 from melee.enums import Action
 
-from Chains import Struggle, AmsahTech, LedgeTech
-from Chains.CaptainFalcon import FalconDive
+from Chains import Struggle, AmsahTech, LedgeTech, DriftIn, Wiggle, JumpInward, Tech, TDI, SDI
 from Tactics.tactic import Tactic
 from Utils.difficultysettings import DifficultySettings
 from Utils.gamestateutils import GameStateUtils
@@ -80,11 +79,11 @@ class Mitigate(Tactic):
             return
 
         # Meteor cancel 8 frames after hit-lag ended
-        if FalconDive.should_use(self._propagate) and \
-                smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                GameStateUtils.get_smashbot_custom(game_state, "meteor_ff_lockout") == 0:
-            self.pick_chain(FalconDive)
-            return
+        # if FalconDive.should_use(self._propagate) and \
+        #         smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
+        #         GameStateUtils.get_smashbot_custom(game_state, "meteor_ff_lockout") == 0:
+        #     self.pick_chain(FalconDive)
+        #     return
 
         if Wiggle.should_use(self._propagate):
             self.chain = None
