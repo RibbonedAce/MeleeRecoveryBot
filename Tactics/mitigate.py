@@ -1,11 +1,12 @@
 from melee.enums import Character
 
-from Tactics import CaptainFalcon
+from Tactics import CaptainFalcon, Fox
 from Tactics.tactic import Tactic
 
 
 class Mitigate(Tactic):
-    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.Mitigate}
+    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.Mitigate,
+                        Character.FOX: Fox.Mitigate}
 
     @staticmethod
     def should_use(propagate):

@@ -2,14 +2,15 @@ from abc import ABCMeta
 
 
 class Chain(metaclass=ABCMeta):
-    interruptable = True
-    logger = None
-    controller = None
-    difficulty = None
-
     @staticmethod
     def should_use(propagate):
         return True
+
+    def __init__(self):
+        self.interruptable = True
+        self.logger = None
+        self.controller = None
+        self.difficulty = None
 
     def step_internal(self, game_state, smashbot_state, opponent_state) -> bool: ...
 

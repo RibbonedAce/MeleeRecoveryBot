@@ -2,7 +2,6 @@ from abc import ABCMeta
 
 
 class Tactic(metaclass=ABCMeta):
-    chain = None
 
     @staticmethod
     def should_use(propagate):
@@ -12,6 +11,7 @@ class Tactic(metaclass=ABCMeta):
         self.logger = logger
         self.controller = controller
         self.difficulty = difficulty
+        self.chain = None
         self._propagate = None
 
     def pick_chain(self, chain, args=None) -> object:

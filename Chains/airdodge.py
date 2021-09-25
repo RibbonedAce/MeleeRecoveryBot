@@ -12,7 +12,6 @@ from Utils.utils import Utils
 
 
 class AirDodge(Chain):
-
     @staticmethod
     def should_use(propagate):
         smashbot_state = propagate[1]

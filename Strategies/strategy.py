@@ -3,12 +3,12 @@ from abc import ABCMeta
 
 class Strategy:
     __metaclass__ = ABCMeta
-    tactic = None
 
     def __init__(self):
         self.logger = None
         self.controller = None
         self.difficulty = None
+        self.tactic = None
         self._propagate = None
 
     def pick_tactic(self, tactic):
