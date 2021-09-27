@@ -71,6 +71,7 @@ class FastFall(Chain):
                 return True
 
     def __init__(self):
+        Chain.__init__(self)
         self.fell = False
 
     def step_internal(self, game_state, smashbot_state, opponent_state):

@@ -80,6 +80,7 @@ class SDI(Chain):
         return smashbot_state.on_ground or not smashbot_state.off_stage and smashbot_state.position.y < 0.25
 
     def __init__(self):
+        Chain.__init__(self)
         self.cardinal = None
         self.frames = 0
         self.last_input = 0

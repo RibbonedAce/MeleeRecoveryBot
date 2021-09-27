@@ -113,6 +113,7 @@ class AmsahTech(Chain):
         return False
 
     def __init__(self):
+        Chain.__init__(self)
         self.x = None
         self.y = None
         self.teched = False

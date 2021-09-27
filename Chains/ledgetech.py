@@ -23,6 +23,7 @@ class LedgeTech(Chain):
         return abs(smashbot_state.x) <= stage_edge + 12 and smashbot_state.y < -10
 
     def __init__(self):
+        Chain.__init__(self)
         self.waited = False
         self.teched = False
 

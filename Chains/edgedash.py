@@ -13,6 +13,7 @@ class EdgeDash(Chain):
         return smashbot_state.action in [Action.EDGE_HANGING, Action.EDGE_CATCHING]
 
     def __init__(self):
+        Chain.__init__(self)
         self.has_stalled = False
         self.let_go_frame = 0
 

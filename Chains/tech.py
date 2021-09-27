@@ -52,6 +52,7 @@ class Tech(Chain):
         return False
 
     def __init__(self, direction=TECH_DIRECTION.TECH_RANDOM):
+        Chain.__init__(self)
         if direction == TECH_DIRECTION.TECH_RANDOM:
             self.direction = TECH_DIRECTION(random.randint(0, 2))
         else:

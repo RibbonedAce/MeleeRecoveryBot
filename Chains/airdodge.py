@@ -37,6 +37,7 @@ class AirDodge(Chain):
         return Trajectory(character, 30, -999, air_dodge_offset, frames)
 
     def __init__(self, target_coords=(0, 0), fade_back=FADE_BACK_MODE.NONE, ledge=False):
+        Chain.__init__(self)
         self.target_coords = target_coords
         self.fade_back = fade_back
         self.ledge = ledge

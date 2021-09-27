@@ -45,6 +45,7 @@ class FalconKick(Chain):
                FalconDive.TRAJECTORY.max_height - Utils.LEDGE_GRAB_AREA[1]
 
     def __init__(self):
+        Chain.__init__(self)
         self.falcon_kicked = False
 
     def step_internal(self, game_state, smashbot_state, opponent_state):

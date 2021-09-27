@@ -12,6 +12,7 @@ class JumpOutward(Chain):
         return smashbot_state.jumps_left > 0
 
     def __init__(self):
+        Chain.__init__(self)
         self.jumped = False
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
