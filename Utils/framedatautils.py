@@ -22,7 +22,12 @@ class FrameDataUtils:
 
         while velocity != term_velocity or len(frames) == 0:
             velocity = max(velocity + gravity, term_velocity)
-            frames.append(TrajectoryFrame(velocity, mobility, -mobility, speed, None, -speed, 0))
+            frames.append(TrajectoryFrame(
+                vertical_velocity=velocity,
+                forward_acceleration=mobility,
+                backward_acceleration=-mobility,
+                min_horizontal_velocity=speed,
+                max_horizontal_velocity=-speed))
 
         return frames
 

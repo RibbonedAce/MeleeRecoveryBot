@@ -23,8 +23,23 @@ class OtherCharacterData:
                 # Pull out the character
                 character = Character(int(frame["Character"]))
 
-                OtherCharacterData.character_data[character] = {"Weight": float(frame["Weight"])}
+                OtherCharacterData.character_data[character] = {"Weight": float(frame["Weight"]),
+                                                                "Ledge Box Bottom": float(frame["Ledge Box Bottom"]),
+                                                                "Ledge Box Top": float(frame["Ledge Box Top"]),
+                                                                "Ledge Box Horizontal": float(frame["Ledge Box Horizontal"])}
 
     @staticmethod
     def get_weight(character):
         return OtherCharacterData.character_data[character]["Weight"]
+
+    @staticmethod
+    def get_ledge_box_bottom(character):
+        return OtherCharacterData.character_data[character]["Ledge Box Bottom"]
+
+    @staticmethod
+    def get_ledge_box_top(character):
+        return OtherCharacterData.character_data[character]["Ledge Box Top"]
+
+    @staticmethod
+    def get_ledge_box_horizontal(character):
+        return OtherCharacterData.character_data[character]["Ledge Box Horizontal"]

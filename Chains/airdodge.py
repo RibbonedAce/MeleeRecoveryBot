@@ -24,7 +24,10 @@ class AirDodge(Chain):
         velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
 
         for i in range(29):
-            frames.append(TrajectoryFrame(velocity[1], 0, 0, velocity[0], None, velocity[0], 0))
+            frames.append(TrajectoryFrame(
+                vertical_velocity=velocity[1],
+                min_horizontal_velocity=velocity[0],
+                max_horizontal_velocity=velocity[0]))
             velocity[0] *= 0.9
             velocity[1] *= 0.9
 

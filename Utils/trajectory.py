@@ -19,13 +19,15 @@ class Trajectory:
                     mid_horizontal_velocity = float(row["mid_horizontal_velocity"])
 
                 # Pull out the frame
-                frame = TrajectoryFrame(float(row["vertical_velocity"]),
-                                        float(row["forward_acceleration"]),
-                                        float(row["backward_acceleration"]),
-                                        float(row["max_horizontal_velocity"]),
-                                        mid_horizontal_velocity,
-                                        float(row["min_horizontal_velocity"]),
-                                        float(row["ecb"]))
+                frame = TrajectoryFrame(
+                    float(row["vertical_velocity"]),
+                    float(row["forward_acceleration"]),
+                    float(row["backward_acceleration"]),
+                    float(row["max_horizontal_velocity"]),
+                    mid_horizontal_velocity,
+                    float(row["min_horizontal_velocity"]),
+                    float(row["ecb_bottom"]),
+                    float(row["ecb_inward"]))
 
                 frames.append(frame)
 

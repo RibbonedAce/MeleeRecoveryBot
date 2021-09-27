@@ -1,12 +1,13 @@
 class TrajectoryFrame:
     def __init__(self,
-                 vertical_velocity,
-                 forward_acceleration,
-                 backward_acceleration,
-                 max_horizontal_velocity,
-                 mid_horizontal_velocity,
-                 min_horizontal_velocity,
-                 ecb_bottom):
+                 vertical_velocity=0,
+                 forward_acceleration=0,
+                 backward_acceleration=0,
+                 max_horizontal_velocity=0,
+                 mid_horizontal_velocity=None,
+                 min_horizontal_velocity=0,
+                 ecb_bottom=0,
+                 ecb_inward=2):
         self.vertical_velocity = vertical_velocity
         self.forward_acceleration = forward_acceleration
         self.backward_acceleration = backward_acceleration
@@ -14,3 +15,4 @@ class TrajectoryFrame:
         self.mid_horizontal_velocity = mid_horizontal_velocity
         self.min_horizontal_velocity = min_horizontal_velocity
         self.ecb_bottom = ecb_bottom
+        self.ecb_inward = ecb_inward
