@@ -92,7 +92,7 @@ class PlayerStateExtensions:
             highest_y = max(y, highest_y)
 
             # If we are going to hit the stage, just say we landed there
-            if highest_y > 0 and abs(x) < stage_edge and y < 0 and actual_y_vel < 0:
+            if highest_y > -6 > y and abs(x) < stage_edge and actual_y_vel < 0:
                 break
 
             y_vel = max(y_vel - FrameData.INSTANCE.get_gravity(player_state.character), -FrameData.INSTANCE.get_terminal_velocity(player_state.character))
