@@ -175,15 +175,15 @@ class DifficultySettings:
             DifficultySettings.METEOR_CANCEL_FRAME = 8
 
         else:
-            DifficultySettings.FADE_BACK_NONE_WEIGHT = 0
+            DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 1
-            DifficultySettings.FADE_BACK_LATE_WEIGHT = 0
-            DifficultySettings.RECOVER_MAX_WEIGHT = 0
-            DifficultySettings.RECOVER_STAGE_WEIGHT = 0
+            DifficultySettings.FADE_BACK_LATE_WEIGHT = 1
+            DifficultySettings.RECOVER_MAX_WEIGHT = 1
+            DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
             DifficultySettings.FALCON_DIVE_WEIGHT = 1
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0
-            DifficultySettings.AIR_DODGE_WEIGHT = 0
+            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0.25
+            DifficultySettings.AIR_DODGE_WEIGHT = 0.25
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
