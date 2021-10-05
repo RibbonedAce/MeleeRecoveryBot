@@ -46,27 +46,28 @@ class EdgeDash(Chain):
             controller.tilt_analog(Button.BUTTON_C, smashbot_state.get_outward_x(), 0.5)
             return True
 
+        x = smashbot_state.get_inward_x()
+
         # Once we're falling, jump
         if smashbot_state.action == Action.FALLING:
             self.interruptable = False
-            controller.tilt_analog(Button.BUTTON_MAIN, int(smashbot_state.position.x < 0), 0.5)
+            controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
             controller.press_button(Button.BUTTON_Y)
             controller.tilt_analog(Button.BUTTON_C, 0.5, 0.5)
             return True
 
         # Jumping, stay in the chain and DI in
         if smashbot_state.action == Action.JUMPING_ARIAL_FORWARD:
-            # Wait until we're at least 0.25 above stage, or else we'll miss
-            if smashbot_state.position.y + smashbot_state.ecb.bottom.y > 1:
-                air_dodge_angle = 0.35
-
+            # Wait until we are safely above stage
+            if smashbot_state.position.y + smashbot_state.ecb.bottom.y > 0 and \
+                    abs(smashbot_state.position.x) < game_state.get_stage_edge():
                 self.interruptable = False
-                controller.tilt_analog(Button.BUTTON_MAIN, int(smashbot_state.position.x < 0), air_dodge_angle)
+                controller.tilt_analog(Button.BUTTON_MAIN, x, 0.35)
                 controller.press_button(Button.BUTTON_L)
                 return True
             else:
                 self.interruptable = False
-                controller.tilt_analog(Button.BUTTON_MAIN, int(smashbot_state.position.x < 0), 0.5)
+                controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
                 return True
 
         return False

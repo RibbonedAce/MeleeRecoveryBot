@@ -68,17 +68,19 @@ class Tech(Chain):
             controller.empty_input()
             return True
 
+        x = smashbot_state.get_inward_x()
+
         if self.direction == TECH_DIRECTION.TECH_IN_PLACE:
             controller.press_button(Button.BUTTON_L)
             controller.tilt_analog(Button.BUTTON_MAIN, .5, .5)
             return True
         elif self.direction == TECH_DIRECTION.TECH_FORWARD:
             controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, int(smashbot_state.facing), .5)
+            controller.tilt_analog(Button.BUTTON_MAIN, x, .5)
             return True
         elif self.direction == TECH_DIRECTION.TECH_BACK:
             controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, int(not smashbot_state.facing), .5)
+            controller.tilt_analog(Button.BUTTON_MAIN, 1 - x, .5)
             return True
 
         return False
