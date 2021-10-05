@@ -1,7 +1,6 @@
-from melee.enums import Button, Action
+from melee.enums import Action, Button
 
 from Chains.chain import Chain
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class Wiggle(Chain):
@@ -10,7 +9,7 @@ class Wiggle(Chain):
         smashbot_state = propagate[1]
 
         return smashbot_state.action == Action.TUMBLING or \
-               PlayerStateUtils.is_flying_in_hit_stun(smashbot_state) and smashbot_state.hitstun_frames_left == 0
+               smashbot_state.is_flying_in_hit_stun() and smashbot_state.hitstun_frames_left == 0
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller

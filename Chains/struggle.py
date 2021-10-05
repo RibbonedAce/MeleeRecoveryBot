@@ -1,5 +1,4 @@
-from melee.enums import Action
-from melee.enums import Button
+from melee.enums import Action, Button
 
 from Chains.chain import Chain
 

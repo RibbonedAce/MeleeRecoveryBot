@@ -1,13 +1,9 @@
-from melee import Button, Action
+from melee import Action, Button, FrameData
 
-from Chains import Chain
-from Chains.CaptainFalcon import FalconDive
-from Utils.difficultysettings import DifficultySettings
+from Chains.CaptainFalcon.falcondive import FalconDive
+from Chains.chain import Chain
+from difficultysettings import DifficultySettings
 from Utils.enums import FALCON_KICK_MODE
-from Utils.framedatautils import FrameDataUtils
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
-from Utils.utils import Utils
 
 
 class FalconKick(Chain):
@@ -32,8 +28,8 @@ class FalconKick(Chain):
         if smashbot_state.facing != (smashbot_state.position.x < 0):
             return False
 
-        knockback = PlayerStateUtils.get_remaining_knockback(smashbot_state, opponent_state)
-        diff_x = abs(smashbot_state.position.x) - GameStateUtils.get_stage_edge(game_state) + abs(knockback[0])
+        knockback = smashbot_state.get_remaining_knockback(opponent_state)
+        diff_x = abs(smashbot_state.position.x) - game_state.get_stage_edge() + abs(knockback[0])
         # Should not Falcon Kick if too close unless we want to
         if diff_x <= 20 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == FALCON_KICK_MODE.SMART:
             return False
@@ -41,8 +37,8 @@ class FalconKick(Chain):
         # Falcon Kick if we are high enough
         return smashbot_state.position.y > \
                -FalconKick.DISPLACEMENT[1] - knockback[1] - \
-               FrameDataUtils.INSTANCE.dj_height(smashbot_state) * (1 + smashbot_state.jumps_left) - \
-               FalconDive.TRAJECTORY.max_height - Utils.LEDGE_GRAB_AREA[1]
+               FrameData.INSTANCE.dj_height(smashbot_state) * (1 + smashbot_state.jumps_left) - \
+               FalconDive.TRAJECTORY.max_height - FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 
     def __init__(self):
         Chain.__init__(self)
@@ -51,7 +47,7 @@ class FalconKick(Chain):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 
-        x = PlayerStateUtils.get_inward_x(smashbot_state)
+        x = smashbot_state.get_inward_x()
 
         # If we are not finished with the Falcon Kick
         if not self.falcon_kicked:

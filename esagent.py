@@ -1,7 +1,6 @@
-from melee.enums import ProjectileType, Action, Character
+from melee.enums import Action, Character, ProjectileType
 
 from Strategies.onlyrecover import OnlyRecover
-from Utils.gamestateutils import GameStateUtils
 
 
 class ESAgent:
@@ -17,7 +16,6 @@ class ESAgent:
         self.logger = dolphin.logger
         self.difficulty = difficulty
 
-        self.gs_utils = GameStateUtils()
         self.strategy = OnlyRecover(self.logger,
                                     self.controller,
                                     self.difficulty)
@@ -34,7 +32,7 @@ class ESAgent:
                 known_projectiles.append(projectile)
         game_state.projectiles = known_projectiles
 
-        self.gs_utils.update_gs_custom(game_state, self.smashbot_port, self.opponent_port)
+        game_state.update_custom(self.smashbot_port, self.opponent_port)
 
         opponent_state = game_state.player[self.opponent_port]
 

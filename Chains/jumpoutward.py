@@ -1,7 +1,6 @@
 from melee.enums import Button
 
 from Chains.chain import Chain
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class JumpOutward(Chain):
@@ -19,7 +18,7 @@ class JumpOutward(Chain):
         controller = self.controller
         self.interruptable = True
 
-        controller.tilt_analog(Button.BUTTON_MAIN, PlayerStateUtils.get_outward_x(smashbot_state), 0.5)
+        controller.tilt_analog(Button.BUTTON_MAIN, smashbot_state.get_outward_x(), 0.5)
         if self.jumped and game_state.frame % 2 == 0:
             controller.release_button(Button.BUTTON_Y)
         else:

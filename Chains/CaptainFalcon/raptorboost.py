@@ -1,10 +1,12 @@
+import math
+
 from melee.enums import Action, Button, Character
 
-from Chains import Chain
+from Chains.chain import Chain
+from Utils.angleutils import AngleUtils
 from Utils.enums import FADE_BACK_MODE
-from Utils.playerstateutils import PlayerStateUtils
+from Utils.mathutils import MathUtils
 from Utils.trajectory import Trajectory
-from Utils.utils import Utils
 
 
 class RaptorBoost(Chain):
@@ -32,7 +34,7 @@ class RaptorBoost(Chain):
             controller.empty_input()
             return True
 
-        x = PlayerStateUtils.get_inward_x(smashbot_state)
+        x = smashbot_state.get_inward_x()
 
         # If we haven't started yet, hit the input
         if self.current_frame < 0 and smashbot_state.action != Action.FOX_ILLUSION:
@@ -40,6 +42,10 @@ class RaptorBoost(Chain):
             controller.press_button(Button.BUTTON_B)
             controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
             self.current_frame = 0
+
+            # print("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
+            #       "FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character)", "FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)", "self.ledge", "self.fade_back", "x_input", "should_fade_back", "recovery_distance",
+            #       "frame.vertical_velocity", "frame.forward_acceleration", "frame.backward_acceleration", "frame.max_horizontal_velocity", "frame.mid_horizontal_velocity", "frame.min_horizontal_velocity", "frame.ecb_bottom", "frame.ecb_inward", sep=", ")
             return True
 
         # Deciding if we should fade-back
@@ -49,8 +55,13 @@ class RaptorBoost(Chain):
 
             # Check if we should still fade-back
             should_fade_back = False
+            useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+            angle = smashbot_state.get_knockback_angle(opponent_state)
+            if math.cos(math.radians(angle)) > 0:
+                angle = AngleUtils.get_x_reflection(angle)
+            magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+
             recovery_distance = None
-            useful_x_velocity = smashbot_state.speed_air_x_self * -Utils.sign(smashbot_state.position.x)
 
             # See if we can fade back on this frame
             if self.fade_back != FADE_BACK_MODE.NONE:
@@ -63,7 +74,7 @@ class RaptorBoost(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = RaptorBoost.TRAJECTORY.get_remaining_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, fade_back_frames, self.current_frame)
+                recovery_distance = RaptorBoost.TRAJECTORY.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
@@ -83,6 +94,9 @@ class RaptorBoost(Chain):
                         frame.mid_horizontal_velocity > useful_x_velocity + frame.forward_acceleration:
                     x_input = 0.5
 
+            # print(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
+            #       FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
+            #       frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward, sep=", ")
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
         self.interruptable = False
         return True

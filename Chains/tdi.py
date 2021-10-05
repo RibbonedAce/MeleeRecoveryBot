@@ -1,12 +1,9 @@
 from melee.enums import Button
 
 from Chains.chain import Chain
+from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
-from Utils.difficultysettings import DifficultySettings
 from Utils.enums import TDI_MODE
-from Utils.framedatautils import FrameDataUtils
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class TDI(Chain):
@@ -18,7 +15,7 @@ class TDI(Chain):
         if DifficultySettings.TDI == TDI_MODE.NONE:
             return False
 
-        return smashbot_state.hitlag_left == 2 or PlayerStateUtils.is_being_thrown(smashbot_state)
+        return smashbot_state.hitlag_left == 2 or smashbot_state.is_being_thrown()
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -29,20 +26,20 @@ class TDI(Chain):
         #   2) Combo TDI
         #   3) Situationally-specific TDI
 
-        stage_edge = GameStateUtils.get_stage_edge(game_state)
-        knockback_angle = PlayerStateUtils.get_knockback_angle(smashbot_state, opponent_state)
+        stage_edge = game_state.get_stage_edge()
+        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
         actual_jumps_left = smashbot_state.jumps_left
-        if PlayerStateUtils.is_being_thrown(smashbot_state):
+        if smashbot_state.is_being_thrown():
             actual_jumps_left = 1
 
-        combo_di_danger = PlayerStateUtils.get_knockback_danger(smashbot_state, opponent_state, stage_edge, FrameDataUtils.get_combo_di_launch_angle(knockback_angle))
-        no_di_danger = PlayerStateUtils.get_knockback_danger(smashbot_state, opponent_state, stage_edge, knockback_angle)
+        combo_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, AngleUtils.get_combo_di_launch_angle(knockback_angle))
+        no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, knockback_angle)
         danger_threshold = DifficultySettings.DANGER_THRESHOLD * (actual_jumps_left + 1)
 
         # Survival TDI
         #   If we're at risk of dying from the hit, then TDI 90 degrees from the direction of the hit
         if knockback_angle > 180 or no_di_danger > danger_threshold:
-            angle = FrameDataUtils.get_survival_di(knockback_angle, smashbot_state.position.x)
+            angle = AngleUtils.get_survival_di(knockback_angle, smashbot_state.position.x)
             inputs = AngleUtils.angle_to_xy(angle)
             controller.tilt_analog(Button.BUTTON_MAIN, inputs[0], inputs[1])
             return True
@@ -55,7 +52,7 @@ class TDI(Chain):
 
         # Combo TDI
         #   TDI away from the opponent to keep from from following up
-        angle = FrameDataUtils.get_combo_di(knockback_angle)
+        angle = AngleUtils.get_combo_di(knockback_angle)
         inputs = AngleUtils.angle_to_xy(angle)
         if self.logger:
             self.logger.log("Notes", " Combo TDI angle: " + str(angle) + " ", concat=True)

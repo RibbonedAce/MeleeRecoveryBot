@@ -6,7 +6,7 @@ import sys
 
 import melee
 
-from Utils.difficultysettings import DifficultySettings
+from difficultysettings import DifficultySettings
 from esagent import ESAgent
 
 
@@ -134,7 +134,6 @@ while True:
             if agent2:
                 agent2.act(game_state)
         except Exception as error:
-            # Do nothing in case of error thrown!
             agent1.controller.empty_input()
             if agent2:
                 agent2.controller.empty_input()

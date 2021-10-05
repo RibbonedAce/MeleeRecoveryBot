@@ -3,16 +3,18 @@ import math
 import melee
 from melee.enums import Action
 
-from Chains import AirDodge, EdgeDash, DriftIn, FastFall, JumpInward
-from Chains.CaptainFalcon import FalconDive, RaptorBoost, FalconKick
-from Data import OtherStageData
+from Chains.airdodge import AirDodge
+from Chains.CaptainFalcon.falcondive import FalconDive
+from Chains.CaptainFalcon.falconkick import FalconKick
+from Chains.CaptainFalcon.raptorboost import RaptorBoost
+from Chains.driftin import DriftIn
+from Chains.edgedash import EdgeDash
+from Chains.fastfall import FastFall
+from Chains.jumpinward import JumpInward
+from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils.difficultysettings import DifficultySettings
 from Utils.enums import RECOVER_HEIGHT, RECOVER_MODE
-from Utils.framedatautils import FrameDataUtils
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
-from Utils.utils import Utils
+from Utils.trajectory import Trajectory
 
 
 class Recover(Tactic):
@@ -57,7 +59,7 @@ class Recover(Tactic):
         if opponent_state.action == Action.DEAD_FALL and opponent_state.position.y < -30:
             return True
 
-        stage_edge = GameStateUtils.get_stage_edge(game_state)
+        stage_edge = game_state.get_stage_edge()
         # If opponent is closer to the edge, recover
         diff_x_opponent = abs(stage_edge - abs(opponent_state.position.x))
         diff_x = abs(stage_edge - abs(smashbot_state.position.x))
@@ -83,34 +85,12 @@ class Recover(Tactic):
         return False
 
     @staticmethod
-    def __can_hold_drift(smashbot_state, opponent_state, stage_edge):
-        trajectory = FrameDataUtils.create_trajectory_frames(smashbot_state.character, smashbot_state.speed_y_self)
-        angle = PlayerStateUtils.get_knockback_angle(smashbot_state, opponent_state)
-        magnitude = PlayerStateUtils.get_knockback_magnitude(smashbot_state, opponent_state)
-
-        x_vel = abs(smashbot_state.speed_air_x_self)
-        x = abs(smashbot_state.position.x)
-        y = smashbot_state.position.y
-
-        for i in range(0, 300):
-            drag = FrameDataUtils.INSTANCE.characterdata[smashbot_state.character]["AirFriction"]
-
-            frame = trajectory[min(i, len(trajectory) - 1)]
-
-            x_vel += min(frame.forward_acceleration, max(frame.max_horizontal_velocity - x_vel, -drag))
-            magnitude = max(magnitude - 0.051, 0)
-
-            true_x_vel = abs(math.cos(math.radians(angle)) * magnitude) - x_vel
-            x += true_x_vel
-            y_vel = frame.vertical_velocity + math.sin(math.radians(angle)) * magnitude
-            y += y_vel
-
-            if y_vel < 0 and y < -Utils.LEDGE_GRAB_AREA[1]:
-                return False
-
-            if y_vel < 0 and (x < stage_edge and y >= 0 and true_x_vel < 0 or
-                              x < stage_edge + Utils.LEDGE_GRAB_AREA[0] and -Utils.LEDGE_GRAB_AREA[1] <= y <= -Utils.LEDGE_GRAB_AREA_HIGH[1]):
-                return True
+    def __can_hold_drift(smashbot_state, opponent_state, target):
+        trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
+        distance = trajectory.get_extra_distance(smashbot_state, opponent_state, target, False)
+        if distance <= 0 and smashbot_state.is_facing_inwards():
+            distance = trajectory.get_extra_distance(smashbot_state, opponent_state, target, True)
+        return distance > 0
 
     def __init__(self, logger, controller, difficulty):
         Tactic.__init__(self, logger, controller, difficulty)
@@ -126,12 +106,11 @@ class Recover(Tactic):
             self.pick_chain(EdgeDash)
             return
 
-        stage_edge = GameStateUtils.get_stage_edge(game_state)
+        stage_edge = game_state.get_stage_edge()
         diff_x = abs(smashbot_state.position.x) - stage_edge
 
         # If we're in dead max fall, just drift towards the stage
-        if DriftIn.should_use(self._propagate) and \
-                smashbot_state.action == Action.DEAD_FALL:
+        if DriftIn.should_use(self._propagate) and smashbot_state.action == Action.DEAD_FALL:
             self.chain = None
             self.pick_chain(DriftIn)
             return
@@ -141,19 +120,17 @@ class Recover(Tactic):
             self.pick_chain(FastFall)
             return
 
+        target = (stage_edge, 0)
+
         # If we are currently moving away from the stage, DI in
-        if DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(smashbot_state, opponent_state, stage_edge):
+        if DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(smashbot_state, opponent_state, target):
             self.chain = None
             self.pick_chain(DriftIn)
             return
 
-        target = (stage_edge, 0)
-        if self.ledge:
-            target = (stage_edge + Utils.LEDGE_GRAB_AREA[0], -Utils.LEDGE_GRAB_AREA[1])
-
         # Air dodge
         if AirDodge.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.AIR_DODGE and \
-                (PlayerStateUtils.is_facing_inwards(smashbot_state) or not self.ledge) and \
+                (smashbot_state.is_facing_inwards() or not self.ledge) and \
                 AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
             self.chain = None
             self.pick_chain(AirDodge, [target, self.fade_back_mode, self.ledge])
@@ -167,7 +144,7 @@ class Recover(Tactic):
             return
 
         # If we are wall teching, Falcon Dive ASAP
-        wall_teching = PlayerStateUtils.is_wall_teching(smashbot_state)
+        wall_teching = smashbot_state.is_wall_teching()
         if wall_teching:
             self.time_to_recover = True
 
@@ -193,8 +170,8 @@ class Recover(Tactic):
         if JumpInward.should_use(self._propagate) and \
                 (self.recover_height == RECOVER_HEIGHT.MAX or
                  smashbot_state.position.y < -43 or
-                 smashbot_state.position.x - OtherStageData.get_left_blast_zone(game_state.stage) < 20 or
-                 OtherStageData.get_right_blast_zone(game_state.stage) - smashbot_state.position.x < 20):
+                 smashbot_state.position.x - game_state.get_left_blast_zone() < 20 or
+                 game_state.get_right_blast_zone() - smashbot_state.position.x < 20):
             self.pick_chain(JumpInward)
             return
 

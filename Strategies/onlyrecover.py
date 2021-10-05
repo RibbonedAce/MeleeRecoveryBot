@@ -1,7 +1,6 @@
-import Tactics
 from Strategies.strategy import Strategy
-from Tactics import Recover
 from Tactics.mitigate import Mitigate
+from Tactics.recover import Recover
 from Tactics.wait import Wait
 
 
@@ -31,7 +30,7 @@ class OnlyRecover(Strategy):
         self._propagate = (game_state, smashbot_state, opponent_state)
 
         if Mitigate.should_use(self._propagate):
-            self.pick_tactic(Tactics.Mitigate)
+            self.pick_tactic(Mitigate)
             return
 
         if self.tactic and not self.tactic.is_interruptable():
@@ -40,12 +39,12 @@ class OnlyRecover(Strategy):
 
         # If we're stuck in a lag state, just do nothing. Trying an action might just
         #   buffer an input we don't want
-        if Wait.should_use(game_state, smashbot_state, opponent_state):
-            self.pick_tactic(Tactics.Wait)
+        if Wait.should_use(self._propagate):
+            self.pick_tactic(Wait)
             return
 
         if Recover.should_use(self._propagate):
-            self.pick_tactic(Tactics.Recover)
+            self.pick_tactic(Recover)
             return
 
-        self.pick_tactic(Tactics.Wait)
+        self.pick_tactic(Wait)

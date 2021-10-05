@@ -1,10 +1,7 @@
 from numpy import copy
 
 
-class Utils:
-    LEDGE_GRAB_AREA = (12, 19)
-    LEDGE_GRAB_AREA_HIGH = (12, 12)
-
+class MathUtils:
     @staticmethod
     def lerp(a, b, x):
         return a * (1 - x) + b * x
@@ -22,7 +19,7 @@ class Utils:
 
         ma = max(a, b)
         mi = min(a, b)
-        return Utils.i_lerp(mi, ma, c)
+        return MathUtils.i_lerp(mi, ma, c)
 
     @staticmethod
     def transform_array(array, l, params):

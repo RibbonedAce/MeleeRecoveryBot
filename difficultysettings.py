@@ -1,7 +1,7 @@
 import random
 
-from Utils.enums import FADE_BACK_MODE, RECOVER_HEIGHT, RECOVER_MODE, AMSAH_TECH_MODE, TDI_MODE, FALCON_KICK_MODE, FAST_FALL_MODE
-from Utils.utils import Utils
+from Utils.enums import AMSAH_TECH_MODE, FADE_BACK_MODE, FALCON_KICK_MODE, FAST_FALL_MODE, RECOVER_HEIGHT, RECOVER_MODE, TDI_MODE
+from Utils.mathutils import MathUtils
 
 
 class DifficultySettings:
@@ -86,7 +86,7 @@ class DifficultySettings:
 
     @staticmethod
     def __random_float(start, stop):
-        return Utils.lerp(start, stop, random.random())
+        return MathUtils.lerp(start, stop, random.random())
 
     @staticmethod
     def initialize_difficulty(difficulty):

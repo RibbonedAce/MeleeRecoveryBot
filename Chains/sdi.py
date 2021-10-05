@@ -3,12 +3,9 @@ import math
 from melee.enums import Button
 
 from Chains.chain import Chain
+from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
-from Utils.difficultysettings import DifficultySettings
-from Utils.framedatautils import FrameDataUtils
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
-from Utils.utils import Utils
+from Utils.mathutils import MathUtils
 
 
 class SDI(Chain):
@@ -21,7 +18,7 @@ class SDI(Chain):
     @staticmethod
     def angle_to_cardinal(angle):
         """For the given angle, return the nearest cardinal (8 directions) direction"""
-        corrected_angle = FrameDataUtils.correct_for_cardinal(angle)
+        corrected_angle = AngleUtils.correct_for_cardinal(angle)
         return AngleUtils.angle_to_xy(corrected_angle)
 
     @staticmethod
@@ -101,15 +98,15 @@ class SDI(Chain):
         #   Every SDI targets one of these 8 directions and wiggles back and forth across the direction
 
         if self.cardinal is None:
-            stage_edge = GameStateUtils.get_stage_edge(game_state)
-            knockback_angle = PlayerStateUtils.get_knockback_angle(smashbot_state, opponent_state)
-            no_di_danger = PlayerStateUtils.get_knockback_danger(smashbot_state, opponent_state, stage_edge, knockback_angle)
+            stage_edge = game_state.get_stage_edge()
+            knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
+            no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, knockback_angle)
 
             # Situationally-specific SDI
             #   Some hits require specific SDI to get out of a tricky combo. Account for those first, here
             # We're off the stage, or we're hit by a spike, so let's SDI back onto the stage
             if smashbot_state.off_stage or knockback_angle > 180:
-                angle = 90 + 90 * Utils.sign(smashbot_state.position.x)
+                angle = 90 + 90 * MathUtils.sign(smashbot_state.position.x)
                 self.cardinal = SDI.angle_to_cardinal(angle)
                 if self.logger:
                     self.logger.log("Notes", " Off-stage SDI cardinal: " + str(self.cardinal) + " ", concat=True)

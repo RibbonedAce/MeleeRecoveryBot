@@ -1,11 +1,17 @@
 from melee.enums import Action
 
-from Chains import Struggle, AmsahTech, LedgeTech
-from Chains.CaptainFalcon import FalconDive
+from Chains.amsahtech import AmsahTech
+from Chains.CaptainFalcon.falcondive import FalconDive
+from Chains.driftin import DriftIn
+from Chains.jumpinward import JumpInward
+from Chains.ledgetech import LedgeTech
+from Chains.sdi import SDI
+from Chains.struggle import Struggle
+from Chains.tdi import TDI
+from Chains.tech import Tech
+from Chains.wiggle import Wiggle
+from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils.difficultysettings import DifficultySettings
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class Mitigate(Tactic):
@@ -14,15 +20,15 @@ class Mitigate(Tactic):
         smashbot_state = propagate[1]
 
         # Grabbed, thrown, in hit-stun, or tumbling
-        if PlayerStateUtils.is_grabbed(smashbot_state):
+        if smashbot_state.is_grabbed():
             return True
 
         # Thrown action
-        if PlayerStateUtils.is_being_thrown(smashbot_state):
+        if smashbot_state.is_being_thrown():
             return True
 
         # Damaged action
-        if PlayerStateUtils.is_flying_in_hit_stun(smashbot_state):
+        if smashbot_state.is_flying_in_hit_stun():
             return True
 
         if smashbot_state.action == Action.TUMBLING:
@@ -75,14 +81,14 @@ class Mitigate(Tactic):
         # Meteor cancel 8 frames after hit-lag ended
         if JumpInward.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                smashbot_state.jumps_left > 0 and GameStateUtils.get_smashbot_custom(game_state, "meteor_jump_lockout") == 0:
+                smashbot_state.jumps_left > 0 and game_state.get_smashbot_custom("meteor_jump_lockout") == 0:
             self.pick_chain(JumpInward)
             return
 
         # Meteor cancel 8 frames after hit-lag ended
         if FalconDive.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                GameStateUtils.get_smashbot_custom(game_state, "meteor_ff_lockout") == 0:
+                game_state.get_smashbot_custom("meteor_ff_lockout") == 0:
             self.pick_chain(FalconDive)
             return
 

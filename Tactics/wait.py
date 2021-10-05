@@ -1,9 +1,9 @@
 import melee
+from melee import FrameData
 from melee.enums import Action
 
-from Chains import Nothing
+from Chains.nothing import Nothing
 from Tactics.tactic import Tactic
-from Utils.framedatautils import FrameDataUtils
 
 
 class Wait(Tactic):
@@ -18,8 +18,8 @@ class Wait(Tactic):
             return False
 
         # If we're in the cooldown for an attack, just do nothing.
-        if FrameDataUtils.INSTANCE.attack_state(smashbot_state.character, smashbot_state.action,
-                                                smashbot_state.action_frame) == melee.enums.AttackState.COOLDOWN:
+        if FrameData.INSTANCE.attack_state(smashbot_state.character, smashbot_state.action,
+                                                     smashbot_state.action_frame) == melee.enums.AttackState.COOLDOWN:
             return True
 
         # When teetering on the edge, make sure there isn't an opponent pushing on us.

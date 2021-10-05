@@ -2,12 +2,10 @@ import math
 import random
 from enum import Enum
 
+from melee import FrameData
 from melee.enums import Button
 
 from Chains.chain import Chain
-from Utils.framedatautils import FrameDataUtils
-from Utils.gamestateutils import GameStateUtils
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class TECH_DIRECTION(Enum):
@@ -25,22 +23,21 @@ class Tech(Chain):
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
-        tech_lockout = GameStateUtils.get_smashbot_custom(game_state, "tech_lockout")
-        character_data = FrameDataUtils.INSTANCE.characterdata[smashbot_state.character]
+        tech_lockout = game_state.get_smashbot_custom("tech_lockout")
 
         # Tech if we need to
         #   Calculate when we will land
-        if smashbot_state.position.y > -4 and PlayerStateUtils.is_flying_in_hit_stun(smashbot_state):
+        if smashbot_state.position.y > -4 and smashbot_state.is_flying_in_hit_stun():
             frames_until_landing = 0
             speed = smashbot_state.speed_y_self
-            knockback_angle = math.radians(PlayerStateUtils.get_knockback_angle(smashbot_state, opponent_state))
-            knockback_magnitude = PlayerStateUtils.get_knockback_magnitude(smashbot_state, opponent_state)
+            knockback_angle = math.radians(smashbot_state.get_knockback_angle(opponent_state))
+            knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
             height = smashbot_state.position.y
 
             while height > 0 or speed + knockback_magnitude * math.sin(knockback_angle) > 0:
                 height += speed + knockback_magnitude * math.sin(knockback_angle)
-                speed -= character_data["Gravity"]
-                speed = max(speed, -character_data["TerminalVelocity"])
+                speed -= FrameData.INSTANCE.get_gravity(smashbot_state.character)
+                speed = max(speed, -FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character))
                 knockback_magnitude = max(knockback_magnitude - 0.051, 0)
                 frames_until_landing += 1
                 # Break if it will be false anyway
@@ -67,7 +64,7 @@ class Tech(Chain):
             controller.empty_input()
             return True
 
-        if GameStateUtils.get_smashbot_custom(game_state, "tech_lockout") > 0:
+        if game_state.get_smashbot_custom("tech_lockout") > 0:
             controller.empty_input()
             return True
 

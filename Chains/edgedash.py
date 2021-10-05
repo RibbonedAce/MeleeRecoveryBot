@@ -1,8 +1,6 @@
 from melee.enums import Action, Button
 
 from Chains.chain import Chain
-# Edge dash
-from Utils.playerstateutils import PlayerStateUtils
 
 
 class EdgeDash(Chain):
@@ -45,7 +43,7 @@ class EdgeDash(Chain):
                 return True
             self.interruptable = False
             self.let_go_frame = game_state.frame
-            controller.tilt_analog(Button.BUTTON_C, PlayerStateUtils.get_outward_x(smashbot_state), 0.5)
+            controller.tilt_analog(Button.BUTTON_C, smashbot_state.get_outward_x(), 0.5)
             return True
 
         # Once we're falling, jump
