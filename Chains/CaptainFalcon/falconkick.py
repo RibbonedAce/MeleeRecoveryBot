@@ -31,7 +31,7 @@ class FalconKick(Chain):
         knockback = smashbot_state.get_remaining_knockback(opponent_state)
         diff_x = abs(smashbot_state.position.x) - game_state.get_stage_edge() + abs(knockback[0])
         # Should not Falcon Kick if too close unless we want to
-        if diff_x <= 20 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == FALCON_KICK_MODE.SMART:
+        if diff_x <= 40 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == FALCON_KICK_MODE.SMART:
             return False
 
         # Falcon Kick if we are high enough
