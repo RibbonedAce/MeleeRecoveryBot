@@ -81,14 +81,14 @@ class Mitigate(Tactic):
         # Meteor cancel 8 frames after hit-lag ended
         if JumpInward.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                smashbot_state.jumps_left > 0 and game_state.get_smashbot_custom("meteor_jump_lockout") == 0:
+                smashbot_state.jumps_left > 0 and smashbot_state.can_jump_meteor_cancel(game_state):
             self.pick_chain(JumpInward)
             return
 
         # Meteor cancel 8 frames after hit-lag ended
         if FalconDive.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                game_state.get_smashbot_custom("meteor_ff_lockout") == 0:
+                smashbot_state.can_special_meteor_cancel(game_state):
             self.pick_chain(FalconDive)
             return
 

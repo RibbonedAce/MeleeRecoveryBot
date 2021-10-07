@@ -1,6 +1,6 @@
 import math
 
-from melee import Action, FrameData, PlayerState
+from melee import Action, FrameData, GameState, PlayerState, port_detector
 
 from Utils.angleutils import AngleUtils
 from Utils.mathutils import MathUtils
@@ -30,6 +30,12 @@ class PlayerStateExtensions:
         PlayerState.is_grabbed = PlayerStateExtensions.__is_grabbed
         PlayerState.is_wall_teching = PlayerStateExtensions.__is_wall_teching
         PlayerState.is_teching = PlayerStateExtensions.__is_teching
+        PlayerState.is_dead = PlayerStateExtensions.__is_dead
+        PlayerState.get_recent_damage = PlayerStateExtensions.__get_recent_damage
+        PlayerState.can_tech = PlayerStateExtensions.__can_tech
+        PlayerState.can_jump_meteor_cancel = PlayerStateExtensions.__can_jump_meteor_cancel
+        PlayerState.can_special_meteor_cancel = PlayerStateExtensions.__can_special_meteor_cancel
+        PlayerState.get_port = PlayerStateExtensions.__get_port
     
     @staticmethod
     def __get_position_after_drift(player_state, other_state, frames=1):
@@ -176,6 +182,27 @@ class PlayerStateExtensions:
         return Action.NEUTRAL_TECH.value <= player_state.action.value <= Action.BACKWARD_TECH.value
 
     @staticmethod
+    def __is_dead(player_state):
+        return player_state.action in [Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
+                                       Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN]
+
+    @staticmethod
+    def __get_recent_damage(player_state, game_state):
+        return max(player_state.percent - GameState.PREV_PERCENT[player_state.get_port(game_state)], 0)
+
+    @staticmethod
+    def __can_tech(player_state, game_state):
+        return GameState.TECH_LOCKOUT[player_state.get_port(game_state)] <= 0
+
+    @staticmethod
+    def __can_jump_meteor_cancel(player_state, game_state):
+        return GameState.METEOR_JUMP_LOCKOUT[player_state.get_port(game_state)] <= 0
+
+    @staticmethod
+    def __can_special_meteor_cancel(player_state, game_state):
+        return GameState.METEOR_SPECIAL_LOCKOUT[player_state.get_port(game_state)] <= 0
+
+    @staticmethod
     def __get_hit_lag_duration(player_state, damage):
         d = math.floor(damage)
         e = 1
@@ -244,3 +271,7 @@ class PlayerStateExtensions:
             angle = AngleUtils.get_x_reflection(angle)
 
         return angle
+
+    @staticmethod
+    def __get_port(player_state, game_state):
+        return port_detector(game_state, player_state.character, player_state.costume)

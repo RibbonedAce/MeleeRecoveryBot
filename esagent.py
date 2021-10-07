@@ -32,8 +32,6 @@ class ESAgent:
                 known_projectiles.append(projectile)
         game_state.projectiles = known_projectiles
 
-        game_state.update_custom(self.smashbot_port, self.opponent_port)
-
         opponent_state = game_state.player[self.opponent_port]
 
         # Let's treat Counter-Moves as invulnerable. So we'll know to not attack during that time
@@ -50,3 +48,5 @@ class ESAgent:
         self.strategy.step(game_state,
                            game_state.player[self.smashbot_port],
                            game_state.player[self.opponent_port])
+
+        game_state.update_custom(self.smashbot_port, self.opponent_port)

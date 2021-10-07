@@ -1,7 +1,7 @@
 import math
 from math import cos, radians, sin
 
-from melee import Action, Button, FrameData
+from melee import Action, Button, FrameData, GameState
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
@@ -33,7 +33,7 @@ class AmsahTech(Chain):
 
         can_slide_off = AmsahTech.should_slide_off(smashbot_state, opponent_state, stage_edge)
         # Cannot Amsah tech if in tech lockout unless you can also slide off
-        if game_state.get_smashbot_custom("tech_lockout") > smashbot_state.hitlag_left - 2 and not can_slide_off:
+        if GameState.TECH_LOCKOUT[smashbot_state.get_port(game_state)] > smashbot_state.hitlag_left - 2 and not can_slide_off:
             return False
 
         # If we want to tech no matter what, do it
@@ -55,6 +55,10 @@ class AmsahTech(Chain):
 
     @staticmethod
     def can_stick_on_ground(smashbot_state, opponent_state, stage_edge):
+        # Cannot stick on ground if not already there
+        if not smashbot_state.on_ground:
+            return False
+
         # Cannot stick on ground if already out of hit-lag (mainly from throws)
         if smashbot_state.hitlag_left != 2:
             return False

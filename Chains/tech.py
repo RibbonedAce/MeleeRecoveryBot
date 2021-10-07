@@ -2,7 +2,7 @@ import math
 import random
 from enum import Enum
 
-from melee import FrameData
+from melee import FrameData, GameState
 from melee.enums import Button
 
 from Chains.chain import Chain
@@ -23,8 +23,6 @@ class Tech(Chain):
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
-        tech_lockout = game_state.get_smashbot_custom("tech_lockout")
-
         # Tech if we need to
         #   Calculate when we will land
         if smashbot_state.position.y > -4 and smashbot_state.is_flying_in_hit_stun():
@@ -41,15 +39,17 @@ class Tech(Chain):
                 knockback_magnitude = max(knockback_magnitude - 0.051, 0)
                 frames_until_landing += 1
                 # Break if it will be false anyway
-                if frames_until_landing >= 3 or frames_until_landing >= tech_lockout:
+                if frames_until_landing >= 3:
                     return False
 
-            return True
+            # Need to get out of tech lockout before landing
+            return frames_until_landing > GameState.TECH_LOCKOUT[smashbot_state.get_port(game_state)]
 
         return False
 
     def __init__(self, direction=TECH_DIRECTION.TECH_RANDOM):
         Chain.__init__(self)
+        self.teched = False
         if direction == TECH_DIRECTION.TECH_RANDOM:
             self.direction = TECH_DIRECTION(random.randint(0, 2))
         else:
@@ -58,16 +58,22 @@ class Tech(Chain):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 
-        # If we're on the ground, we're done here
-        if smashbot_state.on_ground:
-            self.interruptable = True
+        # If we are off the stage, we're done here
+        if abs(smashbot_state.position.x) > game_state.get_stage_edge():
+            return False
+
+        # If we're on the ground and started the tech, we're done here
+        if smashbot_state.on_ground and not (smashbot_state.is_teching() and smashbot_state.action_frame < 2):
+            return False
+
+        # Wait for tech lockout to end
+        if not self.teched and not smashbot_state.can_tech(game_state):
+            self.interruptable = False
             controller.empty_input()
             return True
 
-        if game_state.get_smashbot_custom("tech_lockout") > 0:
-            controller.empty_input()
-            return True
-
+        self.interruptable = False
+        self.teched = True
         x = smashbot_state.get_inward_x()
 
         if self.direction == TECH_DIRECTION.TECH_IN_PLACE:

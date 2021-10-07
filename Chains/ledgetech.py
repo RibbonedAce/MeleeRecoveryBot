@@ -1,4 +1,4 @@
-from melee import Button
+from melee import Button, GameState
 
 from Chains.chain import Chain
 
@@ -10,15 +10,14 @@ class LedgeTech(Chain):
         smashbot_state = propagate[1]
 
         # Cannot ledge tech if in tech lockout or not in hit-stun
-        if game_state.get_smashbot_custom("tech_lockout") > smashbot_state.hitlag_left - 2:
+        if GameState.TECH_LOCKOUT[smashbot_state.get_port(game_state)] > smashbot_state.hitlag_left - 2:
             return False
 
         # Cannot ledge tech if you don't go into knockdown
         if smashbot_state.hitstun_frames_left < 32:
             return False
 
-        stage_edge = game_state.get_stage_edge()
-        return abs(smashbot_state.x) <= stage_edge + 12 and smashbot_state.y < -10
+        return abs(smashbot_state.x) <= game_state.get_stage_edge() + 12 and smashbot_state.y < -10
 
     def __init__(self):
         Chain.__init__(self)
@@ -37,7 +36,7 @@ class LedgeTech(Chain):
             return True
 
         # Input the jump tech if we can
-        if not self.teched and smashbot_state.hitlag_left > 1 and game_state.get_smashbot_custom("tech_lockout") == 0:
+        if not self.teched and smashbot_state.hitlag_left > 1 and smashbot_state.can_tech(game_state):
             self.interruptable = False
             controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
             controller.press_button(Button.BUTTON_L)
