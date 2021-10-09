@@ -23,6 +23,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 0: Beginner
 - One recovery option is chosen (usually Up Special)
 - Recovery always starts as high as possible
+- The target destination is always on stage
 - There is no extra drift on recovery
 - Trajectory DI is always neutral
 - Smash DI is zero
@@ -34,6 +35,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 1: Easy
 - Two recovery options are chosen (usually Side Special, and Up Special if first option cannot make it)
 - Recovery can start as high as possible or sweet-spot to the ledge
+- The target destination is always ledge
 - There is no extra drift on recovery
 - Trajectory DI is away when hit towards stage, otherwise for survival
 - Smash DI is zero
@@ -45,6 +47,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 2: Normal
 - Three recovery options are chosen evenly (usually Side Special, Air Dodge, and Up Special if neither previous option can make it)
 - Recovery can start as high as possible, sweet-spot to the ledge, or sweet-spot on stage
+- The target destination can be on stage or to ledge
 - There is some chance to do an early fade-back on recovery
 - Trajectory DI is away when hit towards stage or hit weakly off stage, otherwise for survival
 - Smash DI is slight
@@ -57,6 +60,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Three recovery options are chosen (usually Side Special, Up Special, and Air Dodge)
 - Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
 - Even chance between fading back early, fading back late, and not fading back at all
+- The target destination can be on stage or to ledge
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is high (for a human)
 - Fast-falling is always performed
@@ -67,6 +71,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 4: TAS
 - Three recovery options are chosen (Up Special most common, occaisionally chooses options like Side Special or Air Dodge)
 - Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
+- The target destination can be on stage or to ledge
 - Even chance between fading back early, fading back late, and not fading back at all
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is frame-perfect
