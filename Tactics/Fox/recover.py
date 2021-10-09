@@ -1,6 +1,7 @@
 import math
 
 import melee
+from melee import FrameData
 from melee.enums import Action
 
 from Chains.airdodge import AirDodge
@@ -93,8 +94,9 @@ class Recover(Tactic):
         Tactic.__init__(self, logger, controller, difficulty)
         self.time_to_recover = False
         self.recover_mode = DifficultySettings.get_recover_mode()
+        self.target_height = DifficultySettings.get_target_height()
+        self.ledge = self.target_height == RECOVER_HEIGHT.LEDGE
         self.recover_height = DifficultySettings.get_recover_height()
-        self.ledge = self.recover_height == RECOVER_HEIGHT.LEDGE
         self.fade_back_mode = DifficultySettings.get_fade_back_mode()
         self.last_distance = -100
 
@@ -148,7 +150,7 @@ class Recover(Tactic):
         # # Decide how we can Falcon Dive
         # if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
         #     # Recover ASAP
-        #     if self.recover_height == RECOVER_HEIGHT.MAX:
+        #     if self.target_height == RECOVER_HEIGHT.MAX:
         #         distance_left = max(FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
         #                             FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
         #         if distance_left > 0:
@@ -161,12 +163,16 @@ class Recover(Tactic):
         #         self.time_to_recover = True
         #     self.last_distance = distance_left
 
+        double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
+        if self.recover_height == RECOVER_HEIGHT.LEDGE:
+            double_jump_height -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
+
         # If we are near a horizontal blast-zone, jump to prevent dying
         # Or if we are low enough
         # Or if we are trying to recover ASAP
         if JumpInward.should_use(self._propagate) and \
                 (self.recover_height == RECOVER_HEIGHT.MAX or
-                 smashbot_state.position.y < -43 or
+                 smashbot_state.position.y < double_jump_height or
                  smashbot_state.position.x - game_state.get_left_blast_zone() < 20 or
                  game_state.get_right_blast_zone() - smashbot_state.position.x < 20):
             self.pick_chain(JumpInward)

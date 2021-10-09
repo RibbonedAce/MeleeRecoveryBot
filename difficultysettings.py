@@ -8,6 +8,8 @@ class DifficultySettings:
     FADE_BACK_NONE_WEIGHT = 1
     FADE_BACK_EARLY_WEIGHT = 1
     FADE_BACK_LATE_WEIGHT = 1
+    TARGET_STAGE_WEIGHT = 1
+    TARGET_LEDGE_WEIGHT = 1
     RECOVER_MAX_WEIGHT = 1
     RECOVER_STAGE_WEIGHT = 1
     RECOVER_LEDGE_WEIGHT = 1
@@ -41,6 +43,18 @@ class DifficultySettings:
             return FADE_BACK_MODE.LATE
 
         return FADE_BACK_MODE.NONE
+
+    @staticmethod
+    def get_target_height():
+        total = DifficultySettings.TARGET_LEDGE_WEIGHT + \
+                DifficultySettings.TARGET_STAGE_WEIGHT
+        num = DifficultySettings.__random_float(0, total)
+
+        num -= DifficultySettings.TARGET_LEDGE_WEIGHT
+        if num < 0:
+            return RECOVER_HEIGHT.LEDGE
+
+        return RECOVER_HEIGHT.STAGE
 
     @staticmethod
     def get_recover_height():
@@ -94,6 +108,8 @@ class DifficultySettings:
             DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 0
             DifficultySettings.FADE_BACK_LATE_WEIGHT = 0
+            DifficultySettings.TARGET_STAGE_WEIGHT = 1
+            DifficultySettings.TARGET_LEDGE_WEIGHT = 0
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 0
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 0
@@ -115,6 +131,8 @@ class DifficultySettings:
             DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 0
             DifficultySettings.FADE_BACK_LATE_WEIGHT = 0
+            DifficultySettings.TARGET_STAGE_WEIGHT = 0
+            DifficultySettings.TARGET_LEDGE_WEIGHT = 1
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 0
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
@@ -136,6 +154,8 @@ class DifficultySettings:
             DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 0.5
             DifficultySettings.FADE_BACK_LATE_WEIGHT = 0
+            DifficultySettings.TARGET_STAGE_WEIGHT = 1
+            DifficultySettings.TARGET_LEDGE_WEIGHT = 1
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
@@ -157,6 +177,8 @@ class DifficultySettings:
             DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 1
             DifficultySettings.FADE_BACK_LATE_WEIGHT = 0.5
+            DifficultySettings.TARGET_STAGE_WEIGHT = 1
+            DifficultySettings.TARGET_LEDGE_WEIGHT = 1
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
@@ -178,6 +200,8 @@ class DifficultySettings:
             DifficultySettings.FADE_BACK_NONE_WEIGHT = 1
             DifficultySettings.FADE_BACK_EARLY_WEIGHT = 1
             DifficultySettings.FADE_BACK_LATE_WEIGHT = 1
+            DifficultySettings.TARGET_STAGE_WEIGHT = 1
+            DifficultySettings.TARGET_LEDGE_WEIGHT = 1
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
