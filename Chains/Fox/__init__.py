@@ -1,0 +1,1 @@
+from Chains.Fox.foxillusion import FoxIllusion

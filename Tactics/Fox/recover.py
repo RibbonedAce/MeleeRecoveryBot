@@ -8,6 +8,7 @@ from Chains.airdodge import AirDodge
 from Chains.driftin import DriftIn
 from Chains.edgedash import EdgeDash
 from Chains.fastfall import FastFall
+from Chains.Fox.foxillusion import FoxIllusion
 from Chains.jumpinward import JumpInward
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
@@ -135,33 +136,33 @@ class Recover(Tactic):
             self.pick_chain(AirDodge, [target, self.fade_back_mode, self.ledge])
             return
 
-        # Raptor Boost
-        # if RaptorBoost.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.SECONDARY and \
-        #         RaptorBoost.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
-        #     self.chain = None
-        #     self.pick_chain(RaptorBoost, [target, self.fade_back_mode, self.ledge])
-        #     return
+        # Fox Illusion
+        if FoxIllusion.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.SECONDARY and \
+                FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
+            self.chain = None
+            self.pick_chain(FoxIllusion, [target, self.fade_back_mode, self.ledge])
+            return
 
-        # If we are wall teching, Falcon Dive ASAP
+        # If we are wall teching, Fire Fox ASAP
         wall_teching = smashbot_state.is_wall_teching()
         if wall_teching:
             self.time_to_recover = True
 
-        # # Decide how we can Falcon Dive
-        # if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
-        #     # Recover ASAP
-        #     if self.target_height == RECOVER_HEIGHT.MAX:
-        #         distance_left = max(FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
-        #                             FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
-        #         if distance_left > 0:
-        #             distance_left = self.last_distance - 100
-        #     # Recover at the ledge or stage
-        #     else:
-        #         distance_left = FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
-        #
-        #     if distance_left <= self.last_distance and distance_left <= 0:
-        #         self.time_to_recover = True
-        #     self.last_distance = distance_left
+        # Decide how we can Fox Illusion
+        if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
+            # Recover ASAP
+            if self.target_height == RECOVER_HEIGHT.MAX:
+                distance_left = max(FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
+                                    FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
+                if distance_left > 0:
+                    distance_left = self.last_distance - 100
+            # Recover at the ledge or stage
+            else:
+                distance_left = FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
+
+            if distance_left <= self.last_distance and distance_left <= 0:
+                self.time_to_recover = True
+            self.last_distance = distance_left
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
         if self.recover_height == RECOVER_HEIGHT.LEDGE:
@@ -178,17 +179,12 @@ class Recover(Tactic):
             self.pick_chain(JumpInward)
             return
 
-        # # Recover when we're ready
-        # if FalconDive.should_use(self._propagate) and \
-        #         (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
-        #     self.chain = None
-        #     self.pick_chain(FalconDive, [target, self.fade_back_mode, self.ledge])
-        #     return
-        #
-        # # If we can do a Falcon Kick to get back easier, then do so
-        # if FalconKick.should_use(self._propagate):
-        #     self.pick_chain(FalconKick)
-        #     return
+        # Recover when we're ready
+        if FoxIllusion.should_use(self._propagate) and \
+                (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
+            self.chain = None
+            self.pick_chain(FoxIllusion, [target, self.fade_back_mode, self.ledge])
+            return
 
         # DI into the stage
         if DriftIn.should_use(self._propagate) and \
