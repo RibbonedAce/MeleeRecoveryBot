@@ -17,6 +17,8 @@ def check_port(value):
         Must be 1, 2, 3, or 4." % value)
     return i_value
 
+def get_character(value):
+    return melee.enums.Character(value)
 
 def is_dir(dir_name):
     """Checks if a path is an actual directory"""
@@ -45,6 +47,36 @@ parser.add_argument('--dolphinexecutable', '-e', type=is_dir,
                     help='Manually specify Dolphin executable')
 parser.add_argument('--stage', '-s', default="FD",
                     help='Specify which stage to select')
+parser.add_argument('--character', '-c', type=get_character,
+                    help='Character that SmashBot will pick' +
+                         '\nMARIO = 0' +
+                         '\nFOX = 1' +
+                         '\nCPTFALCON = 2' +
+                         '\nDK = 3' +
+                         '\nKIRBY = 4' +
+                         '\nBOWSER = 5' +
+                         '\nLINK = 6' +
+                         '\nSHEIK = 7' +
+                         '\nNESS = 8' +
+                         '\nPEACH = 9' +
+                         '\nPOPO = 10' +
+                         '\nNANA = 11' +
+                         '\nPIKACHU = 12' +
+                         '\nSAMUS = 13' +
+                         '\nYOSHI = 14' +
+                         '\nJIGGLYPUFF = 15' +
+                         '\nMEWTWO = 16' +
+                         '\nLUIGI = 17' +
+                         '\nMARTH = 18' +
+                         '\nZELDA = 19' +
+                         '\nYLINK = 20' +
+                         '\nDOC = 21' +
+                         '\nFALCO = 22' +
+                         '\nPICHU = 23' +
+                         '\nGAMEANDWATCH = 24' +
+                         '\nGANONDORF = 25' +
+                         '\nROY = 26',
+                    default=1)
 
 stage_dict = {
     "FD": melee.enums.Stage.FINAL_DESTINATION,
@@ -116,12 +148,6 @@ print("Connected")
 controller_one.connect()
 controller_two.connect()
 
-supported_characters = [melee.enums.Character.PEACH, melee.enums.Character.CPTFALCON, melee.enums.Character.FALCO,
-                        melee.enums.Character.FOX, melee.enums.Character.SAMUS, melee.enums.Character.ZELDA,
-                        melee.enums.Character.SHEIK,
-                        melee.enums.Character.PIKACHU, melee.enums.Character.JIGGLYPUFF, melee.enums.Character.MARTH,
-                        melee.enums.Character.GANONDORF]
-
 # Main loop
 while True:
     # "step" to the next frame
@@ -146,6 +172,6 @@ while True:
             log.logframe(game_state)
             log.writeframe()
     elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
-        melee.menuhelper.MenuHelper.choose_character(melee.enums.Character.CPTFALCON, game_state, controller_one)
+        melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
         if log:
             log.skipframe()
