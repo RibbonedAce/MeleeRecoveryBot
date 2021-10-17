@@ -222,7 +222,7 @@ class PlayerStateExtensions:
             return 0
 
         # If opponent is falling when using an aerial attack, assume that they will land the next frame
-        landing_lag = attack["Landing Lag"]
+        landing_lag = attack["LandingLag"]
         if landing_lag > 0 and player_state.speed_y_self < 0:
             return landing_lag
 
@@ -246,16 +246,16 @@ class PlayerStateExtensions:
         p = player_state.percent
         d = attack["Damage"]
         w = FrameData.INSTANCE.get_weight(player_state.character)
-        s = attack["KB Growth"]
-        b = attack["Base KB"]
+        s = attack["KBGrowth"]
+        b = attack["BaseKB"]
 
         # Set knockback moves
-        if attack["Set KB"] != 0:
+        if attack["SetKB"] != 0:
             p = 10
-            d = attack["Set KB"]
+            d = attack["SetKB"]
 
         # Weight-independent moves (e.g. throws)
-        if not attack["Weight Dependent"]:
+        if not attack["WeightDependent"]:
             w = 100
 
         return (((((p / 10 + p * d / 20) * 200 / (w + 100) * 1.4) + 18) * s / 100) + b) * 0.03

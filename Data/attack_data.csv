@@ -1,4 +1,4 @@
-Character,Action,Frame,Damage,Angle,KB Growth,Set KB,Base KB,IASA,Landing Lag,Effect,Weight Dependent
+Character,Action,Frame,Damage,Angle,KBGrowth,SetKB,BaseKB,IASA,LandingLag,Effect,WeightDependent
 18,44,4,6,45,60,0,30,20,0,Slash,TRUE
 18,45,4,6,45,60,0,30,21,0,Slash,TRUE
 18,50,12,12,110,55,0,70,40,0,Slash,TRUE

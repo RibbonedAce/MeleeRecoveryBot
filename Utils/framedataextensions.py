@@ -44,13 +44,13 @@ class FrameDataExtensions:
                 attack_data[character][action].append((action_frame,
                                                        {"Damage": float(frame["Damage"]),
                                                         "Angle": float(frame["Angle"]),
-                                                        "KB Growth": int(frame["KB Growth"]),
-                                                        "Set KB": int(frame["Set KB"]),
-                                                        "Base KB": int(frame["Base KB"]),
+                                                        "KBGrowth": int(frame["KBGrowth"]),
+                                                        "SetKB": int(frame["SetKB"]),
+                                                        "BaseKB": int(frame["BaseKB"]),
                                                         "IASA": int(frame["IASA"]),
-                                                        "Landing Lag": int(frame["Landing Lag"]),
+                                                        "LandingLag": int(frame["LandingLag"]),
                                                         "Effect": frame["Effect"],
-                                                        "Weight Dependent": bool(frame["Weight Dependent"])}))
+                                                        "WeightDependent": bool(frame["WeightDependent"])}))
 
                 attack_data[character][action].sort(key=action_sort, reverse=True)
 

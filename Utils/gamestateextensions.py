@@ -33,20 +33,20 @@ class GameStateExtensions:
             for stage in csv_reader:
                 stage_name = Stage(int(stage["Stage"]))
 
-                stage_data[stage_name] = {"Top BlastZone": float(stage["Top BlastZone"]),
-                                          "Bottom BlastZone": float(stage["Bottom BlastZone"]),
-                                          "Left BlastZone": float(stage["Left BlastZone"]),
-                                          "Right BlastZone": float(stage["Right BlastZone"])}
+                stage_data[stage_name] = {"TopBlastZone": float(stage["TopBlastZone"]),
+                                          "BottomBlastZone": float(stage["BottomBlastZone"]),
+                                          "LeftBlastZone": float(stage["LeftBlastZone"]),
+                                          "RightBlastZone": float(stage["RightBlastZone"])}
 
         return stage_data
 
     @staticmethod
     def __get_left_blast_zone(game_state):
-        return GameState.STAGE_DATA[game_state.stage]["Left BlastZone"]
+        return GameState.STAGE_DATA[game_state.stage]["LeftBlastZone"]
 
     @staticmethod
     def __get_right_blast_zone(game_state):
-        return GameState.STAGE_DATA[game_state.stage]["Right BlastZone"]
+        return GameState.STAGE_DATA[game_state.stage]["RightBlastZone"]
 
     @staticmethod
     def __get_stage_edge(game_state):
