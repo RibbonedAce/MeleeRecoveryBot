@@ -18,7 +18,7 @@ def check_port(value):
     return i_value
 
 def get_character(value):
-    return melee.enums.Character(value)
+    return melee.enums.Character(int(value))
 
 def is_dir(dir_name):
     """Checks if a path is an actual directory"""
