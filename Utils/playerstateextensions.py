@@ -150,7 +150,7 @@ class PlayerStateExtensions:
 
     @staticmethod
     def __is_flying_in_hit_stun(player_state):
-        return Action.DAMAGE_HIGH_1.value <= player_state.action.value <= Action.DAMAGE_FLY_ROLL.value
+        return Action.DAMAGE_FLY_HIGH.value <= player_state.action.value <= Action.DAMAGE_FLY_ROLL.value
 
     @staticmethod
     def __get_inward_x(player_state):
