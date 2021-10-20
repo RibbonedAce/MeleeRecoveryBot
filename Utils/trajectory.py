@@ -34,7 +34,7 @@ class Trajectory:
         return frames
 
     @staticmethod
-    def from_csv_file(character, descent_start, min_ledge_grab, max_ledge_grab, path):
+    def from_csv_file(character, descent_start, min_ledge_grab, max_ledge_grab, path, include_fall_frames=True):
         frames = []
         with open(path) as csv_file:
             # A list of dicts containing the data
@@ -58,7 +58,8 @@ class Trajectory:
 
                 frames.append(frame)
 
-        frames += Trajectory.create_trajectory_frames(character, frames[-1].vertical_velocity)
+        if include_fall_frames:
+            frames += Trajectory.create_trajectory_frames(character, frames[-1].vertical_velocity)
 
         return Trajectory(character, descent_start, min_ledge_grab, max_ledge_grab, frames)
 

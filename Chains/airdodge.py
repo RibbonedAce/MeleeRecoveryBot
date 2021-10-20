@@ -1,16 +1,18 @@
 import math
 
-from melee.enums import Action, Button
+from melee.enums import Action, Button, Character
 
 from Chains.chain import Chain
 from Utils.angleutils import AngleUtils
 from Utils.enums import FADE_BACK_MODE
 from Utils.mathutils import MathUtils
 from Utils.trajectory import Trajectory
-from Utils.trajectoryframe import TrajectoryFrame
 
 
 class AirDodge(Chain):
+    FILE_DICTIONARY = {Character.CPTFALCON: "Data/falcon_air_dodge.csv",
+                        Character.FOX: "Data/fox_air_dodge.csv"}
+
     @staticmethod
     def should_use(propagate):
         smashbot_state = propagate[1]
@@ -19,24 +21,36 @@ class AirDodge(Chain):
 
     @staticmethod
     def create_trajectory(character, angle):
-        frames = []
+        trajectory = Trajectory.from_csv_file(character, 30, -999, 999, AirDodge.FILE_DICTIONARY[character], False)
         velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
 
         for i in range(29):
-            frames.append(TrajectoryFrame(
-                vertical_velocity=velocity[1],
-                min_horizontal_velocity=velocity[0],
-                max_horizontal_velocity=velocity[0]))
+            trajectory.frames[i].vertical_velocity = velocity[1]
+            trajectory.frames[i].min_horizontal_velocity = velocity[0]
+            trajectory.frames[i].max_horizontal_velocity = velocity[0]
+
+            if i == 0:
+                trajectory.frames[i].forward_acceleration = velocity[0]
+                trajectory.frames[i].backward_acceleration = velocity[0]
+            else:
+                trajectory.frames[i].forward_acceleration = velocity[0] - trajectory.frames[i-1].max_horizontal_velocity
+                trajectory.frames[i].backward_acceleration = velocity[0] - trajectory.frames[i-1].min_horizontal_velocity
+
             velocity[0] *= 0.9
             velocity[1] *= 0.9
 
-        frames += Trajectory.create_trajectory_frames(character, velocity[1] / 0.9)
+        frames = Trajectory.create_trajectory_frames(character, velocity[1] / 0.9)
+        for i in range(29, 49):
+            index = min(i - 29, len(frames) - 1)
+            trajectory.frames[i].vertical_velocity = frames[index].vertical_velocity
+            trajectory.frames[i].forward_acceleration = frames[index].forward_acceleration
+            trajectory.frames[i].backward_acceleration = frames[index].backward_acceleration
+            trajectory.frames[i].min_horizontal_velocity = frames[index].min_horizontal_velocity
+            trajectory.frames[i].max_horizontal_velocity = frames[index].max_horizontal_velocity
 
-        air_dodge_offset = 0
-        for i in range(50):
-            air_dodge_offset += frames[min(i, len(frames) - 1)].vertical_velocity
-
-        return Trajectory(character, 30, -999, air_dodge_offset, frames)
+        trajectory.frames.append(frames[min(21, len(frames) - 1)])
+        trajectory.max_ledge_grab = trajectory.get_displacement_after_frames(0, 50)[1]
+        return trajectory
 
     def __init__(self, target_coords=(0, 0), fade_back=FADE_BACK_MODE.NONE, ledge=False):
         Chain.__init__(self)
