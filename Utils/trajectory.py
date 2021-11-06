@@ -11,7 +11,7 @@ class Trajectory:
     @staticmethod
     def create_drift_trajectory(character, start_velocity):
         frames = Trajectory.create_trajectory_frames(character, start_velocity)
-        return Trajectory(character, 0, -999, 999, frames)
+        return Trajectory(character, 0, -999, 999, False, frames)
 
     @staticmethod
     def create_trajectory_frames(character, start_velocity):
@@ -34,7 +34,7 @@ class Trajectory:
         return frames
 
     @staticmethod
-    def from_csv_file(character, descent_start, min_ledge_grab, max_ledge_grab, path, include_fall_frames=True):
+    def from_csv_file(character, descent_start, min_ledge_grab, max_ledge_grab, path, requires_extra_height=False, include_fall_frames=True):
         frames = []
         with open(path) as csv_file:
             # A list of dicts containing the data
@@ -61,14 +61,15 @@ class Trajectory:
         if include_fall_frames:
             frames += Trajectory.create_trajectory_frames(character, frames[-1].vertical_velocity)
 
-        return Trajectory(character, descent_start, min_ledge_grab, max_ledge_grab, frames)
+        return Trajectory(character, descent_start, min_ledge_grab, max_ledge_grab, requires_extra_height, frames)
 
-    def __init__(self, character, descent_start, min_ledge_grab, max_ledge_grab, frames):
+    def __init__(self, character, descent_start, min_ledge_grab, max_ledge_grab, requires_extra_height, frames):
         self.character = character
         self.descent_start = descent_start
         self.min_ledge_grab = min_ledge_grab
         self.max_ledge_grab = max_ledge_grab
         self.frames = frames
+        self.requires_extra_height = requires_extra_height
         self.max_height = self.__get_max_height()
         self.max_distance_at_max_height = self.get_distance_at_height(self.max_height, 0)
 
@@ -142,6 +143,9 @@ class Trajectory:
                 extra_height = ledge_box_top
                 if velocity + extra_velocity < 0:
                     extra_height = ledge_box_bottom
+                # If a recovery is prone to getting battlefielded, we need a bit more vertical distance
+                if self.requires_extra_height:
+                    extra_height -= 1
                 extra_distance = ledge_box_horizontal + frame.ecb_inward
             else:
                 extra_height = frame.ecb_bottom

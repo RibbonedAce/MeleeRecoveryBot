@@ -8,6 +8,7 @@ from Chains.airdodge import AirDodge
 from Chains.driftin import DriftIn
 from Chains.edgedash import EdgeDash
 from Chains.fastfall import FastFall
+from Chains.Fox.firefox import FireFox
 from Chains.Fox.foxillusion import FoxIllusion
 from Chains.jumpinward import JumpInward
 from difficultysettings import DifficultySettings
@@ -148,17 +149,18 @@ class Recover(Tactic):
         if wall_teching:
             self.time_to_recover = True
 
-        # Decide how we can Fox Illusion
+        # Decide how we can Fire Fox
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             # Recover ASAP
+            fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), 45)
             if self.target_height == RECOVER_HEIGHT.MAX:
-                distance_left = max(FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
-                                    FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
+                distance_left = max(fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
+                                    fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
                 if distance_left > 0:
                     distance_left = self.last_distance - 100
             # Recover at the ledge or stage
             else:
-                distance_left = FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
+                distance_left = fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
 
             if distance_left <= self.last_distance and distance_left <= 0:
                 self.time_to_recover = True
@@ -180,10 +182,10 @@ class Recover(Tactic):
             return
 
         # Recover when we're ready
-        if FoxIllusion.should_use(self._propagate) and \
+        if FireFox.should_use(self._propagate) and \
                 (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
             self.chain = None
-            self.pick_chain(FoxIllusion, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(FireFox, [target, self.fade_back_mode, self.ledge])
             return
 
         # DI into the stage

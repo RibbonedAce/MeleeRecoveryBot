@@ -40,6 +40,18 @@ class AngleUtils:
         return angle
 
     @staticmethod
+    def correct_for_cardinal_strict(angle):
+        # Correct angle based on the cardinal dead-zones, only going to cardinal if exactly at the right angle
+        non_cardinal_angle = (angle + 17) % 90 - 17
+        if -17 <= non_cardinal_angle < 0:
+            return angle - non_cardinal_angle - 18
+        if non_cardinal_angle == 0:
+            return angle - non_cardinal_angle
+        if 0 < non_cardinal_angle <= 17:
+            return angle - non_cardinal_angle + 18
+        return angle
+
+    @staticmethod
     def get_survival_di(angle, position):
         # Find when to DI left or right
         add_angle = True

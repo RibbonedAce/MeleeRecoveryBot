@@ -1,3 +1,4 @@
+import copy
 import math
 
 from melee.enums import Action, Button, Character
@@ -10,8 +11,8 @@ from Utils.trajectory import Trajectory
 
 
 class AirDodge(Chain):
-    FILE_DICTIONARY = {Character.CPTFALCON: "Data/falcon_air_dodge.csv",
-                        Character.FOX: "Data/fox_air_dodge.csv"}
+    TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 30, -999, 999, "Data/falcon_air_dodge.csv", include_fall_frames=False),
+                             Character.FOX: Trajectory.from_csv_file(Character.FOX, 30, -999, 999, "Data/fox_air_dodge.csv", include_fall_frames=False)}
 
     @staticmethod
     def should_use(propagate):
@@ -21,7 +22,7 @@ class AirDodge(Chain):
 
     @staticmethod
     def create_trajectory(character, angle):
-        trajectory = Trajectory.from_csv_file(character, 30, -999, 999, AirDodge.FILE_DICTIONARY[character], False)
+        trajectory = copy.deepcopy(AirDodge.TRAJECTORY_DICTIONARY[character])
         velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
 
         for i in range(29):
