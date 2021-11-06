@@ -153,7 +153,7 @@ class Recover(Tactic):
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             # Recover ASAP
             fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), 45)
-            if self.target_height == RECOVER_HEIGHT.MAX:
+            if self.recover_height == RECOVER_HEIGHT.MAX:
                 distance_left = max(fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
                                     fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
                 if distance_left > 0:
