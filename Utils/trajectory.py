@@ -145,7 +145,7 @@ class Trajectory:
                     extra_height = ledge_box_bottom
                 # If a recovery is prone to getting battlefielded, we need a bit more vertical distance
                 if self.requires_extra_height:
-                    extra_height -= 1
+                    extra_height -= 2
                 extra_distance = ledge_box_horizontal + frame.ecb_inward
             else:
                 extra_height = frame.ecb_bottom

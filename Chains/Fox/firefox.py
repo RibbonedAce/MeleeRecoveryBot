@@ -11,7 +11,7 @@ from Utils.trajectory import Trajectory
 
 
 class FireFox(Chain):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 78, -999, 999, "Data/fire_fox.csv", requires_extra_height=True)
+    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 78, -999, 999, "Data/fire_fox.csv", requires_extra_height=True, include_fall_frames=False)
 
     @staticmethod
     def create_trajectory(x_velocity, angle):
@@ -44,7 +44,10 @@ class FireFox(Chain):
             if i > 45:
                 magnitude = max(magnitude - 0.1, 0)
 
-        trajectory.frames += Trajectory.create_trajectory_frames(Character.FOX, trajectory.frames[71].vertical_velocity)
+        for i in range(72, 92):
+            trajectory.frames[i].vertical_velocity = max(trajectory.frames[i - 1].vertical_velocity - 0.23, -2.8)
+
+        trajectory.frames += Trajectory.create_trajectory_frames(Character.FOX, trajectory.frames[91].vertical_velocity)
         return trajectory
 
     @staticmethod
@@ -59,8 +62,9 @@ class FireFox(Chain):
         self.fade_back = fade_back
         self.ledge = ledge
         self.current_frame = -1
-        self.min_angle = 0
+        self.min_angle = -90
         self.max_angle = 90
+        self.best_angle = 0
         self.start_x_velocity = 0
         self.trajectory = None
 
@@ -81,7 +85,7 @@ class FireFox(Chain):
         x = smashbot_state.get_inward_x()
 
         # If we haven't started yet, hit the input
-        if self.current_frame < 0 and smashbot_state.action != Action.FOX_ILLUSION:
+        if self.current_frame < 0 and smashbot_state.action != Action.FIREFOX_WAIT_AIR:
             self.interruptable = False
             controller.press_button(Button.BUTTON_B)
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 1)
@@ -98,22 +102,58 @@ class FireFox(Chain):
             angle = AngleUtils.get_x_reflection(angle)
         magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
 
+        frame = self.trajectory.frames[min(self.current_frame, len(self.trajectory.frames) - 1)]
+
         # Calculating and applying angle
         if 0 <= self.current_frame < 42:
             self.current_frame += 1
             controller.release_button(Button.BUTTON_B)
 
             current_angle = AngleUtils.correct_for_cardinal_strict((self.max_angle + self.min_angle) / 2)
-            xy = AngleUtils.angle_to_xy(current_angle)
+            # Testing cardinal directions
+            if self.min_angle % 90 == 0:
+                current_angle = self.min_angle
+            elif self.max_angle % 90 == 0:
+                current_angle = self.max_angle
+            # print(self.min_angle, self.max_angle, current_angle, self.best_angle)
 
+            # Tilt stick in current best angle
+            xy = AngleUtils.angle_to_xy(self.best_angle)
             controller.tilt_analog(Button.BUTTON_MAIN, (1 - x) + (2 * x - 1) * xy[0], xy[1])
 
+            # Test current angle in trial
             self.trajectory = FireFox.create_trajectory(self.start_x_velocity, current_angle)
             recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, start_frame=self.current_frame)
-            if recovery_distance < 0:
-                self.min_angle = current_angle
-            elif abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
-                self.max_angle = current_angle
+
+            # Adjusting angle after trial
+            if current_angle < 0:
+                if abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
+                    # If cardinal direction does not work
+                    if self.min_angle % 90 == 0:
+                        self.min_angle += 1
+                    else:
+                        self.min_angle = current_angle
+                else:
+                    self.best_angle = current_angle
+                    # If cardinal direction does not work
+                    if self.max_angle % 90 == 0:
+                        self.max_angle -= 1
+                    else:
+                        self.max_angle = current_angle
+            else:
+                if recovery_distance < 0:
+                    # If cardinal direction does not work
+                    if self.min_angle % 90 == 0:
+                        self.min_angle += 1
+                    else:
+                        self.min_angle = current_angle
+                else:
+                    self.best_angle = current_angle
+                    # If cardinal direction does not work
+                    if self.max_angle % 90 == 0:
+                        self.max_angle -= 1
+                    else:
+                        self.max_angle = current_angle
 
         elif self.current_frame >= 42:
             self.current_frame += 1
@@ -136,8 +176,6 @@ class FireFox(Chain):
                 recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
-
-            frame = self.trajectory.frames[min(self.current_frame, len(self.trajectory.frames) - 1)]
 
             if should_fade_back:
                 x_input = 1 - x
