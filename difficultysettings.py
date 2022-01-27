@@ -19,7 +19,6 @@ class DifficultySettings:
 
     FALCON_DIVE_REVERSE_CHANCE = 1
     LEDGE_TECH_CHANCE = 1
-    SWEET_SPOT_CHANCE = 1
     SDI_AMOUNT = 1
     DANGER_THRESHOLD = 30
     FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -100,10 +99,6 @@ class DifficultySettings:
         return random.random() < DifficultySettings.FALCON_DIVE_REVERSE_CHANCE
 
     @staticmethod
-    def should_sweet_spot():
-        return random.random() < DifficultySettings.SWEET_SPOT_CHANCE
-
-    @staticmethod
     def __random_float(start, stop):
         return MathUtils.lerp(start, stop, random.random())
 
@@ -124,7 +119,6 @@ class DifficultySettings:
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
-            DifficultySettings.SWEET_SPOT_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
@@ -148,7 +142,6 @@ class DifficultySettings:
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
-            DifficultySettings.SWEET_SPOT_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
@@ -172,7 +165,6 @@ class DifficultySettings:
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0.5
-            DifficultySettings.SWEET_SPOT_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0.2
             DifficultySettings.DANGER_THRESHOLD = 15
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -196,7 +188,6 @@ class DifficultySettings:
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0.25
             DifficultySettings.LEDGE_TECH_CHANCE = 1
-            DifficultySettings.SWEET_SPOT_CHANCE = 1
             DifficultySettings.SDI_AMOUNT = 0.4
             DifficultySettings.DANGER_THRESHOLD = 30
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -212,11 +203,11 @@ class DifficultySettings:
             DifficultySettings.TARGET_STAGE_WEIGHT = 1
             DifficultySettings.TARGET_LEDGE_WEIGHT = 1
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
-            DifficultySettings.RECOVER_STAGE_WEIGHT = 0
-            DifficultySettings.RECOVER_LEDGE_WEIGHT = 0
-            DifficultySettings.FALCON_DIVE_WEIGHT = 0
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0
-            DifficultySettings.AIR_DODGE_WEIGHT = 1
+            DifficultySettings.RECOVER_STAGE_WEIGHT = 1
+            DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
+            DifficultySettings.FALCON_DIVE_WEIGHT = 1
+            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0.25
+            DifficultySettings.AIR_DODGE_WEIGHT = 0.25
 
             DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
