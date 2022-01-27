@@ -41,6 +41,8 @@ class FastFall(Chain):
 
         if trajectory.get_extra_distance(smashbot_state, opponent_state, (stage_edge, 0), False) > 0 or \
             smashbot_state.is_facing_inwards() and trajectory.get_extra_distance(smashbot_state, opponent_state, (stage_edge, 0), True) > 0:
+            if smashbot_state.position.y < -30:
+                print(trajectory.get_extra_distance(smashbot_state, opponent_state, (stage_edge, 0), False))
             return True
 
     def __init__(self):

@@ -11,7 +11,7 @@ from Utils.trajectory import Trajectory
 
 
 class FoxIllusion(Chain):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 15, -999, 999, "Data/fox_illusion.csv")
+    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 0, 15, -999, 999, "Data/fox_illusion.csv")
 
     @staticmethod
     def create_shorten_trajectory(amount):

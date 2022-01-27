@@ -24,6 +24,7 @@ class PlayerStateExtensions:
         PlayerState.is_bouncing = PlayerStateExtensions.__is_bouncing
         PlayerState.is_being_thrown = PlayerStateExtensions.__is_being_thrown
         PlayerState.is_flying_in_hit_stun = PlayerStateExtensions.__is_flying_in_hit_stun
+        PlayerState.is_suffering_damage = PlayerStateExtensions.__is_suffering_damage
         PlayerState.get_inward_x = PlayerStateExtensions.__get_inward_x
         PlayerState.get_outward_x = PlayerStateExtensions.__get_outward_x
         PlayerState.is_facing_inwards = PlayerStateExtensions.__is_facing_inwards
@@ -151,6 +152,10 @@ class PlayerStateExtensions:
     @staticmethod
     def __is_flying_in_hit_stun(player_state):
         return Action.DAMAGE_FLY_HIGH.value <= player_state.action.value <= Action.DAMAGE_FLY_ROLL.value
+
+    @staticmethod
+    def __is_suffering_damage(player_state):
+        return player_state.hitlag_left > 0 or player_state.hitstun_frames_left > 0
 
     @staticmethod
     def __get_inward_x(player_state):

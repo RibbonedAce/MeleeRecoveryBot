@@ -11,8 +11,8 @@ from Utils.trajectory import Trajectory
 
 
 class AirDodge(Chain):
-    TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 30, -999, 999, "Data/falcon_air_dodge.csv", include_fall_frames=False),
-                             Character.FOX: Trajectory.from_csv_file(Character.FOX, 30, -999, 999, "Data/fox_air_dodge.csv", include_fall_frames=False)}
+    TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, 999, "Data/falcon_air_dodge.csv", include_fall_frames=False),
+                             Character.FOX: Trajectory.from_csv_file(Character.FOX, 0, 30, -999, 999, "Data/fox_air_dodge.csv", include_fall_frames=False)}
 
     @staticmethod
     def should_use(propagate):

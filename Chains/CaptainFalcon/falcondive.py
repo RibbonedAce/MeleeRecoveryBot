@@ -11,8 +11,8 @@ from Utils.trajectory import Trajectory
 
 
 class FalconDive(Chain):
-    TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 44, -999, 999, "Data/falcon_dive.csv")
-    REVERSE_TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 44, 15, 999, "Data/reverse_falcon_dive.csv")
+    TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 44, -999, 999, "Data/falcon_dive.csv")
+    REVERSE_TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 44, 15, 999, "Data/reverse_falcon_dive.csv")
 
     @staticmethod
     def should_use(propagate):

@@ -28,7 +28,7 @@ class Mitigate(Tactic):
             return True
 
         # Damaged action
-        if smashbot_state.is_flying_in_hit_stun():
+        if smashbot_state.is_suffering_damage():
             return True
 
         if smashbot_state.action == Action.TUMBLING:

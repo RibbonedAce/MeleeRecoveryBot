@@ -10,7 +10,7 @@ from Utils.trajectory import Trajectory
 
 
 class RaptorBoost(Chain):
-    TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 30, -999, -64, "Data/raptor_boost.csv")
+    TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, -64, "Data/raptor_boost.csv")
 
     @staticmethod
     def should_use(propagate):

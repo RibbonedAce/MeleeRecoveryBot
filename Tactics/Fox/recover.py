@@ -153,11 +153,11 @@ class Recover(Tactic):
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             # Recover ASAP
             fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), 45)
-            if self.recover_height == RECOVER_HEIGHT.MAX:
+            if self.recover_height == RECOVER_HEIGHT.MAX and self.recover_mode == RECOVER_MODE.PRIMARY:
                 distance_left = max(fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
                                     fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
                 if distance_left > 0:
-                    distance_left = self.last_distance - 100
+                    self.time_to_recover = True
             # Recover at the ledge or stage
             else:
                 distance_left = fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)

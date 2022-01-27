@@ -1,17 +1,21 @@
 import copy
 import math
 
+from melee import FrameData
 from melee.enums import Action, Button, Character
 
 from Chains.chain import Chain
+from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
+from Utils.controlstick import ControlStick
 from Utils.enums import FADE_BACK_MODE
+from Utils.hillclimb import HillClimb
 from Utils.mathutils import MathUtils
 from Utils.trajectory import Trajectory
 
 
 class FireFox(Chain):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 78, -999, 999, "Data/fire_fox.csv", requires_extra_height=True, include_fall_frames=False)
+    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 42, 78, -999, 999, "Data/fire_fox.csv", requires_extra_height=True, include_fall_frames=False)
 
     @staticmethod
     def create_trajectory(x_velocity, angle):
@@ -60,13 +64,17 @@ class FireFox(Chain):
         Chain.__init__(self)
         self.target_coords = target_coords
         self.fade_back = fade_back
+        self.should_sweet_spot = DifficultySettings.should_sweet_spot()
         self.ledge = ledge
         self.current_frame = -1
-        self.min_angle = -90
-        self.max_angle = 90
-        self.best_angle = 0
+        self.last_action_frame = -1
+        self.min_angle = self.__determine_initial_min_angle()
+        self.max_angle = ControlStick(0, ControlStick.MAX_INPUT).to_edge_coordinate(True)
+        self.best_angle = ControlStick(ControlStick.MAX_INPUT, 0).to_edge_coordinate(True)
+        self.best_distance = None
         self.start_x_velocity = 0
         self.trajectory = None
+        self.hill_climb = None
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -79,8 +87,15 @@ class FireFox(Chain):
 
         useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
         if self.trajectory is None:
-            self.trajectory = FireFox.create_trajectory(useful_x_velocity, self.min_angle)
+            self.trajectory = FireFox.create_trajectory(useful_x_velocity, ControlStick.coordinate_num_to_angle(self.min_angle))
             self.start_x_velocity = useful_x_velocity
+            self.hill_climb = HillClimb(self.min_angle, self.max_angle, 40)
+
+            # If going for ledge and facing backwards, do not go straight up or down
+            if (self.ledge or self.should_sweet_spot) and not smashbot_state.is_facing_inwards():
+                self.max_angle -= 1
+                if self.min_angle < 0:
+                    self.min_angle += 1
 
         x = smashbot_state.get_inward_x()
 
@@ -91,9 +106,9 @@ class FireFox(Chain):
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 1)
             self.current_frame = 0
 
-            # print("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
-            #       "FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character)", "FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)", "self.ledge", "self.fade_back", "x_input", "should_fade_back", "recovery_distance",
-            #       "frame.vertical_velocity", "frame.forward_acceleration", "frame.backward_acceleration", "frame.max_horizontal_velocity", "frame.mid_horizontal_velocity", "frame.min_horizontal_velocity", "frame.ecb_bottom", "frame.ecb_inward", sep=", ")
+            print("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
+                  "FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character)", "FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)", "self.ledge", "self.fade_back", "x_input", "should_fade_back", "recovery_distance",
+                  "frame.vertical_velocity", "frame.forward_acceleration", "frame.backward_acceleration", "frame.max_horizontal_velocity", "frame.mid_horizontal_velocity", "frame.min_horizontal_velocity", "frame.ecb_bottom", "frame.ecb_inward", sep=", ")
             return True
 
         should_fade_back = False
@@ -102,64 +117,78 @@ class FireFox(Chain):
             angle = AngleUtils.get_x_reflection(angle)
         magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
 
-        frame = self.trajectory.frames[min(self.current_frame, len(self.trajectory.frames) - 1)]
-
         # Calculating and applying angle
         if 0 <= self.current_frame < 42:
-            self.current_frame += 1
+            if smashbot_state.action_frame != self.last_action_frame:
+                self.current_frame += 1
+                self.last_action_frame = smashbot_state.action_frame
             controller.release_button(Button.BUTTON_B)
 
-            current_angle = AngleUtils.correct_for_cardinal_strict((self.max_angle + self.min_angle) / 2)
-            # Testing cardinal directions
-            if self.min_angle % 90 == 0:
-                current_angle = self.min_angle
-            elif self.max_angle % 90 == 0:
-                current_angle = self.max_angle
-            # print(self.min_angle, self.max_angle, current_angle, self.best_angle)
+            min_degrees = ControlStick.coordinate_num_to_angle(self.min_angle)
+            max_degrees = ControlStick.coordinate_num_to_angle(self.max_angle)
 
-            # Tilt stick in current best angle
-            xy = AngleUtils.angle_to_xy(self.best_angle)
-            controller.tilt_analog(Button.BUTTON_MAIN, (1 - x) + (2 * x - 1) * xy[0], xy[1])
+            current_angle = ControlStick.from_edge_coordinate(round((self.min_angle + self.max_angle) / 2)).correct_for_cardinal_strict().to_edge_coordinate(True)
+            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.NONE:
+                if self.best_distance is None:
+                    current_angle = self.max_angle
+                else:
+                    current_angle = ControlStick.from_edge_coordinate(round(self.hill_climb.get_next_point())).correct_for_cardinal_strict().to_edge_coordinate(True)
+
+            # Testing cardinal directions
+            else:
+                if min_degrees % 90 == 0:
+                    current_angle = self.min_angle
+                elif max_degrees % 90 == 0:
+                    current_angle = self.max_angle
+            print(self.min_angle, self.max_angle, current_angle, self.best_angle)
 
             # Test current angle in trial
-            self.trajectory = FireFox.create_trajectory(self.start_x_velocity, current_angle)
-            recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, start_frame=self.current_frame)
+            self.trajectory = FireFox.create_trajectory(self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
+            fade_back_frames = set()
+            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.LATE:
+                for i in range(self.current_frame, 600):
+                    fade_back_frames.add(i)
+
+            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.NONE:
+                recovery_distance = self.trajectory.get_extra_distance(smashbot_state, opponent_state, self.target_coords, start_frame=self.current_frame)
+                self.hill_climb.record_custom_result(recovery_distance, current_angle)
+            else:
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
+            print(abs(smashbot_state.position.x) - recovery_distance - self.target_coords[0])
 
             # Adjusting angle after trial
-            if current_angle < 0:
+            if self.should_sweet_spot:
+                if current_angle < 0 and abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0] or \
+                        current_angle >= 0 and recovery_distance == -100:
+                    self.__adjust_min_angle(current_angle)
+                else:
+                    self.best_angle = current_angle
+                    self.__adjust_max_angle(current_angle)
+            elif self.fade_back != FADE_BACK_MODE.NONE:
                 if abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
-                    # If cardinal direction does not work
-                    if self.min_angle % 90 == 0:
-                        self.min_angle += 1
-                    else:
-                        self.min_angle = current_angle
+                    self.__adjust_max_angle(current_angle)
                 else:
                     self.best_angle = current_angle
-                    # If cardinal direction does not work
-                    if self.max_angle % 90 == 0:
-                        self.max_angle -= 1
-                    else:
-                        self.max_angle = current_angle
+                    self.__adjust_min_angle(current_angle)
             else:
-                if recovery_distance < 0:
-                    # If cardinal direction does not work
-                    if self.min_angle % 90 == 0:
-                        self.min_angle += 1
-                    else:
-                        self.min_angle = current_angle
+                if self.best_distance is not None and recovery_distance < self.best_distance:
+                    self.__adjust_max_angle(current_angle)
                 else:
+                    self.best_distance = recovery_distance
                     self.best_angle = current_angle
-                    # If cardinal direction does not work
-                    if self.max_angle % 90 == 0:
-                        self.max_angle -= 1
-                    else:
-                        self.max_angle = current_angle
+                    self.__adjust_min_angle(current_angle)
+
+            # Tilt stick in best angle on last frame
+            if self.current_frame == 41:
+                xy = ControlStick.from_edge_coordinate(self.best_angle).to_smashbot_xy()
+                print(xy)
+                controller.tilt_analog(Button.BUTTON_MAIN, (1 - x) + (2 * x - 1) * xy[0], xy[1])
 
         elif self.current_frame >= 42:
             self.current_frame += 1
+            frame = self.trajectory.frames[min(self.current_frame, len(self.trajectory.frames) - 1)]
 
             # Check if we should still fade-back
-
             recovery_distance = None
 
             # See if we can fade back on this frame
@@ -191,9 +220,42 @@ class FireFox(Chain):
                         frame.mid_horizontal_velocity > useful_x_velocity + frame.forward_acceleration:
                     x_input = 0.5
 
-            # print(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
-            #       FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
-            #       frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward, sep=", ")
+            print(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
+                  FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
+                  frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward, sep=", ")
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
+
+        # print("number:", self.current_frame, smashbot_state.action_frame)
         self.interruptable = False
         return True
+
+    def __adjust_min_angle(self, current_angle):
+        # If cardinal direction does not work
+        if ControlStick.coordinate_num_to_angle(self.min_angle) % 90 == 0:
+            self.min_angle += 1
+        else:
+            self.min_angle = current_angle
+
+    def __adjust_max_angle(self, current_angle):
+        # If cardinal direction does not work
+        if ControlStick.coordinate_num_to_angle(self.max_angle) % 90 == 0:
+            self.max_angle -= 1
+        else:
+            self.max_angle = current_angle
+
+    def __determine_initial_min_angle(self):
+        if self.should_sweet_spot:
+            return ControlStick(0, -ControlStick.MAX_INPUT).to_edge_coordinate(True)
+        return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
+
+    # TODO: adjust timing/angle for no fade-back recovery mode to be directly at target
+    # TODO: fix return Falses for chains
+    # TODO: adjust angle generation based on fade-back
+    # TODO: rename difficulty choices to be character-generic
+    # TODO: fix tech timing
+    # TODO: consolidate sweet spot with other recovery targets
+    # TODO: adjust chances to be more in line with realistic choice combinations
+    # TODO: tune ledge tech SDI
+    # TODO: extract constants out of commonly used numbers
+    # TODO: match print statements with logger
+    # TODO: do not always just fall to ledge

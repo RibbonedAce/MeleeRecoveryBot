@@ -42,12 +42,14 @@ class TDI(Chain):
             angle = AngleUtils.get_survival_di(knockback_angle, smashbot_state.position.x)
             inputs = AngleUtils.angle_to_xy(angle)
             controller.tilt_analog(Button.BUTTON_MAIN, inputs[0], inputs[1])
+            print("Survival TDI")
             return True
 
         # No TDI
         #   If Combo DI is too dangerous, but no DI isn't
         if combo_di_danger > danger_threshold:
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 0.5)
+            print("No TDI")
             return True
 
         # Combo TDI
@@ -60,4 +62,5 @@ class TDI(Chain):
         # Slide off if on ground
         if smashbot_state.on_ground:
             controller.tilt_analog(Button.BUTTON_C, 0.5, 0)
+        print("Combo TDI")
         return True
