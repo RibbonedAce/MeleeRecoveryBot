@@ -6,9 +6,9 @@ import sys
 
 import melee
 
-import Utils
 from difficultysettings import DifficultySettings
 from esagent import ESAgent
+from Utils.logutils import LogUtils
 
 
 def check_port(value):
@@ -91,7 +91,7 @@ stage_dict = {
 args = parser.parse_args()
 
 if args.debug:
-    Utils.LOGGER = melee.logger.Logger()
+    LogUtils.LOGGER = melee.logger.Logger()
 
 # Options here are:
 #    GCN_ADAPTER will use your WiiU adapter for live human-controlled play
@@ -103,7 +103,7 @@ if not args.bot:
 
 # Create our console object. This will be the primary object that we will interface with
 console = melee.console.Console(path=args.dolphinexecutable,
-                                logger=Utils.LOGGER)
+                                logger=LogUtils.LOGGER)
 
 controller_one = melee.controller.Controller(console=console, port=args.port)
 controller_two = melee.controller.Controller(console=console,
@@ -123,9 +123,9 @@ DifficultySettings.initialize_difficulty(args.difficulty)
 def signal_handler(signal, frame):
     console.stop()
     if args.debug:
-        Utils.LOGGER.writelog()
+        LogUtils.LOGGER.writelog()
         print("")  # because the ^C will be on the terminal
-        print("Log file created: " + Utils.LOGGER.filename)
+        print("Log file created: " + LogUtils.LOGGER.filename)
     print("Shutting down cleanly...")
     sys.exit(0)
 
@@ -163,15 +163,15 @@ while True:
             agent1.controller.empty_input()
             if agent2:
                 agent2.controller.empty_input()
-            if Utils.LOGGER:
-                Utils.LOGGER.log("Notes", " Exception thrown: " + repr(error) + " ", concat=True)
+            if LogUtils.LOGGER:
+                LogUtils.simple_log("Exception thrown:", repr(error))
             else:
                 raise error
-        if Utils.LOGGER:
-            Utils.LOGGER.log("Notes", " Goals: " + str(agent1.strategy), concat=True)
-            Utils.LOGGER.logframe(game_state)
-            Utils.LOGGER.writeframe()
+        LogUtils.simple_log("Goals:", agent1.strategy)
+        if LogUtils.LOGGER:
+            LogUtils.LOGGER.logframe(game_state)
+            LogUtils.LOGGER.writeframe()
     elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
         melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
-        if Utils.LOGGER:
-            Utils.LOGGER.skipframe()
+        if LogUtils.LOGGER:
+            LogUtils.LOGGER.skipframe()

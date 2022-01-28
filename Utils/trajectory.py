@@ -3,14 +3,14 @@ import math
 
 from melee import FrameData
 
-import Utils
 from Utils.angleutils import AngleUtils
+from Utils.logutils import LogUtils
 from Utils.trajectoryframe import TrajectoryFrame
 
 
 class Trajectory:
     TOO_LOW_RESULT = -100
-    
+
     @staticmethod
     def create_drift_trajectory(character, start_velocity):
         frames = Trajectory.create_trajectory_frames(character, start_velocity)
@@ -95,20 +95,18 @@ class Trajectory:
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
-        if Utils.LOGGER and max_distance - actual_distance > 0:
-            Utils.LOGGER.log("Notes", " " + ",".join([ledge, position, target[0], max_distance - actual_distance]), concat=True)
+        if max_distance - actual_distance > 0:
+            LogUtils.simple_log(ledge, position, target[0], max_distance - actual_distance)
         return max_distance - actual_distance
 
     def get_distance_at_height(self, current_velocity, height, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
         if ledge:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
             if actual_height < self.min_ledge_grab:
-                if Utils.LOGGER:
-                    Utils.LOGGER.log("Notes", " Too high:" + ",".join([actual_height, self.min_ledge_grab]), concat=True)
+                LogUtils.simple_log("Too high:", actual_height, self.min_ledge_grab)
                 return Trajectory.TOO_LOW_RESULT
             elif actual_height > self.max_ledge_grab:
-                if Utils.LOGGER:
-                    Utils.LOGGER.log("Notes", " Too low:" + ",".join([actual_height, self.max_ledge_grab]), concat=True)
+                LogUtils.simple_log("Too low:", actual_height, self.max_ledge_grab)
                 return Trajectory.TOO_LOW_RESULT
 
         return self.get_distance(current_velocity, height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)

@@ -2,10 +2,6 @@ import math
 
 
 class AngleUtils:
-    """
-    Keeps angles between 0 and 360
-    """
-
     @staticmethod
     def refit_angle(angle):
         return (angle + 360) % 360

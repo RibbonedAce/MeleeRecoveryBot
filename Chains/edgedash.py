@@ -1,7 +1,7 @@
 from melee.enums import Action, Button
 
-import Utils
 from Chains.chain import Chain
+from Utils.logutils import LogUtils
 
 
 class EdgeDash(Chain):
@@ -19,8 +19,7 @@ class EdgeDash(Chain):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 
-        if Utils.LOGGER:
-            Utils.LOGGER.log("Notes", " Distance to edge : " + str(smashbot_state.position.y + smashbot_state.ecb.bottom.y) + " ", concat=True)
+        LogUtils.simple_log("Distance to edge:", smashbot_state.position.y + smashbot_state.ecb.bottom.y)
 
         # If we just grabbed the edge, just wait
         if smashbot_state.action == Action.EDGE_CATCHING:
