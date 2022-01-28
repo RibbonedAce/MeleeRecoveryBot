@@ -9,16 +9,13 @@ class ESAgent:
     This is the "manually programmed" TAS-looking agent.
     """
 
-    def __init__(self, dolphin, smashbot_port, opponent_port, controller, difficulty=4):
+    def __init__(self, smashbot_port, opponent_port, controller, difficulty=4):
         self.smashbot_port = smashbot_port
         self.opponent_port = opponent_port
         self.controller = controller
-        self.logger = dolphin.logger
         self.difficulty = difficulty
 
-        self.strategy = OnlyRecover(self.logger,
-                                    self.controller,
-                                    self.difficulty)
+        self.strategy = OnlyRecover(self.controller, self.difficulty)
 
     def act(self, game_state):
         known_projectiles = []

@@ -3,6 +3,7 @@ import math
 
 from melee import FrameData
 
+import Utils
 from Utils.angleutils import AngleUtils
 from Utils.trajectoryframe import TrajectoryFrame
 
@@ -94,18 +95,18 @@ class Trajectory:
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
-        # if max_distance - actual_distance > 0:
-        #     print(ledge, position, target[0], max_distance - actual_distance)
+        if Utils.LOGGER and max_distance - actual_distance > 0:
+            Utils.LOGGER.log("Notes", " " + ",".join([ledge, position, target[0], max_distance - actual_distance]), concat=True)
         return max_distance - actual_distance
 
     def get_distance_at_height(self, current_velocity, height, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
         if ledge:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
-            if actual_height < self.min_ledge_grab:
-                # print("Too high:", actual_height, self.min_ledge_grab)
+            if Utils.LOGGER and actual_height < self.min_ledge_grab:
+                Utils.LOGGER.log("Notes", " Too high:" + ",".join([actual_height, self.min_ledge_grab]), concat=True)
                 return Trajectory.TOO_LOW_RESULT
             elif actual_height > self.max_ledge_grab:
-                # print("Too low:", actual_height, self.max_ledge_grab)
+                Utils.LOGGER.log("Notes", " Too low:" + ",".join([actual_height, self.max_ledge_grab]), concat=True)
                 return Trajectory.TOO_LOW_RESULT
 
         return self.get_distance(current_velocity, height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)

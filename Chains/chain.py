@@ -8,7 +8,6 @@ class Chain(metaclass=ABCMeta):
 
     def __init__(self):
         self.interruptable = True
-        self.logger = None
         self.controller = None
         self.difficulty = None
 

@@ -1,5 +1,6 @@
 from melee.enums import Button
 
+import Utils
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
@@ -42,25 +43,26 @@ class TDI(Chain):
             angle = AngleUtils.get_survival_di(knockback_angle, smashbot_state.position.x)
             inputs = AngleUtils.angle_to_xy(angle)
             controller.tilt_analog(Button.BUTTON_MAIN, inputs[0], inputs[1])
-            print("Survival TDI")
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " Survival TDI", concat=True)
             return True
 
         # No TDI
         #   If Combo DI is too dangerous, but no DI isn't
         if combo_di_danger > danger_threshold:
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 0.5)
-            print("No TDI")
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " No TDI", concat=True)
             return True
 
         # Combo TDI
         #   TDI away from the opponent to keep from from following up
         angle = AngleUtils.get_combo_di(knockback_angle)
         inputs = AngleUtils.angle_to_xy(angle)
-        if self.logger:
-            self.logger.log("Notes", " Combo TDI angle: " + str(angle) + " ", concat=True)
         controller.tilt_analog(Button.BUTTON_MAIN, inputs[0], inputs[1])
         # Slide off if on ground
         if smashbot_state.on_ground:
             controller.tilt_analog(Button.BUTTON_C, 0.5, 0)
-        print("Combo TDI")
+        if Utils.LOGGER:
+            Utils.LOGGER.log("Notes", " Combo TDI angle: " + str(angle) + " ", concat=True)
         return True

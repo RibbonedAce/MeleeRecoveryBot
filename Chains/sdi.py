@@ -2,6 +2,7 @@ import math
 
 from melee.enums import Button
 
+import Utils
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
@@ -108,8 +109,8 @@ class SDI(Chain):
             if smashbot_state.off_stage or knockback_angle > 180:
                 angle = 90 + 90 * MathUtils.sign(smashbot_state.position.x)
                 self.cardinal = SDI.angle_to_cardinal(angle)
-                if self.logger:
-                    self.logger.log("Notes", " Off-stage SDI cardinal: " + str(self.cardinal) + " ", concat=True)
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " Off-stage SDI cardinal: " + str(self.cardinal) + " ", concat=True)
 
             # Survival SDI
             #   If we're at risk of dying from the hit, then SDI backwards to go further back to cut into the knockback
@@ -117,8 +118,8 @@ class SDI(Chain):
                 # Which cardinal direction is the most opposite the direction?
                 angle = AngleUtils.refit_angle(knockback_angle + 180)
                 self.cardinal = SDI.angle_to_cardinal(angle)
-                if self.logger:
-                    self.logger.log("Notes", " Survival SDI angle: " + str(angle) + " " + str(
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " Survival SDI angle: " + str(angle) + " " + str(
                         smashbot_state.speed_y_attack) + " " + str(smashbot_state.speed_x_attack), concat=True)
 
             # Combo SDI
@@ -128,8 +129,8 @@ class SDI(Chain):
                                                 smashbot_state.position.x - opponent_state.position.x))
                 angle = AngleUtils.refit_angle(angle)
                 self.cardinal = SDI.angle_to_cardinal(angle)
-                if self.logger:
-                    self.logger.log("Notes", " Combo SDI angle: " + str(angle) + " ", concat=True)
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " Combo SDI angle: " + str(angle) + " ", concat=True)
 
             # If on ground, then we can't SDI up or down
             if smashbot_state.on_ground:
@@ -142,8 +143,8 @@ class SDI(Chain):
                     if self.cardinal[0] == 0.5:
                         self.cardinal = (int(angle < 90 or angle > 270), 0.5)
 
-        if self.logger:
-            self.logger.log("Notes", " Committed SDI cardinal: " + str(self.cardinal) + " ", concat=True)
+        if Utils.LOGGER:
+            Utils.LOGGER.log("Notes", " Committed SDI cardinal: " + str(self.cardinal) + " ", concat=True)
 
         self.frames += 1
         x, y = 0.5, 0.5

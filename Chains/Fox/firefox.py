@@ -1,8 +1,10 @@
 import copy
 import math
 
+from melee import FrameData
 from melee.enums import Action, Button, Character
 
+import Utils
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
@@ -103,9 +105,11 @@ class FireFox(Chain):
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 1)
             self.current_frame = 0
 
-            # print("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
-            #       "FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character)", "FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)", "self.ledge", "self.fade_back", "x_input", "should_fade_back", "recovery_distance",
-            #       "frame.vertical_velocity", "frame.forward_acceleration", "frame.backward_acceleration", "frame.max_horizontal_velocity", "frame.mid_horizontal_velocity", "frame.min_horizontal_velocity", "frame.ecb_bottom", "frame.ecb_inward", sep=", ")
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " " + ",".join(["smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
+                  "FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character)", "FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)", "self.ledge", "self.fade_back", "x_input", "should_fade_back", "recovery_distance",
+                  "frame.vertical_velocity", "frame.forward_acceleration", "frame.backward_acceleration", "frame.max_horizontal_velocity", "frame.mid_horizontal_velocity", "frame.min_horizontal_velocity", "frame.ecb_bottom", "frame.ecb_inward"]), concat=True)
+
             return True
 
         should_fade_back = False
@@ -137,7 +141,8 @@ class FireFox(Chain):
                     current_angle = self.min_angle
                 elif max_degrees % 90 == 0:
                     current_angle = self.max_angle
-            # print(self.min_angle, self.max_angle, current_angle, self.best_angle)
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " " + ",".join([self.min_angle, self.max_angle, current_angle, self.best_angle]), concat=True)
 
             # Test current angle in trial
             self.trajectory = FireFox.create_trajectory(self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
@@ -151,7 +156,8 @@ class FireFox(Chain):
                 self.hill_climb.record_custom_result(recovery_distance, current_angle)
             else:
                 recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
-            # print(abs(smashbot_state.position.x) - recovery_distance - self.target_coords[0])
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " " + ",".join([abs(smashbot_state.position.x) - recovery_distance - self.target_coords[0]]), concat=True)
 
             # Adjusting angle after trial
             if self.should_sweet_spot:
@@ -178,7 +184,8 @@ class FireFox(Chain):
             # Tilt stick in best angle on last frame
             if self.current_frame == 41:
                 xy = ControlStick.from_edge_coordinate(self.best_angle).to_smashbot_xy()
-                # print(xy)
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " " + xy, concat=True)
                 controller.tilt_analog(Button.BUTTON_MAIN, (1 - x) + (2 * x - 1) * xy[0], xy[1])
 
         elif self.current_frame >= 42:
@@ -217,12 +224,14 @@ class FireFox(Chain):
                         frame.mid_horizontal_velocity > useful_x_velocity + frame.forward_acceleration:
                     x_input = 0.5
 
-            # print(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
-            #       FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
-            #       frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward, sep=", ")
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " " + ",".join([smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
+                  FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
+                  frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward]), concat=True)
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
 
-        # print("number:", self.current_frame, smashbot_state.action_frame)
+        if Utils.LOGGER:
+            Utils.LOGGER.log("Notes", " frame number:" + ",".join([self.current_frame, smashbot_state.action_frame]), concat=True)
         self.interruptable = False
         return True
 
@@ -252,6 +261,5 @@ class FireFox(Chain):
     # TODO: adjust chances to be more in line with realistic choice combinations
     # TODO: tune ledge tech SDI
     # TODO: extract constants out of commonly used numbers
-    # TODO: match print statements with logger
     # TODO: do not always just fall to ledge
     # TODO: refactor firefox sweet-spot code into another path

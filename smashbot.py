@@ -6,6 +6,7 @@ import sys
 
 import melee
 
+import Utils
 from difficultysettings import DifficultySettings
 from esagent import ESAgent
 
@@ -89,9 +90,8 @@ stage_dict = {
 
 args = parser.parse_args()
 
-log = None
 if args.debug:
-    log = melee.logger.Logger()
+    Utils.LOGGER = melee.logger.Logger()
 
 # Options here are:
 #    GCN_ADAPTER will use your WiiU adapter for live human-controlled play
@@ -103,7 +103,7 @@ if not args.bot:
 
 # Create our console object. This will be the primary object that we will interface with
 console = melee.console.Console(path=args.dolphinexecutable,
-                                logger=log)
+                                logger=Utils.LOGGER)
 
 controller_one = melee.controller.Controller(console=console, port=args.port)
 controller_two = melee.controller.Controller(console=console,
@@ -111,11 +111,11 @@ controller_two = melee.controller.Controller(console=console,
                                              type=opponent_type)
 
 # initialize our agent
-agent1 = ESAgent(console, args.port, args.opponent, controller_one, args.difficulty)
+agent1 = ESAgent(args.port, args.opponent, controller_one, args.difficulty)
 agent2 = None
 if args.bot:
     controller_two = melee.controller.Controller(console=console, port=args.opponent)
-    agent2 = ESAgent(console, args.opponent, args.port, controller_two, args.difficulty)
+    agent2 = ESAgent(args.opponent, args.port, controller_two, args.difficulty)
 
 # Initialize difficulty
 DifficultySettings.initialize_difficulty(args.difficulty)
@@ -123,9 +123,9 @@ DifficultySettings.initialize_difficulty(args.difficulty)
 def signal_handler(signal, frame):
     console.stop()
     if args.debug:
-        log.writelog()
+        Utils.LOGGER.writelog()
         print("")  # because the ^C will be on the terminal
-        print("Log file created: " + log.filename)
+        print("Log file created: " + Utils.LOGGER.filename)
     print("Shutting down cleanly...")
     sys.exit(0)
 
@@ -163,15 +163,15 @@ while True:
             agent1.controller.empty_input()
             if agent2:
                 agent2.controller.empty_input()
-            if log:
-                log.log("Notes", "Exception thrown: " + repr(error) + " ", concat=True)
+            if Utils.LOGGER:
+                Utils.LOGGER.log("Notes", " Exception thrown: " + repr(error) + " ", concat=True)
             else:
                 raise error
-        if log:
-            log.log("Notes", "Goals: " + str(agent1.strategy), concat=True)
-            log.logframe(game_state)
-            log.writeframe()
+        if Utils.LOGGER:
+            Utils.LOGGER.log("Notes", " Goals: " + str(agent1.strategy), concat=True)
+            Utils.LOGGER.logframe(game_state)
+            Utils.LOGGER.writeframe()
     elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
         melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
-        if log:
-            log.skipframe()
+        if Utils.LOGGER:
+            Utils.LOGGER.skipframe()

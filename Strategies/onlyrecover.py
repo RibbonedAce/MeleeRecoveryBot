@@ -5,11 +5,10 @@ from Tactics.wait import Wait
 
 
 class OnlyRecover(Strategy):
-    def __init__(self, logger, controller, difficulty):
+    def __init__(self, controller, difficulty):
         super().__init__()
         self.approach = False
         self.approach_frame = -123
-        self.logger = logger
         self.controller = controller
         self.set_difficulty = difficulty
         self.difficulty = 4

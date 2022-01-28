@@ -7,20 +7,18 @@ class Tactic(metaclass=ABCMeta):
     def should_use(propagate):
         return False
 
-    def __init__(self, logger, controller, difficulty):
-        self.logger = logger
+    def __init__(self, controller, difficulty):
         self.controller = controller
         self.difficulty = difficulty
         self.chain = None
         self._propagate = None
 
-    def pick_chain(self, chain, args=None) -> object:
+    def pick_chain(self, chain, args=None):
         if args is None:
             args = []
 
         if type(self.chain) != chain:
             self.chain = chain(*args)
-            self.chain.logger = self.logger
             self.chain.controller = self.controller
             self.chain.difficulty = self.difficulty
 

@@ -35,8 +35,8 @@ class Mitigate(Tactic):
 
         return False
 
-    def __init__(self, logger, controller, difficulty):
-        Tactic.__init__(self, logger, controller, difficulty)
+    def __init__(self, controller, difficulty):
+        Tactic.__init__(self, controller, difficulty)
         self.ledge_tech = DifficultySettings.should_ledge_tech()
 
     def step(self, game_state, smashbot_state, opponent_state):

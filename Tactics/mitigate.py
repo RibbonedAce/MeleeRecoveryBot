@@ -18,8 +18,8 @@ class Mitigate(Tactic):
 
         return clazz.should_use(propagate)
 
-    def __init__(self, logger, controller, difficulty):
-        Tactic.__init__(self, logger, controller, difficulty)
+    def __init__(self, controller, difficulty):
+        Tactic.__init__(self, controller, difficulty)
         self.initialized = False
         self.instance = None
 
@@ -28,7 +28,7 @@ class Mitigate(Tactic):
             self.initialized = True
             clazz = Mitigate.CLASS_DICTIONARY.get(smashbot_state.character)
             if clazz is not None:
-                self.instance = clazz(self.logger, self.controller, self.difficulty)
+                self.instance = clazz(self.controller, self.difficulty)
 
         if self.instance is None:
             return

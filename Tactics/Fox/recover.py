@@ -92,8 +92,8 @@ class Recover(Tactic):
             distance =  trajectory.get_extra_distance(smashbot_state, opponent_state, target, True)
         return distance > 0
 
-    def __init__(self, logger, controller, difficulty):
-        Tactic.__init__(self, logger, controller, difficulty)
+    def __init__(self, controller, difficulty):
+        Tactic.__init__(self, controller, difficulty)
         self.time_to_recover = False
         self.recover_mode = DifficultySettings.get_recover_mode()
         self.target_height = DifficultySettings.get_target_height()
