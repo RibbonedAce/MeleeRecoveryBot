@@ -156,7 +156,7 @@ class FireFox(Chain):
             # Adjusting angle after trial
             if self.should_sweet_spot:
                 if current_angle < 0 and abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0] or \
-                        current_angle >= 0 and recovery_distance == -100:
+                        current_angle >= 0 and recovery_distance == Trajectory.TOO_LOW_RESULT:
                     self.__adjust_min_angle(current_angle)
                 else:
                     self.best_angle = current_angle
@@ -247,7 +247,6 @@ class FireFox(Chain):
 
     # TODO: adjust timing/angle for no fade-back recovery mode to be directly at target
     # TODO: adjust angle generation based on fade-back
-    # TODO: rename difficulty choices to be character-generic
     # TODO: fix tech timing
     # TODO: consolidate sweet spot with other recovery targets
     # TODO: adjust chances to be more in line with realistic choice combinations

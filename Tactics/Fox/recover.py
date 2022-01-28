@@ -100,7 +100,7 @@ class Recover(Tactic):
         self.ledge = self.target_height == RECOVER_HEIGHT.LEDGE
         self.recover_height = DifficultySettings.get_recover_height()
         self.fade_back_mode = DifficultySettings.get_fade_back_mode()
-        self.last_distance = -100
+        self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         if EdgeDash.should_use(self._propagate):

@@ -8,6 +8,8 @@ from Utils.trajectoryframe import TrajectoryFrame
 
 
 class Trajectory:
+    TOO_LOW_RESULT = -100
+    
     @staticmethod
     def create_drift_trajectory(character, start_velocity):
         frames = Trajectory.create_trajectory_frames(character, start_velocity)
@@ -89,8 +91,8 @@ class Trajectory:
             knockback_magnitude = max(knockback_magnitude - 0.051, 0)
 
         max_distance = self.get_distance_at_height(0, target[1] - height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
-        if max_distance == -100:
-            return -100
+        if max_distance == Trajectory.TOO_LOW_RESULT:
+            return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
         # if max_distance - actual_distance > 0:
         #     print(ledge, position, target[0], max_distance - actual_distance)
@@ -101,10 +103,10 @@ class Trajectory:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
             if actual_height < self.min_ledge_grab:
                 # print("Too high:", actual_height, self.min_ledge_grab)
-                return -100
+                return Trajectory.TOO_LOW_RESULT
             elif actual_height > self.max_ledge_grab:
                 # print("Too low:", actual_height, self.max_ledge_grab)
-                return -100
+                return Trajectory.TOO_LOW_RESULT
 
         return self.get_distance(current_velocity, height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
 
@@ -112,7 +114,7 @@ class Trajectory:
         if fade_back_frames is None:
             fade_back_frames = set()
 
-        total_distance = -100
+        total_distance = Trajectory.TOO_LOW_RESULT
         actual_distance = 0
         actual_height = 0
         drag = FrameData.INSTANCE.get_air_friction(self.character)
@@ -157,7 +159,7 @@ class Trajectory:
             if i >= self.ascent_start and actual_height + extra_height >= height:
                 total_distance = actual_distance + extra_distance
             elif i >= self.descent_start:
-                if velocity + extra_velocity < 0 and total_distance != -100:
+                if velocity + extra_velocity < 0 and total_distance != Trajectory.TOO_LOW_RESULT:
                     total_distance = actual_distance + extra_distance
                 break
 
