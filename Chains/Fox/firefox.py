@@ -80,9 +80,7 @@ class FireFox(Chain):
 
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in [Action.FIREFOX_AIR, Action.FIREFOX_WAIT_AIR, Action.SWORD_DANCE_1_AIR, Action.DEAD_FALL]:
-            self.interruptable = True
-            controller.empty_input()
-            return True
+            return False
 
         useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
         if self.trajectory is None:
@@ -258,3 +256,4 @@ class FireFox(Chain):
     # TODO: extract constants out of commonly used numbers
     # TODO: match print statements with logger
     # TODO: do not always just fall to ledge
+    # TODO: refactor firefox sweet-spot code into another path

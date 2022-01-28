@@ -54,8 +54,6 @@ class LedgeTech(Chain):
 
         # Act normally out of wall jump
         if smashbot_state.is_wall_teching() and smashbot_state.action_frame > 0:
-            self.interruptable = True
-            controller.empty_input()
-            return True
+            return False
 
         return False

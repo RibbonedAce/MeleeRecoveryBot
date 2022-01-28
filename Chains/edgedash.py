@@ -25,15 +25,13 @@ class EdgeDash(Chain):
 
         # If we just grabbed the edge, just wait
         if smashbot_state.action == Action.EDGE_CATCHING:
-            self.interruptable = True
+            self.interruptable = False
             controller.empty_input()
             return True
 
-        # If we just grabbed the edge, just wait
+        # If we are on the ground, we're done
         if smashbot_state.on_ground:
-            self.interruptable = True
-            controller.empty_input()
-            return True
+            return False
 
         # If we are able to let go of the edge, do it
         if smashbot_state.action == Action.EDGE_HANGING:

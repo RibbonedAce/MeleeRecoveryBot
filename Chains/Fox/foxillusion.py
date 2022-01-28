@@ -43,9 +43,7 @@ class FoxIllusion(Chain):
 
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in [Action.FOX_ILLUSION, Action.FOX_ILLUSION_START, Action.FOX_ILLUSION_SHORTENED]:
-            self.interruptable = True
-            controller.empty_input()
-            return True
+            return False
 
         x = smashbot_state.get_inward_x()
 

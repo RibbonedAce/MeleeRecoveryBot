@@ -43,9 +43,7 @@ class FalconDive(Chain):
 
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in [Action.FIREFOX_WAIT_AIR, Action.FIREFOX_GROUND, Action.FIREFOX_AIR, Action.DEAD_FALL]:
-            self.interruptable = True
-            controller.empty_input()
-            return True
+            return False
 
         x = smashbot_state.get_inward_x()
 
