@@ -3,7 +3,7 @@ from melee import Action, Button, FrameData
 from Chains.CaptainFalcon.falcondive import FalconDive
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils.enums import FALCON_KICK_MODE
+from Utils.enums import STALL_MODE
 
 
 class FalconKick(Chain):
@@ -15,9 +15,9 @@ class FalconKick(Chain):
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
-        falcon_kick_mode = DifficultySettings.FALCON_KICK
+        falcon_kick_mode = DifficultySettings.STALL
         # If we do not want to Falcon Kick, do not
-        if falcon_kick_mode == FALCON_KICK_MODE.NEVER:
+        if falcon_kick_mode == STALL_MODE.NEVER:
             return False
 
         # Cannot Falcon Kick if still in hit-stun
@@ -31,7 +31,7 @@ class FalconKick(Chain):
         knockback = smashbot_state.get_remaining_knockback(opponent_state)
         diff_x = abs(smashbot_state.position.x) - game_state.get_stage_edge() + abs(knockback[0])
         # Should not Falcon Kick if too close unless we want to
-        if diff_x <= 40 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == FALCON_KICK_MODE.SMART:
+        if diff_x <= 40 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == STALL_MODE.SMART:
             return False
 
         # Falcon Kick if we are high enough

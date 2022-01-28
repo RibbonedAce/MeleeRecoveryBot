@@ -25,7 +25,7 @@ class TDI_MODE(Enum):
     NONE = 0
     SMART = 1
 
-class FALCON_KICK_MODE(Enum):
+class STALL_MODE(Enum):
     NEVER = 0
     ALWAYS = 1
     SMART = 2

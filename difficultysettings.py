@@ -1,6 +1,6 @@
 import random
 
-from Utils.enums import AMSAH_TECH_MODE, FADE_BACK_MODE, FALCON_KICK_MODE, FAST_FALL_MODE, RECOVER_HEIGHT, RECOVER_MODE, TDI_MODE
+from Utils.enums import AMSAH_TECH_MODE, FADE_BACK_MODE, FAST_FALL_MODE, RECOVER_HEIGHT, RECOVER_MODE, STALL_MODE, TDI_MODE
 from Utils.mathutils import MathUtils
 
 
@@ -13,16 +13,16 @@ class DifficultySettings:
     RECOVER_MAX_WEIGHT = 1
     RECOVER_STAGE_WEIGHT = 1
     RECOVER_LEDGE_WEIGHT = 1
-    FALCON_DIVE_WEIGHT = 1
-    RAPTOR_BOOST_WEIGHT = 1
+    PRIMARY_RECOVERY_WEIGHT = 1
+    SECONDARY_RECOVERY_WEIGHT = 1
     AIR_DODGE_WEIGHT = 1
 
-    FALCON_DIVE_REVERSE_CHANCE = 1
+    REVERSE_RECOVERY_CHANCE = 1
     LEDGE_TECH_CHANCE = 1
     SDI_AMOUNT = 1
     DANGER_THRESHOLD = 30
     FAST_FALL = FAST_FALL_MODE.ALWAYS
-    FALCON_KICK = FALCON_KICK_MODE.SMART
+    STALL = STALL_MODE.SMART
     TDI = TDI_MODE.SMART
     AMSAH_TECH = AMSAH_TECH_MODE.SMART
     METEOR_CANCEL_FRAME = 8
@@ -75,16 +75,16 @@ class DifficultySettings:
 
     @staticmethod
     def get_recover_mode():
-        total = DifficultySettings.RAPTOR_BOOST_WEIGHT + \
+        total = DifficultySettings.SECONDARY_RECOVERY_WEIGHT + \
                 DifficultySettings.AIR_DODGE_WEIGHT + \
-                DifficultySettings.FALCON_DIVE_WEIGHT
+                DifficultySettings.PRIMARY_RECOVERY_WEIGHT
         num = DifficultySettings.__random_float(0, total)
 
         num -= DifficultySettings.AIR_DODGE_WEIGHT
         if num < 0:
             return RECOVER_MODE.AIR_DODGE
 
-        num -= DifficultySettings.RAPTOR_BOOST_WEIGHT
+        num -= DifficultySettings.SECONDARY_RECOVERY_WEIGHT
         if num < 0:
             return RECOVER_MODE.SECONDARY
 
@@ -96,7 +96,7 @@ class DifficultySettings:
 
     @staticmethod
     def should_reverse():
-        return random.random() < DifficultySettings.FALCON_DIVE_REVERSE_CHANCE
+        return random.random() < DifficultySettings.REVERSE_RECOVERY_CHANCE
 
     @staticmethod
     def __random_float(start, stop):
@@ -113,16 +113,16 @@ class DifficultySettings:
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 0
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 0
-            DifficultySettings.FALCON_DIVE_WEIGHT = 1
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0
+            DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 0
             DifficultySettings.AIR_DODGE_WEIGHT = 0
 
-            DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
+            DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
-            DifficultySettings.FALCON_KICK = FALCON_KICK_MODE.NEVER
+            DifficultySettings.STALL = STALL_MODE.NEVER
             DifficultySettings.TDI = TDI_MODE.NONE
             DifficultySettings.AMSAH_TECH = AMSAH_TECH_MODE.NEVER
             DifficultySettings.METEOR_CANCEL_FRAME = 100
@@ -136,16 +136,16 @@ class DifficultySettings:
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 0
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
-            DifficultySettings.FALCON_DIVE_WEIGHT = 0
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 1
+            DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 0
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 0
 
-            DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
+            DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
-            DifficultySettings.FALCON_KICK = FALCON_KICK_MODE.ALWAYS
+            DifficultySettings.STALL = STALL_MODE.ALWAYS
             DifficultySettings.TDI = TDI_MODE.SMART
             DifficultySettings.AMSAH_TECH = AMSAH_TECH_MODE.NEVER
             DifficultySettings.METEOR_CANCEL_FRAME = 30
@@ -159,16 +159,16 @@ class DifficultySettings:
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
-            DifficultySettings.FALCON_DIVE_WEIGHT = 0
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 1
+            DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 0
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 1
 
-            DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0
+            DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0.5
             DifficultySettings.SDI_AMOUNT = 0.2
             DifficultySettings.DANGER_THRESHOLD = 15
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
-            DifficultySettings.FALCON_KICK = FALCON_KICK_MODE.SMART
+            DifficultySettings.STALL = STALL_MODE.SMART
             DifficultySettings.TDI = TDI_MODE.SMART
             DifficultySettings.AMSAH_TECH = AMSAH_TECH_MODE.ALWAYS
             DifficultySettings.METEOR_CANCEL_FRAME = 15
@@ -182,16 +182,16 @@ class DifficultySettings:
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
-            DifficultySettings.FALCON_DIVE_WEIGHT = 1
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 1
+            DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 1
 
-            DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 0.25
+            DifficultySettings.REVERSE_RECOVERY_CHANCE = 0.25
             DifficultySettings.LEDGE_TECH_CHANCE = 1
             DifficultySettings.SDI_AMOUNT = 0.4
             DifficultySettings.DANGER_THRESHOLD = 30
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
-            DifficultySettings.FALCON_KICK = FALCON_KICK_MODE.SMART
+            DifficultySettings.STALL = STALL_MODE.SMART
             DifficultySettings.TDI = TDI_MODE.SMART
             DifficultySettings.AMSAH_TECH = AMSAH_TECH_MODE.SMART
             DifficultySettings.METEOR_CANCEL_FRAME = 8
@@ -205,17 +205,17 @@ class DifficultySettings:
             DifficultySettings.RECOVER_MAX_WEIGHT = 1
             DifficultySettings.RECOVER_STAGE_WEIGHT = 1
             DifficultySettings.RECOVER_LEDGE_WEIGHT = 1
-            DifficultySettings.FALCON_DIVE_WEIGHT = 1
-            DifficultySettings.RAPTOR_BOOST_WEIGHT = 0.25
+            DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 0.25
             DifficultySettings.AIR_DODGE_WEIGHT = 0.25
 
-            DifficultySettings.FALCON_DIVE_REVERSE_CHANCE = 1
+            DifficultySettings.REVERSE_RECOVERY_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
             DifficultySettings.SWEET_SPOT_CHANCE = 0.25
             DifficultySettings.SDI_AMOUNT = 1
             DifficultySettings.DANGER_THRESHOLD = 30
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
-            DifficultySettings.FALCON_KICK = FALCON_KICK_MODE.SMART
+            DifficultySettings.STALL = STALL_MODE.SMART
             DifficultySettings.TDI = TDI_MODE.SMART
             DifficultySettings.AMSAH_TECH = AMSAH_TECH_MODE.SMART
             DifficultySettings.METEOR_CANCEL_FRAME = 8

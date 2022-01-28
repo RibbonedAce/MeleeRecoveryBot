@@ -246,7 +246,6 @@ class FireFox(Chain):
         return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
 
     # TODO: adjust timing/angle for no fade-back recovery mode to be directly at target
-    # TODO: fix return Falses for chains
     # TODO: adjust angle generation based on fade-back
     # TODO: rename difficulty choices to be character-generic
     # TODO: fix tech timing
