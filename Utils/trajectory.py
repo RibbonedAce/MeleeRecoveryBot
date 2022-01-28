@@ -102,11 +102,13 @@ class Trajectory:
     def get_distance_at_height(self, current_velocity, height, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
         if ledge:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
-            if Utils.LOGGER and actual_height < self.min_ledge_grab:
-                Utils.LOGGER.log("Notes", " Too high:" + ",".join([actual_height, self.min_ledge_grab]), concat=True)
+            if actual_height < self.min_ledge_grab:
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " Too high:" + ",".join([actual_height, self.min_ledge_grab]), concat=True)
                 return Trajectory.TOO_LOW_RESULT
             elif actual_height > self.max_ledge_grab:
-                Utils.LOGGER.log("Notes", " Too low:" + ",".join([actual_height, self.max_ledge_grab]), concat=True)
+                if Utils.LOGGER:
+                    Utils.LOGGER.log("Notes", " Too low:" + ",".join([actual_height, self.max_ledge_grab]), concat=True)
                 return Trajectory.TOO_LOW_RESULT
 
         return self.get_distance(current_velocity, height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)

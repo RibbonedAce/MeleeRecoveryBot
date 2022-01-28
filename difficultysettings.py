@@ -19,6 +19,7 @@ class DifficultySettings:
 
     REVERSE_RECOVERY_CHANCE = 1
     LEDGE_TECH_CHANCE = 1
+    SWEET_SPOT_CHANCE = 1
     SDI_AMOUNT = 1
     DANGER_THRESHOLD = 30
     FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -97,6 +98,10 @@ class DifficultySettings:
     @staticmethod
     def should_reverse():
         return random.random() < DifficultySettings.REVERSE_RECOVERY_CHANCE
+
+    @staticmethod
+    def should_sweet_spot():
+        return random.random() < DifficultySettings.SWEET_SPOT_CHANCE
 
     @staticmethod
     def __random_float(start, stop):
