@@ -164,7 +164,8 @@ class FireFox(Chain):
                     self.best_angle = current_angle
                     self.__adjust_max_angle(current_angle)
             elif self.fade_back != FADE_BACK_MODE.NONE:
-                if abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
+                if recovery_distance != Trajectory.TOO_LOW_RESULT and \
+                        abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
                     self.__adjust_max_angle(current_angle)
                 else:
                     self.best_angle = current_angle

@@ -13,6 +13,8 @@ from Chains.Fox.foxillusion import FoxIllusion
 from Chains.jumpinward import JumpInward
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
+from Utils.angleutils import AngleUtils
+from Utils.controlstick import ControlStick
 from Utils.enums import RECOVER_HEIGHT, RECOVER_MODE
 from Utils.trajectory import Trajectory
 
@@ -151,8 +153,12 @@ class Recover(Tactic):
 
         # Decide how we can Fire Fox
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
+            angle_to_ledge = AngleUtils.correct_for_cardinal(math.degrees(math.atan2(-smashbot_state.position.y, abs(smashbot_state.position.x) - stage_edge)))
+            min_angle = ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_angle()
+            test_angle = max(angle_to_ledge, min_angle)
+            fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), test_angle)
+
             # Recover ASAP
-            fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), 45)
             if self.recover_height == RECOVER_HEIGHT.MAX and self.recover_mode == RECOVER_MODE.PRIMARY:
                 distance_left = max(fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
                                     fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
