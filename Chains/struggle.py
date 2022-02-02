@@ -1,4 +1,4 @@
-from melee.enums import Action, Button
+from melee.enums import Button
 
 from Chains.chain import Chain
 
@@ -9,9 +9,7 @@ class Struggle(Chain):
     def should_use(propagate):
         smashbot_state = propagate[1]
 
-        return smashbot_state.action in [Action.GRABBED, Action.GRAB_PUMMELED, Action.GRAB_PULL,
-                                         Action.GRAB_PUMMELED, Action.GRAB_PULLING_HIGH, Action.GRABBED_WAIT_HIGH,
-                                         Action.PUMMELED_HIGH]
+        return smashbot_state.is_grabbed()
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         # Just naively press and release every button every other frame

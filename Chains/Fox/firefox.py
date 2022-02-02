@@ -248,9 +248,8 @@ class FireFox(Chain):
             return ControlStick(0, -ControlStick.MAX_INPUT).to_edge_coordinate(True)
         return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
 
-    # TODO: adjust timing/angle for no fade-back recovery mode to be directly at target
     # TODO: adjust angle generation based on fade-back
-    # TODO: fix tech timing
+    # TODO: implement Firefox meteor cancel
     # TODO: consolidate sweet spot with other recovery targets
     # TODO: adjust chances to be more in line with realistic choice combinations
     # TODO: tune ledge tech SDI

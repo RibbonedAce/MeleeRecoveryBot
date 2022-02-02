@@ -4,6 +4,7 @@ from Chains.amsahtech import AmsahTech
 from Chains.driftin import DriftIn
 from Chains.jumpinward import JumpInward
 from Chains.ledgetech import LedgeTech
+from Chains.nothing import Nothing
 from Chains.sdi import SDI
 from Chains.struggle import Struggle
 from Chains.tdi import TDI
@@ -18,7 +19,7 @@ class Mitigate(Tactic):
     def should_use(propagate):
         smashbot_state = propagate[1]
 
-        # Grabbed, thrown, in hit-stun, or tumbling
+        # Grabbed
         if smashbot_state.is_grabbed():
             return True
 
@@ -30,7 +31,8 @@ class Mitigate(Tactic):
         if smashbot_state.is_suffering_damage():
             return True
 
-        if smashbot_state.action == Action.TUMBLING:
+        # Need to wiggle out
+        if smashbot_state.is_flying_in_hit_stun() or smashbot_state.action == Action.TUMBLING:
             return True
 
         return False
@@ -96,7 +98,10 @@ class Mitigate(Tactic):
             self.pick_chain(Wiggle)
             return
 
-        # DI inward as a fallback
+        # DI inward as aerial fallback
         if DriftIn.should_use(self._propagate):
             self.pick_chain(DriftIn)
             return
+
+        # DI inward as grounded fallback
+        self.pick_chain(Nothing)

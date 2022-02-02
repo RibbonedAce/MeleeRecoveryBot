@@ -32,7 +32,7 @@ class Recover(Tactic):
                                                      Action.EDGE_ATTACK_QUICK, Action.EDGE_ROLL_SLOW,
                                                      Action.EDGE_ROLL_QUICK]
 
-        # If the opponent is on-stage, and Smashbot is on-edge, Smashbot needs to ledge-dash
+        # If the opponent is on-stage, and we're on-edge, we need to ledge-dash
         if not opponent_state.off_stage and on_edge:
             return True
 

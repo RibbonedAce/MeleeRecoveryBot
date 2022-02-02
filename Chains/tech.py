@@ -3,7 +3,7 @@ import random
 from enum import Enum
 
 from melee import FrameData, GameState
-from melee.enums import Button
+from melee.enums import Action, Button
 
 from Chains.chain import Chain
 
@@ -62,8 +62,8 @@ class Tech(Chain):
         if abs(smashbot_state.position.x) > game_state.get_stage_edge():
             return False
 
-        # If we're on the ground and started the tech, we're done here
-        if smashbot_state.on_ground and not (smashbot_state.is_teching() and smashbot_state.action_frame < 2):
+        # If we're not tumbling, or in hit-stun, or hitting the tech, we're done here
+        if smashbot_state.action != Action.TUMBLING and not smashbot_state.is_flying_in_hit_stun() and not (smashbot_state.is_teching() and smashbot_state.action_frame < 2):
             return False
 
         # Wait for tech lockout to end
