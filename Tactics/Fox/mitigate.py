@@ -2,6 +2,7 @@ from melee.enums import Action
 
 from Chains.amsahtech import AmsahTech
 from Chains.driftin import DriftIn
+from Chains.Fox.firefox import FireFox
 from Chains.jumpinward import JumpInward
 from Chains.ledgetech import LedgeTech
 from Chains.nothing import Nothing
@@ -87,11 +88,11 @@ class Mitigate(Tactic):
             return
 
         # Meteor cancel 8 frames after hit-lag ended
-        # if FalconDive.should_use(self._propagate) and \
-        #         smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-        #         smashbot_state.can_special_meteor_cancel(game_state):
-        #     self.pick_chain(FalconDive)
-        #     return
+        if FireFox.should_use(self._propagate) and \
+                smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
+                smashbot_state.can_special_meteor_cancel(game_state):
+            self.pick_chain(FireFox)
+            return
 
         if Wiggle.should_use(self._propagate):
             self.chain = None
