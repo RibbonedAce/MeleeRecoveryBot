@@ -42,6 +42,7 @@ class OnlyRecover(Strategy):
             self.pick_tactic(Wait)
             return
 
+        # If we need to recover, do it
         if Recover.should_use(self._propagate):
             self.pick_tactic(Recover)
             return

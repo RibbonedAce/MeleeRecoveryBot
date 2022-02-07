@@ -37,6 +37,7 @@ class PlayerStateExtensions:
         PlayerState.can_jump_meteor_cancel = PlayerStateExtensions.__can_jump_meteor_cancel
         PlayerState.can_special_meteor_cancel = PlayerStateExtensions.__can_special_meteor_cancel
         PlayerState.get_port = PlayerStateExtensions.__get_port
+        PlayerState.get_stock_duration = PlayerStateExtensions.__get_stock_duration
     
     @staticmethod
     def __get_position_after_drift(player_state, other_state, frames=1):
@@ -206,6 +207,10 @@ class PlayerStateExtensions:
     @staticmethod
     def __can_special_meteor_cancel(player_state, game_state):
         return GameState.METEOR_SPECIAL_LOCKOUT[player_state.get_port(game_state)] <= 0
+
+    @staticmethod
+    def __get_stock_duration(player_state, game_state):
+        return GameState.STOCK_DURATION[player_state.get_port(game_state)]
 
     @staticmethod
     def __get_hit_lag_duration(player_state, damage):

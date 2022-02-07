@@ -2,6 +2,7 @@ import melee
 from melee import FrameData
 from melee.enums import Action
 
+from Chains.dropfromangel import DropFromAngel
 from Chains.nothing import Nothing
 from Tactics.tactic import Tactic
 
@@ -46,4 +47,10 @@ class Wait(Tactic):
         return False
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
+        # If we want to drop from an angel platform, do it
+        if DropFromAngel.should_use(self._propagate):
+            self.pick_chain(DropFromAngel)
+            return
+
+        # If nothing to do, then do nothing
         self.pick_chain(Nothing)
