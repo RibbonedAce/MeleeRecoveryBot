@@ -23,8 +23,8 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 0: Beginner
 - One recovery option is chosen (usually Up Special)
 - Recovery always starts as high as possible
-- The target destination is always on stage
-- There is no extra drift on recovery
+- Recovery aims to go as far in stage as possible
+- Always hold in on drift
 - Trajectory DI is always neutral
 - Smash DI is zero
 - Fast-falling is never performed
@@ -34,9 +34,9 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Meteor canceling is not performed
 ## Difficulty 1: Easy
 - Two recovery options are chosen (usually Side Special, and Up Special if first option cannot make it)
-- Recovery can start as high as possible or sweet-spot to the ledge
-- The target destination is always ledge
-- There is no extra drift on recovery
+- Recovery can start as high as possible or low enough to get to ledge
+- Recovery always aims to ledge if possible
+- Always hold in on drift
 - Trajectory DI is away when hit towards stage, otherwise for survival
 - Smash DI is zero
 - Fast-falling is never performed
@@ -46,9 +46,9 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Meteor canceling is performed very slowly
 ## Difficulty 2: Normal
 - Three recovery options are chosen evenly (usually Side Special, Air Dodge, and Up Special if neither previous option can make it)
-- Recovery can start as high as possible, sweet-spot to the ledge, or sweet-spot on stage
-- The target destination can be on stage or to ledge
-- There is some chance to do an early fade-back on recovery
+- Recovery can start anywhere
+- TRecovery can aim anywhere, excluding downward angles to ledge
+- There is some chance to do an early fade-back drift
 - Trajectory DI is away when hit towards stage or hit weakly off stage, otherwise for survival
 - Smash DI is slight
 - Fast-falling is always performed
@@ -58,9 +58,9 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Meteor canceling is performed slowly
 ## Difficulty 3: Hard
 - Three recovery options are chosen (usually Side Special, Up Special, and Air Dodge)
-- Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
-- Even chance between fading back early, fading back late, and not fading back at all
-- The target destination can be on stage or to ledge
+- Recovery can start anywhere
+- Recovery can aim anywhere, including downward angles to ledge
+- Even chance between fading back early, fading back late, and holding in for drift
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is high (for a human)
 - Fast-falling is always performed
@@ -70,8 +70,8 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Meteor canceling is performed perfectly
 ## Difficulty 4: TAS
 - Three recovery options are chosen (Up Special most common, occaisionally chooses options like Side Special or Air Dodge)
-- Recovery can be as far in as possible, sweet-spot to the ledge, or sweet-spot on stage
-- The target destination can be on stage or to ledge
+- Recovery can start anywhere
+- Recovery can aim anywhere, including downward angles to ledge
 - Even chance between fading back early, fading back late, and not fading back at all
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is frame-perfect
