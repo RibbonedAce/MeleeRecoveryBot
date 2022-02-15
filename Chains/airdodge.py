@@ -9,6 +9,7 @@ from Utils.angleutils import AngleUtils
 from Utils.enums import FADE_BACK_MODE
 from Utils.logutils import LogUtils
 from Utils.mathutils import MathUtils
+from Utils.recoverytarget import RecoveryTarget
 from Utils.trajectory import Trajectory
 
 
@@ -55,11 +56,10 @@ class AirDodge(Chain):
         trajectory.max_ledge_grab = trajectory.get_displacement_after_frames(0, 50)[1]
         return trajectory
 
-    def __init__(self, target_coords=(0, 0), fade_back=FADE_BACK_MODE.NONE, ledge=False):
+    def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
         Chain.__init__(self)
         self.target_coords = target_coords
-        self.fade_back = fade_back
-        self.ledge = ledge
+        self.recovery_target = recovery_target
         self.current_frame = -1
         self.trajectory = None
 
@@ -103,17 +103,17 @@ class AirDodge(Chain):
             recovery_distance = None
 
             # See if we can fade back on this frame
-            if self.fade_back != FADE_BACK_MODE.NONE:
+            if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
                 fade_back_frames = set()
                 # If we can make it by fading back this frame, do it
-                if self.fade_back == FADE_BACK_MODE.EARLY:
+                if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY:
                     fade_back_frames.add(self.current_frame)
                 # If we can make it by holding a fade back starting this frame, do it
-                elif self.fade_back == FADE_BACK_MODE.LATE:
+                elif self.recovery_target.fade_back_mode == FADE_BACK_MODE.LATE:
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
@@ -134,7 +134,7 @@ class AirDodge(Chain):
                     x_input = 0.5
 
             LogUtils.simple_log(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
-                                FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
+                                FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.recovery_target.ledge, self.recovery_target.fade_back_mode, x_input, should_fade_back, recovery_distance,
                                 frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward)
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
         self.interruptable = False

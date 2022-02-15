@@ -6,7 +6,7 @@ class FADE_BACK_MODE(Enum):
     EARLY = 1
     LATE = 2
 
-class RECOVER_HEIGHT(Enum):
+class RECOVERY_HEIGHT(Enum):
     MAX = 0
     STAGE = 1
     LEDGE = 2
@@ -16,7 +16,7 @@ class AMSAH_TECH_MODE(Enum):
     ALWAYS = 1
     SMART = 2
 
-class RECOVER_MODE(Enum):
+class RECOVERY_MODE(Enum):
     PRIMARY = 0
     SECONDARY = 1
     AIR_DODGE = 2

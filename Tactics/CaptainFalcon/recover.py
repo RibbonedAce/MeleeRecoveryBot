@@ -14,7 +14,7 @@ from Chains.fastfall import FastFall
 from Chains.jumpinward import JumpInward
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils.enums import RECOVER_HEIGHT, RECOVER_MODE
+from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
 from Utils.trajectory import Trajectory
 
 
@@ -96,11 +96,8 @@ class Recover(Tactic):
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
         self.time_to_recover = False
-        self.recover_mode = DifficultySettings.get_recover_mode()
-        self.target_height = DifficultySettings.get_target_height()
-        self.ledge = self.target_height == RECOVER_HEIGHT.LEDGE
-        self.recover_height = DifficultySettings.get_recover_height()
-        self.fade_back_mode = DifficultySettings.get_fade_back_mode()
+        self.recovery_mode = DifficultySettings.get_recovery_mode()
+        self.recovery_target = DifficultySettings.get_recovery_target()
         self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
@@ -131,18 +128,18 @@ class Recover(Tactic):
             return
 
         # Air dodge
-        if AirDodge.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.AIR_DODGE and \
-                (smashbot_state.is_facing_inwards() or not self.ledge) and \
-                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
+        if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
+                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and \
+                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
             self.chain = None
-            self.pick_chain(AirDodge, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(AirDodge, [target, self.recovery_target])
             return
 
         # Raptor Boost
-        if RaptorBoost.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.SECONDARY and \
-                RaptorBoost.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
+        if RaptorBoost.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and \
+                RaptorBoost.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
             self.chain = None
-            self.pick_chain(RaptorBoost, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(RaptorBoost, [target, self.recovery_target])
             return
 
         # If we are wall teching, Falcon Dive ASAP
@@ -153,28 +150,28 @@ class Recover(Tactic):
         # Decide how we can Falcon Dive
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             # Recover ASAP
-            if self.recover_height == RECOVER_HEIGHT.MAX and self.recover_mode == RECOVER_MODE.PRIMARY:
+            if self.recovery_target.recovery_height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
                 distance_left = max(FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
                                     FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
                 if distance_left > 0:
                     self.time_to_recover = True
             # Recover at the ledge or stage
             else:
-                distance_left = FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
+                distance_left = FalconDive.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 1)
 
             if distance_left <= self.last_distance and distance_left <= 0:
                 self.time_to_recover = True
             self.last_distance = distance_left
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
-        if self.recover_height == RECOVER_HEIGHT.LEDGE:
+        if self.recovery_target.recovery_height == RECOVERY_HEIGHT.LEDGE:
             double_jump_height -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 
         # If we are near a horizontal blast-zone, jump to prevent dying
         # Or if we are low enough
         # Or if we are trying to recover ASAP
         if JumpInward.should_use(self._propagate) and \
-                (self.recover_height == RECOVER_HEIGHT.MAX or
+                (self.recovery_target.recovery_height == RECOVERY_HEIGHT.MAX or
                  smashbot_state.position.y < double_jump_height or
                  smashbot_state.position.x - game_state.get_left_blast_zone() < 20 or
                  game_state.get_right_blast_zone() - smashbot_state.position.x < 20):
@@ -185,7 +182,7 @@ class Recover(Tactic):
         if FalconDive.should_use(self._propagate) and \
                 (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
             self.chain = None
-            self.pick_chain(FalconDive, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(FalconDive, [target, self.recovery_target])
             return
 
         # If we can do a Falcon Kick to get back easier, then do so

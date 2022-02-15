@@ -15,7 +15,7 @@ from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
 from Utils.angleutils import AngleUtils
 from Utils.controlstick import ControlStick
-from Utils.enums import RECOVER_HEIGHT, RECOVER_MODE
+from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
 from Utils.trajectory import Trajectory
 
 
@@ -91,17 +91,14 @@ class Recover(Tactic):
         trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
         distance = trajectory.get_extra_distance(smashbot_state, opponent_state, target, False)
         if distance <= 0 and smashbot_state.is_facing_inwards():
-            distance =  trajectory.get_extra_distance(smashbot_state, opponent_state, target, True)
+            distance = trajectory.get_extra_distance(smashbot_state, opponent_state, target, True)
         return distance > 0
 
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
         self.time_to_recover = False
-        self.recover_mode = DifficultySettings.get_recover_mode()
-        self.target_height = DifficultySettings.get_target_height()
-        self.ledge = self.target_height == RECOVER_HEIGHT.LEDGE
-        self.recover_height = DifficultySettings.get_recover_height()
-        self.fade_back_mode = DifficultySettings.get_fade_back_mode()
+        self.recovery_mode = DifficultySettings.get_recovery_mode()
+        self.recovery_target = DifficultySettings.get_recovery_target()
         self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
@@ -132,18 +129,18 @@ class Recover(Tactic):
             return
 
         # Air dodge
-        if AirDodge.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.AIR_DODGE and \
-                (smashbot_state.is_facing_inwards() or not self.ledge) and \
-                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
+        if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
+                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and \
+                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
             self.chain = None
-            self.pick_chain(AirDodge, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(AirDodge, [target, self.recovery_target])
             return
 
         # Fox Illusion
-        if FoxIllusion.should_use(self._propagate) and self.recover_mode == RECOVER_MODE.SECONDARY and \
-                FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 0) > 0:
+        if FoxIllusion.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and \
+                FoxIllusion.TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
             self.chain = None
-            self.pick_chain(FoxIllusion, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(FoxIllusion, [target, self.recovery_target])
             return
 
         # If we are wall teching, Fire Fox ASAP
@@ -159,28 +156,28 @@ class Recover(Tactic):
             fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), test_angle)
 
             # Recover ASAP
-            if self.recover_height == RECOVER_HEIGHT.MAX and self.recover_mode == RECOVER_MODE.PRIMARY:
+            if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
                 distance_left = max(fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, False, 0),
                                     fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, True, 0))
                 if distance_left > 0:
                     self.time_to_recover = True
             # Recover at the ledge or stage
             else:
-                distance_left = fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, self.ledge, 1)
+                distance_left = fire_fox_trajectory.get_extra_distance(smashbot_state, opponent_state, target, self.recovery_target.ledge, 1)
 
             if distance_left <= self.last_distance and distance_left <= 0:
                 self.time_to_recover = True
             self.last_distance = distance_left
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
-        if self.recover_height == RECOVER_HEIGHT.LEDGE:
+        if self.recovery_target.height == RECOVERY_HEIGHT.LEDGE:
             double_jump_height -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 
         # If we are near a horizontal blast-zone, jump to prevent dying
         # Or if we are low enough
         # Or if we are trying to recover ASAP
         if JumpInward.should_use(self._propagate) and \
-                (self.recover_height == RECOVER_HEIGHT.MAX or
+                (self.recovery_target.height == RECOVERY_HEIGHT.MAX or
                  smashbot_state.position.y < double_jump_height or
                  smashbot_state.position.x - game_state.get_left_blast_zone() < 20 or
                  game_state.get_right_blast_zone() - smashbot_state.position.x < 20):
@@ -191,7 +188,7 @@ class Recover(Tactic):
         if FireFox.should_use(self._propagate) and \
                 (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
             self.chain = None
-            self.pick_chain(FireFox, [target, self.fade_back_mode, self.ledge])
+            self.pick_chain(FireFox, [target, self.recovery_target])
             return
 
         # DI into the stage

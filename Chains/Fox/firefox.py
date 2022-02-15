@@ -5,13 +5,13 @@ from melee import FrameData
 from melee.enums import Action, Button, Character
 
 from Chains.chain import Chain
-from difficultysettings import DifficultySettings
 from Utils.angleutils import AngleUtils
 from Utils.controlstick import ControlStick
 from Utils.enums import FADE_BACK_MODE
 from Utils.hillclimb import HillClimb
 from Utils.logutils import LogUtils
 from Utils.mathutils import MathUtils
+from Utils.recoverytarget import RecoveryTarget
 from Utils.trajectory import Trajectory
 
 
@@ -61,12 +61,10 @@ class FireFox(Chain):
 
         return smashbot_state.action != Action.DEAD_FALL
 
-    def __init__(self, target_coords=(0, 0), fade_back=FADE_BACK_MODE.NONE, ledge=False):
+    def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
         Chain.__init__(self)
         self.target_coords = target_coords
-        self.fade_back = fade_back
-        self.should_sweet_spot = DifficultySettings.should_sweet_spot()
-        self.ledge = ledge
+        self.recovery_target = recovery_target
         self.current_frame = -1
         self.last_action_frame = -1
         self.min_angle = self.__determine_initial_min_angle()
@@ -91,7 +89,7 @@ class FireFox(Chain):
             self.hill_climb = HillClimb(self.min_angle, self.max_angle, 40)
 
             # If going for ledge and facing backwards, do not go straight up or down
-            if (self.ledge or self.should_sweet_spot) and not smashbot_state.is_facing_inwards():
+            if self.recovery_target.ledge and not smashbot_state.is_facing_inwards():
                 self.max_angle -= 1
                 if self.min_angle < 0:
                     self.min_angle += 1
@@ -127,7 +125,7 @@ class FireFox(Chain):
             max_degrees = ControlStick.coordinate_num_to_angle(self.max_angle)
 
             current_angle = ControlStick.from_edge_coordinate(round((self.min_angle + self.max_angle) / 2)).correct_for_cardinal_strict().to_edge_coordinate(True)
-            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.NONE:
+            if self.recovery_target.is_max():
                 if self.best_distance is None:
                     current_angle = self.max_angle
                 else:
@@ -144,26 +142,26 @@ class FireFox(Chain):
             # Test current angle in trial
             self.trajectory = FireFox.create_trajectory(self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
             fade_back_frames = set()
-            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.LATE:
+            if self.recovery_target.fade_back_mode == FADE_BACK_MODE.LATE:
                 for i in range(self.current_frame, 600):
                     fade_back_frames.add(i)
 
-            if not self.should_sweet_spot and self.fade_back == FADE_BACK_MODE.NONE:
+            if self.recovery_target.is_max():
                 recovery_distance = self.trajectory.get_extra_distance(smashbot_state, opponent_state, self.target_coords, start_frame=self.current_frame)
                 self.hill_climb.record_custom_result(recovery_distance, current_angle)
             else:
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
             LogUtils.simple_log(abs(smashbot_state.position.x) - recovery_distance - self.target_coords[0])
 
             # Adjusting angle after trial
-            if self.should_sweet_spot:
+            if self.recovery_target.is_sweet_spot():
                 if current_angle < 0 and abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0] or \
                         current_angle >= 0 and recovery_distance == Trajectory.TOO_LOW_RESULT:
                     self.__adjust_min_angle(current_angle)
                 else:
                     self.best_angle = current_angle
                     self.__adjust_max_angle(current_angle)
-            elif self.fade_back != FADE_BACK_MODE.NONE:
+            elif self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
                 if recovery_distance != Trajectory.TOO_LOW_RESULT and \
                         abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
                     self.__adjust_max_angle(current_angle)
@@ -192,17 +190,17 @@ class FireFox(Chain):
             recovery_distance = None
 
             # See if we can fade back on this frame
-            if self.fade_back != FADE_BACK_MODE.NONE:
+            if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
                 fade_back_frames = set()
                 # If we can make it by fading back this frame, do it
-                if self.fade_back == FADE_BACK_MODE.EARLY:
+                if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY:
                     fade_back_frames.add(self.current_frame)
                 # If we can make it by holding a fade back starting this frame, do it
-                elif self.fade_back == FADE_BACK_MODE.LATE:
+                elif self.recovery_target.fade_back_mode == FADE_BACK_MODE.LATE:
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
@@ -221,7 +219,7 @@ class FireFox(Chain):
                     x_input = 0.5
 
             LogUtils.simple_log(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb_bottom[1], smashbot_state.ecb_left[0], smashbot_state.ecb_right[0],
-                                FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.ledge, self.fade_back, x_input, should_fade_back, recovery_distance,
+                                FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.recovery_target.ledge, self.recovery_target.fade_back_mode, x_input, should_fade_back, recovery_distance,
                                 frame.vertical_velocity, frame.forward_acceleration, frame.backward_acceleration, frame.max_horizontal_velocity, frame.mid_horizontal_velocity, frame.min_horizontal_velocity, frame.ecb_bottom, frame.ecb_inward)
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
 
@@ -244,13 +242,11 @@ class FireFox(Chain):
             self.max_angle = current_angle
 
     def __determine_initial_min_angle(self):
-        if self.should_sweet_spot:
+        if self.recovery_target.is_sweet_spot():
             return ControlStick(0, -ControlStick.MAX_INPUT).to_edge_coordinate(True)
         return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
 
-    # TODO: consolidate sweet spot with other recovery targets
     # TODO: adjust chances to be more in line with realistic choice combinations
     # TODO: tune ledge tech SDI
-    # TODO: extract constants out of commonly used numbers
     # TODO: do not always just fall to ledge
-    # TODO: refactor firefox sweet-spot code into another path
+    # TODO: prevent pineapples
