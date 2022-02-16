@@ -20,7 +20,7 @@ class LedgeTech(Chain):
             return False
 
         return min(abs(smashbot_state.position.x + smashbot_state.ecb_left[0]), abs(smashbot_state.position.x + smashbot_state.ecb_right[0])) <= game_state.get_stage_edge() + 6 and \
-               smashbot_state.position.y + smashbot_state.ecb_left[1] < math.sqrt(6)
+               smashbot_state.position.y + smashbot_state.ecb_left[1] < 6 / math.sqrt(2)
 
     def __init__(self):
         Chain.__init__(self)
