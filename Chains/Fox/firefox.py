@@ -247,6 +247,5 @@ class FireFox(Chain):
         return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
 
     # TODO: adjust chances to be more in line with realistic choice combinations
-    # TODO: tune ledge tech SDI
     # TODO: do not always just fall to ledge
     # TODO: prevent pineapples
