@@ -6,9 +6,22 @@ from Chains.chain import Chain
 class DriftIn(Chain):
     @staticmethod
     def should_use(propagate):
+        game_state = propagate[0]
         smashbot_state = propagate[1]
 
-        return not smashbot_state.on_ground and not smashbot_state.is_wall_teching()
+        # Cannot drift in if on ground
+        if smashbot_state.on_ground:
+            return False
+
+        # Should not try to drift if wall jumping
+        if smashbot_state.is_wall_teching():
+            return False
+
+        # Should not drift past ledge
+        if smashbot_state.position.y < 0 and abs(smashbot_state.position.x) <= game_state.get_stage_edge():
+            return False
+
+        return True
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller

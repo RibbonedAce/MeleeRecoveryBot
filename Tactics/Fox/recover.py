@@ -1,6 +1,5 @@
 import math
 
-import melee
 from melee import FrameData
 from melee.enums import Action
 
@@ -107,7 +106,6 @@ class Recover(Tactic):
             return
 
         stage_edge = game_state.get_stage_edge()
-        diff_x = abs(smashbot_state.position.x) - stage_edge
 
         # If we're in dead max fall, just drift towards the stage
         if DriftIn.should_use(self._propagate) and smashbot_state.action == Action.DEAD_FALL:
@@ -192,7 +190,6 @@ class Recover(Tactic):
             return
 
         # DI into the stage
-        if DriftIn.should_use(self._propagate) and \
-                not (diff_x < 13 and game_state.stage == melee.enums.Stage.BATTLEFIELD and smashbot_state.position.y < 0):
+        if DriftIn.should_use(self._propagate):
             self.chain = None
             self.pick_chain(DriftIn)
