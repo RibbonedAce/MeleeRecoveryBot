@@ -122,9 +122,10 @@ class SDI(Chain):
             # Combo SDI
             #   SDI away from the opponent to keep from from following up
             else:
-                angle = math.degrees(math.atan2(smashbot_state.position.y - opponent_state.position.y,
-                                                smashbot_state.position.x - opponent_state.position.x))
-                angle = AngleUtils.refit_angle(angle)
+                angle = knockback_angle
+                if smashbot_state.on_ground:
+                    angle = AngleUtils.refit_angle(math.degrees(math.atan2(smashbot_state.position.y - opponent_state.position.y,
+                                                    smashbot_state.position.x - opponent_state.position.x)))
                 self.cardinal = SDI.angle_to_cardinal(angle)
                 LogUtils.simple_log("Combo SDI angle:", angle)
 
