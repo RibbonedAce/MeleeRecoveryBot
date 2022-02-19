@@ -169,7 +169,9 @@ class FireFox(Chain):
                     self.best_angle = current_angle
                     self.__adjust_min_angle(current_angle)
             else:
-                if self.best_distance is not None and recovery_distance < self.best_distance:
+                if self.best_distance is not None and recovery_distance < self.best_distance or \
+                        recovery_distance != Trajectory.TOO_LOW_RESULT and \
+                        abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
                     self.__adjust_max_angle(current_angle)
                 else:
                     self.best_distance = recovery_distance
@@ -229,14 +231,14 @@ class FireFox(Chain):
 
     def __adjust_min_angle(self, current_angle):
         # If cardinal direction does not work
-        if ControlStick.coordinate_num_to_angle(self.min_angle) % 90 == 0:
+        if self.min_angle == current_angle:
             self.min_angle += 1
         else:
             self.min_angle = current_angle
 
     def __adjust_max_angle(self, current_angle):
         # If cardinal direction does not work
-        if ControlStick.coordinate_num_to_angle(self.max_angle) % 90 == 0:
+        if self.max_angle == current_angle:
             self.max_angle -= 1
         else:
             self.max_angle = current_angle
