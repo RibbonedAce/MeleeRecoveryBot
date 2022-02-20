@@ -21,6 +21,7 @@ class GameStateExtensions:
         GameState.get_stage_edge = GameStateExtensions.__get_stage_edge
         GameState.get_left_blast_zone = GameStateExtensions.__get_left_blast_zone
         GameState.get_right_blast_zone = GameStateExtensions.__get_right_blast_zone
+        GameState.get_stage_ride_vertex = GameStateExtensions.__get_stage_ride_vertex
         GameState.update_custom = GameStateExtensions.__update_custom
 
     @staticmethod
@@ -36,7 +37,9 @@ class GameStateExtensions:
                 stage_data[stage_name] = {"TopBlastZone": float(stage["TopBlastZone"]),
                                           "BottomBlastZone": float(stage["BottomBlastZone"]),
                                           "LeftBlastZone": float(stage["LeftBlastZone"]),
-                                          "RightBlastZone": float(stage["RightBlastZone"])}
+                                          "RightBlastZone": float(stage["RightBlastZone"]),
+                                          "RideVertexX": float(stage["RideVertexX"]),
+                                          "RideVertexY": float(stage["RideVertexY"])}
 
         return stage_data
 
@@ -51,6 +54,10 @@ class GameStateExtensions:
     @staticmethod
     def __get_stage_edge(game_state):
         return melee.stages.EDGE_GROUND_POSITION[game_state.stage]
+
+    @staticmethod
+    def __get_stage_ride_vertex(game_state):
+        return GameState.STAGE_DATA[game_state.stage]["RideVertexX"], GameState.STAGE_DATA[game_state.stage]["RideVertexY"]
 
     @staticmethod
     def __update_custom(game_state, smashbot_port, opponent_port):

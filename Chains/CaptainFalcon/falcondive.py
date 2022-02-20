@@ -41,7 +41,7 @@ class FalconDive(Chain):
         controller = self.controller
 
         if self.trajectory is None:
-            self.trajectory = self.__decide_trajectory(smashbot_state, opponent_state)
+            self.trajectory = self.__decide_trajectory(game_state, smashbot_state, opponent_state)
 
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in [Action.FIREFOX_WAIT_AIR, Action.FIREFOX_GROUND, Action.FIREFOX_AIR, Action.DEAD_FALL]:
@@ -87,7 +87,7 @@ class FalconDive(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
@@ -122,9 +122,9 @@ class FalconDive(Chain):
         self.interruptable = False
         return True
 
-    def __decide_trajectory(self, smashbot_state, opponent_state):
+    def __decide_trajectory(self, game_state, smashbot_state, opponent_state):
         # Pick reverse trajectory if we can make it and if we want to
         if DifficultySettings.should_reverse() and \
-                FalconDive.REVERSE_TRAJECTORY.get_extra_distance(smashbot_state, opponent_state, self.target_coords, self.recovery_target.ledge, 0) > 0:
+                FalconDive.REVERSE_TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, self.target_coords, self.recovery_target.ledge, 0) > 0:
             return FalconDive.REVERSE_TRAJECTORY
         return FalconDive.TRAJECTORY

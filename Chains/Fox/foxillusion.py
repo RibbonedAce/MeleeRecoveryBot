@@ -79,7 +79,7 @@ class FoxIllusion(Chain):
             # Decide if we should shorten
             if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY and 19 <= self.current_frame <= 22:
                 self.trajectory = FoxIllusion.create_shorten_trajectory(23 - self.current_frame)
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, start_frame=self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, start_frame=self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     controller.press_button(Button.BUTTON_B)
 
@@ -94,7 +94,7 @@ class FoxIllusion(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 

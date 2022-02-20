@@ -77,7 +77,7 @@ class Trajectory:
         self.max_height = self.__get_max_height()
         self.max_distance_at_max_height = self.get_distance_at_height(self.max_height, 0)
 
-    def get_extra_distance(self, smashbot_state, opponent_state, target, ledge=False, frame_delay=0, start_frame=0):
+    def get_extra_distance(self, game_state, smashbot_state, opponent_state, target, ledge=False, frame_delay=0, start_frame=0):
         knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
         if smashbot_state.position.x > 0:
             knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
@@ -87,11 +87,12 @@ class Trajectory:
         displacement = drift_trajectory.get_displacement_after_frames(abs(smashbot_state.speed_air_x_self), frame_delay, knockback_angle, knockback_magnitude)
         position = abs(smashbot_state.position.x) + displacement[0]
         height = smashbot_state.position.y + displacement[1]
+        stage_vertex = self.get_relative_stage_vertex(game_state, position, height)
 
         for i in range(frame_delay):
             knockback_magnitude = max(knockback_magnitude - 0.051, 0)
 
-        max_distance = self.get_distance_at_height(0, target[1] - height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
+        max_distance = self.get_distance_at_height(0, target[1] - height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
@@ -99,7 +100,7 @@ class Trajectory:
             LogUtils.simple_log(ledge, position, target[0], max_distance - actual_distance)
         return max_distance - actual_distance
 
-    def get_distance_at_height(self, current_velocity, height, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
+    def get_distance_at_height(self, current_velocity, height, stage_vertex=None, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
         if ledge:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
             if actual_height < self.min_ledge_grab:
@@ -109,9 +110,9 @@ class Trajectory:
                 LogUtils.simple_log("Too low:", actual_height, self.max_ledge_grab)
                 return Trajectory.TOO_LOW_RESULT
 
-        return self.get_distance(current_velocity, height, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
+        return self.get_distance(current_velocity, height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
 
-    def get_distance(self, current_velocity, height, ledge=False, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None, start_frame=0):
+    def get_distance(self, current_velocity, height, stage_vertex, ledge=False, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None, start_frame=0):
         if fade_back_frames is None:
             fade_back_frames = set()
 
@@ -145,6 +146,10 @@ class Trajectory:
             actual_distance += velocity + extra_velocity
             actual_height += frame.vertical_velocity + math.sin(math.radians(knockback_angle)) * knockback_magnitude
 
+            # If we pineapple, back out early
+            if stage_vertex is not None and actual_distance > stage_vertex[0] and actual_height < stage_vertex[1]:
+                return Trajectory.TOO_LOW_RESULT
+
             if ledge:
                 extra_height = ledge_box_top
                 if velocity + extra_velocity < 0:
@@ -165,6 +170,11 @@ class Trajectory:
                 break
 
         return total_distance
+
+    def get_relative_stage_vertex(self, game_state, position, height):
+        stage_vertex = game_state.get_stage_ride_vertex()
+        stage_vertex = (position - stage_vertex[0], stage_vertex[1] - height)
+        return stage_vertex
 
     def get_distance_traveled_above_target(self, current_velocity, height, required_distance, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None, start_frame=0):
         if fade_back_frames is None:

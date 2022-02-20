@@ -147,10 +147,10 @@ class FireFox(Chain):
                     fade_back_frames.add(i)
 
             if self.recovery_target.is_max():
-                recovery_distance = self.trajectory.get_extra_distance(smashbot_state, opponent_state, self.target_coords, start_frame=self.current_frame)
+                recovery_distance = self.trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, self.target_coords, start_frame=self.current_frame)
                 self.hill_climb.record_custom_result(recovery_distance, current_angle)
             else:
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames=fade_back_frames, start_frame=self.current_frame)
             LogUtils.simple_log(abs(smashbot_state.position.x) - recovery_distance - self.target_coords[0])
 
             # Adjusting angle after trial
@@ -202,7 +202,7 @@ class FireFox(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
@@ -250,4 +250,4 @@ class FireFox(Chain):
 
     # TODO: adjust chances to be more in line with realistic choice combinations
     # TODO: do not always just fall to ledge
-    # TODO: prevent pineapples
+    # TODO: fix grab release and firefox angle on hit

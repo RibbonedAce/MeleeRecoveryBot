@@ -74,7 +74,7 @@ class RaptorBoost(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = RaptorBoost.TRAJECTORY.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = RaptorBoost.TRAJECTORY.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, RaptorBoost.TRAJECTORY.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
