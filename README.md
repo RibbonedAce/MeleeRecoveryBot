@@ -25,6 +25,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Recovery always starts as high as possible
 - Recovery aims to go as far in stage as possible
 - Always hold in on drift
+- Never grab ledge, even if reachable
 - Trajectory DI is always neutral
 - Smash DI is zero
 - Fast-falling is never performed
@@ -37,6 +38,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Recovery can start as high as possible or low enough to get to ledge
 - Recovery always aims to ledge if possible
 - Always hold in on drift
+- Never grab ledge, even if reachable
 - Trajectory DI is away when hit towards stage, otherwise for survival
 - Smash DI is zero
 - Fast-falling is never performed
@@ -47,8 +49,9 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 ## Difficulty 2: Normal
 - Three recovery options are chosen evenly (usually Side Special, Air Dodge, and Up Special if neither previous option can make it)
 - Recovery can start anywhere
-- TRecovery can aim anywhere, excluding downward angles to ledge
+- Recovery can aim anywhere, excluding downward angles to ledge
 - There is some chance to do an early fade-back drift
+- Always grab ledge if reachable
 - Trajectory DI is away when hit towards stage or hit weakly off stage, otherwise for survival
 - Smash DI is slight
 - Fast-falling is always performed
@@ -61,6 +64,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Recovery can start anywhere
 - Recovery can aim anywhere, including downward angles to ledge
 - Even chance between fading back early, fading back late, and holding in for drift
+- Equal chance to grab ledge or use move when ledge is reachable
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is high (for a human)
 - Fast-falling is always performed
@@ -73,6 +77,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 - Recovery can start anywhere
 - Recovery can aim anywhere, including downward angles to ledge
 - Even chance between fading back early, fading back late, and not fading back at all
+- Equal chance to grab ledge or use move when ledge is reachable
 - Trajectory DI is away when hit towards stage or hit a bit more strongly off stage, otherwise for survival
 - Smash DI is frame-perfect
 - Fast-falling is always performed
