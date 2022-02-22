@@ -99,6 +99,7 @@ class Recover(Tactic):
         self.time_to_recover = False
         self.recovery_mode = DifficultySettings.get_recovery_mode()
         self.recovery_target = DifficultySettings.get_recovery_target()
+        self.grab_ledge = DifficultySettings.should_grab_ledge()
         self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
@@ -122,7 +123,7 @@ class Recover(Tactic):
         target = (stage_edge, 0)
 
         # If we are currently moving away from the stage, DI in
-        if DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(game_state, smashbot_state, opponent_state, target):
+        if self.grab_ledge and DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(game_state, smashbot_state, opponent_state, target):
             self.chain = None
             self.pick_chain(DriftIn)
             return
