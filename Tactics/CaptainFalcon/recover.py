@@ -12,6 +12,7 @@ from Chains.driftout import DriftOut
 from Chains.edgedash import EdgeDash
 from Chains.fastfall import FastFall
 from Chains.jumpinward import JumpInward
+from Chains.jumpoutward import JumpOutward
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
@@ -170,13 +171,19 @@ class Recover(Tactic):
         # If we are near a horizontal blast-zone, jump to prevent dying
         # Or if we are low enough
         # Or if we are trying to recover ASAP
-        if JumpInward.should_use(self._propagate) and \
-                (self.recovery_target.recovery_height == RECOVERY_HEIGHT.MAX or
+        if (self.recovery_target.height == RECOVERY_HEIGHT.MAX or
                  smashbot_state.position.y < double_jump_height or
                  smashbot_state.position.x - game_state.get_left_blast_zone() < 20 or
                  game_state.get_right_blast_zone() - smashbot_state.position.x < 20):
-            self.pick_chain(JumpInward)
-            return
+
+            # Jump outward if past ledge
+            if JumpOutward.should_use(self._propagate):
+                self.pick_chain(JumpOutward)
+                return
+
+            if JumpInward.should_use(self._propagate):
+                self.pick_chain(JumpInward)
+                return
 
         # Recover when we're ready
         if FalconDive.should_use(self._propagate) and \

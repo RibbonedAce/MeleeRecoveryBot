@@ -156,7 +156,8 @@ class PlayerStateExtensions:
 
     @staticmethod
     def __is_suffering_damage(player_state):
-        return player_state.hitlag_left > 0 or player_state.hitstun_frames_left > 0
+        return (player_state.hitlag_left > 0 or player_state.hitstun_frames_left > 0) and \
+               player_state.action not in [Action.GRAB_JUMP, Action.GRAB_ESCAPE]
 
     @staticmethod
     def __get_inward_x(player_state):
@@ -176,7 +177,7 @@ class PlayerStateExtensions:
 
     @staticmethod
     def __is_grabbed(player_state):
-        return player_state.action in [Action.GRABBED, Action.GRAB_PUMMELED, Action.GRAB_PULL, Action.GRAB_PUMMELED,
+        return player_state.action in [Action.GRABBED, Action.GRAB_PUMMELED, Action.GRAB_PULL,
                                        Action.GRAB_PULLING_HIGH, Action.GRABBED_WAIT_HIGH, Action.PUMMELED_HIGH]
 
     @staticmethod

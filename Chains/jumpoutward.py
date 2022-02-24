@@ -6,7 +6,12 @@ from Chains.chain import Chain
 class JumpOutward(Chain):
     @staticmethod
     def should_use(propagate):
+        game_state = propagate[0]
         smashbot_state = propagate[1]
+
+        # Should not jump outward if not past ledge
+        if abs(smashbot_state.position.x) > game_state.get_stage_edge():
+            return False
 
         return smashbot_state.jumps_left > 0
 
