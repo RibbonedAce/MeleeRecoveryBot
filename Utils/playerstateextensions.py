@@ -157,7 +157,7 @@ class PlayerStateExtensions:
     @staticmethod
     def __is_suffering_damage(player_state):
         return (player_state.hitlag_left > 0 or player_state.hitstun_frames_left > 0) and \
-               player_state.action not in [Action.GRAB_JUMP, Action.GRAB_ESCAPE]
+               Action.DAMAGE_HIGH_1.value <= player_state.action.value <= Action.DAMAGE_FLY_HIGH.value
 
     @staticmethod
     def __get_inward_x(player_state):
