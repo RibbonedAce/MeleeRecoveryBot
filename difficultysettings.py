@@ -213,8 +213,8 @@ class DifficultySettings:
             DifficultySettings.TARGET_SWEET_SPOT_WEIGHT = 1
 
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
-            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 0.25
-            DifficultySettings.AIR_DODGE_WEIGHT = 0.25
+            DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
+            DifficultySettings.AIR_DODGE_WEIGHT = 0.5
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
             DifficultySettings.GRAB_LEDGE_CHANCE = 0.5

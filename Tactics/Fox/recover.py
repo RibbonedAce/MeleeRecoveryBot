@@ -130,19 +130,24 @@ class Recover(Tactic):
             return
 
         # Air dodge
-        if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
-                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and \
-                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
+        air_dodge_distance = AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        if self.recovery_mode == RECOVERY_MODE.AIR_DODGE and AirDodge.should_use(self._propagate) and \
+                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and air_dodge_distance > 0:
             self.chain = None
             self.pick_chain(AirDodge, [target, self.recovery_target])
             return
 
         # Fox Illusion
-        if FoxIllusion.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and \
-                FoxIllusion.TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
+        illusion_distance = FoxIllusion.TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        if self.recovery_mode == RECOVERY_MODE.SECONDARY and FoxIllusion.should_use(self._propagate) and illusion_distance > 0:
             self.chain = None
             self.pick_chain(FoxIllusion, [target, self.recovery_target])
             return
+
+        # If we cannot air dodge or illusion when we want to, Fire Fox ASAP
+        if self.recovery_mode == RECOVERY_MODE.SECONDARY and illusion_distance == Trajectory.TOO_LOW_RESULT or \
+            self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT:
+            self.time_to_recover = True
 
         # If we are wall teching, Fire Fox ASAP
         wall_teching = smashbot_state.is_wall_teching()

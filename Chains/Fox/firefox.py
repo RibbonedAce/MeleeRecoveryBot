@@ -247,7 +247,3 @@ class FireFox(Chain):
         if self.recovery_target.is_sweet_spot():
             return ControlStick(0, -ControlStick.MAX_INPUT).to_edge_coordinate(True)
         return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
-
-    # TODO: adjust chances to be more in line with realistic choice combinations
-    # TODO: do not always just fall to ledge
-    # TODO: fix grab release and firefox angle on hit
