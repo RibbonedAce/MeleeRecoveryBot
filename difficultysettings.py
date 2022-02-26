@@ -37,7 +37,7 @@ class DifficultySettings:
                 DifficultySettings.TARGET_LEDGE_RIDE_WEIGHT + \
                 DifficultySettings.TARGET_STAGE_EARLY_WEIGHT + \
                 DifficultySettings.TARGET_STAGE_LATE_WEIGHT + \
-                DifficultySettings.TARGET_STAGE_LATE_WEIGHT + \
+                DifficultySettings.TARGET_STAGE_RIDE_WEIGHT + \
                 DifficultySettings.TARGET_SWEET_SPOT_WEIGHT
         num = DifficultySettings.__random_float(0, total)
 
