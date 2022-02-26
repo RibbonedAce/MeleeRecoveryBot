@@ -20,7 +20,7 @@ class LedgeTech(Chain):
             return False
 
         # Should not ledge tech if out of hit-lag
-        if smashbot_state.hitlag_left <= 2:
+        if smashbot_state.hitlag_left <= 3:
             return False
 
         tech_point = min(abs(smashbot_state.position.x + smashbot_state.ecb_left[0]), abs(smashbot_state.position.x + smashbot_state.ecb_right[0]))
@@ -41,7 +41,7 @@ class LedgeTech(Chain):
             y = 0
 
         # Stop attempting the tech if we run out of hit-lag
-        if not smashbot_state.is_wall_teching() and smashbot_state.hitlag_left <= 2:
+        if not smashbot_state.is_wall_teching() and smashbot_state.hitlag_left <= 3:
             return False
 
         # Wait one frame to reset the stick to set up SDI
