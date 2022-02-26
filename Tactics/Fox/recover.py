@@ -17,6 +17,7 @@ from Tactics.tactic import Tactic
 from Utils.angleutils import AngleUtils
 from Utils.controlstick import ControlStick
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
+from Utils.mathutils import MathUtils
 from Utils.trajectory import Trajectory
 
 
@@ -138,7 +139,8 @@ class Recover(Tactic):
             return
 
         # Fox Illusion
-        illusion_distance = FoxIllusion.TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        illusion_trajectory = FoxIllusion.create_trajectory(smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
+        illusion_distance = illusion_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
         if self.recovery_mode == RECOVERY_MODE.SECONDARY and FoxIllusion.should_use(self._propagate) and illusion_distance > 0:
             self.chain = None
             self.pick_chain(FoxIllusion, [target, self.recovery_target])
@@ -160,7 +162,7 @@ class Recover(Tactic):
             angle_to_ledge = AngleUtils.correct_for_cardinal(math.degrees(math.atan2(-smashbot_state.position.y, abs(smashbot_state.position.x) - stage_edge)))
             min_angle = ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_angle()
             test_angle = max(angle_to_ledge, min_angle)
-            fire_fox_trajectory = FireFox.create_trajectory(abs(smashbot_state.speed_air_x_self), test_angle)
+            fire_fox_trajectory = FireFox.create_trajectory(smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x), test_angle)
 
             # Recover ASAP
             if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:

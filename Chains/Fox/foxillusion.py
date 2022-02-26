@@ -17,6 +17,26 @@ class FoxIllusion(Chain):
     TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 0, 15, -999, 999, "Data/fox_illusion.csv")
 
     @staticmethod
+    def create_trajectory(x_velocity):
+        trajectory = copy.deepcopy(FoxIllusion.TRAJECTORY)
+        x_velocity = max(2 / 3 * abs(x_velocity) - 0.05, 0)
+
+        for i in range(19):
+            trajectory.frames[i].min_horizontal_velocity = x_velocity
+            trajectory.frames[i].max_horizontal_velocity = x_velocity
+
+            if i == 0:
+                trajectory.frames[i].forward_acceleration = x_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity
+            else:
+                trajectory.frames[i].forward_acceleration = x_velocity - trajectory.frames[i - 1].max_horizontal_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity - trajectory.frames[i - 1].min_horizontal_velocity
+
+            x_velocity = max(x_velocity - 0.05, 0)
+
+        return trajectory
+
+    @staticmethod
     def create_shorten_trajectory(amount):
         result = copy.deepcopy(FoxIllusion.TRAJECTORY)
 
@@ -38,7 +58,7 @@ class FoxIllusion(Chain):
         self.target_coords = target_coords
         self.recovery_target = recovery_target
         self.current_frame = -1
-        self.trajectory = FoxIllusion.TRAJECTORY
+        self.trajectory = None
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -48,6 +68,10 @@ class FoxIllusion(Chain):
             return False
 
         x = smashbot_state.get_inward_x()
+
+        useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+        if self.trajectory is None:
+            self.trajectory = FoxIllusion.create_trajectory(useful_x_velocity)
 
         # If we haven't started yet, hit the input
         if self.current_frame < 0 and smashbot_state.action != Action.FOX_ILLUSION:
@@ -68,7 +92,6 @@ class FoxIllusion(Chain):
 
             # Check if we should still fade-back
             should_fade_back = False
-            useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
             angle = smashbot_state.get_knockback_angle(opponent_state)
             if math.cos(math.radians(angle)) > 0:
                 angle = AngleUtils.get_x_reflection(angle)
