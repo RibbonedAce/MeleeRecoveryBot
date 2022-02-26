@@ -145,8 +145,9 @@ class Recover(Tactic):
             return
 
         # If we cannot air dodge or illusion when we want to, Fire Fox ASAP
-        if self.recovery_mode == RECOVERY_MODE.SECONDARY and illusion_distance == Trajectory.TOO_LOW_RESULT or \
-            self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT:
+        if smashbot_state.speed_y_self < 0 and smashbot_state.jumps_left == 0 and \
+                (self.recovery_mode == RECOVERY_MODE.SECONDARY and illusion_distance == Trajectory.TOO_LOW_RESULT or
+                 self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT):
             self.time_to_recover = True
 
         # If we are wall teching, Fire Fox ASAP
