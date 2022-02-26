@@ -161,6 +161,7 @@ class FireFox(Chain):
                 else:
                     self.best_angle = current_angle
                     self.__adjust_max_angle(current_angle)
+
             elif self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
                 if recovery_distance != Trajectory.TOO_LOW_RESULT and \
                         abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
@@ -168,15 +169,19 @@ class FireFox(Chain):
                 else:
                     self.best_angle = current_angle
                     self.__adjust_min_angle(current_angle)
+
             else:
                 if self.best_distance is not None and recovery_distance < self.best_distance or \
                         recovery_distance != Trajectory.TOO_LOW_RESULT and \
                         abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
                     self.__adjust_max_angle(current_angle)
                 else:
-                    self.best_distance = recovery_distance
-                    self.best_angle = current_angle
                     self.__adjust_min_angle(current_angle)
+
+                if (self.best_distance is None or recovery_distance > self.best_distance) and \
+                    recovery_distance != Trajectory.TOO_LOW_RESULT:
+                        self.best_distance = recovery_distance
+                        self.best_angle = current_angle
 
             # Tilt stick in best angle on last frame
             if self.current_frame == 41:
