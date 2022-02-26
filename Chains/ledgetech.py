@@ -40,6 +40,10 @@ class LedgeTech(Chain):
         if smashbot_state.position.y + smashbot_state.ecb_left[1] > 0:
             y = 0
 
+        # Stop attempting the tech if we run out of hit-lag
+        if not smashbot_state.is_wall_teching() and smashbot_state.hitlag_left <= 2:
+            return False
+
         # Wait one frame to reset the stick to set up SDI
         if not self.waited:
             self.interruptable = False
