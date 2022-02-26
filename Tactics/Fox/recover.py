@@ -144,7 +144,7 @@ class Recover(Tactic):
             self.pick_chain(FoxIllusion, [target, self.recovery_target])
             return
 
-        # If we cannot air dodge or illusion when we want to, Fire Fox ASAP
+        # If we cannot air dodge or Fox Illusion when we want to, Fire Fox ASAP
         if smashbot_state.speed_y_self < 0 and smashbot_state.jumps_left == 0 and \
                 (self.recovery_mode == RECOVERY_MODE.SECONDARY and illusion_distance == Trajectory.TOO_LOW_RESULT or
                  self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT):

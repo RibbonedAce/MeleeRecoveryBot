@@ -129,19 +129,25 @@ class Recover(Tactic):
             return
 
         # Air dodge
+        air_dodge_distance = AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
         if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
-                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and \
-                AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
+                (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and air_dodge_distance > 0:
             self.chain = None
             self.pick_chain(AirDodge, [target, self.recovery_target])
             return
 
         # Raptor Boost
-        if RaptorBoost.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and \
-                RaptorBoost.TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0) > 0:
+        raptor_boost_distance = RaptorBoost.TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        if RaptorBoost.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and raptor_boost_distance > 0:
             self.chain = None
             self.pick_chain(RaptorBoost, [target, self.recovery_target])
             return
+
+        # If we cannot air dodge or Raptor Boost when we want to, Falcon Dive ASAP
+        if smashbot_state.speed_y_self < 0 and smashbot_state.jumps_left == 0 and \
+                (self.recovery_mode == RECOVERY_MODE.SECONDARY and raptor_boost_distance == Trajectory.TOO_LOW_RESULT or
+                 self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT):
+            self.time_to_recover = True
 
         # If we are wall teching, Falcon Dive ASAP
         wall_teching = smashbot_state.is_wall_teching()
