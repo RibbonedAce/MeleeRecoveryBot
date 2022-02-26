@@ -171,9 +171,7 @@ class FireFox(Chain):
                     self.__adjust_min_angle(current_angle)
 
             else:
-                if self.best_distance is not None and recovery_distance < self.best_distance or \
-                        recovery_distance != Trajectory.TOO_LOW_RESULT and \
-                        abs(smashbot_state.position.x) - recovery_distance > self.target_coords[0]:
+                if recovery_distance != Trajectory.TOO_LOW_RESULT:
                     self.__adjust_max_angle(current_angle)
                 else:
                     self.__adjust_min_angle(current_angle)
