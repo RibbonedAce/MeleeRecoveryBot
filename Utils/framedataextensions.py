@@ -68,6 +68,7 @@ class FrameDataExtensions:
                 # Pull out the character
                 character = Character(int(line["Character"]))
                 del line["Character"]
+                del line["Name"]
 
                 # Convert all fields to numbers
                 for key, value in line.items():

@@ -13,49 +13,45 @@ from Utils.recoverytarget import RecoveryTarget
 from Utils.trajectory import Trajectory
 
 
-class AirDodge(Chain):
-    TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, 999, "Data/falcon_air_dodge.csv", include_fall_frames=False),
-                             Character.FOX: Trajectory.from_csv_file(Character.FOX, 0, 30, -999, 999, "Data/fox_air_dodge.csv", include_fall_frames=False),
-                             Character.FALCO: Trajectory.from_csv_file(Character.FALCO, 0, 30, -999, 999, "Data/falco_air_dodge.csv", include_fall_frames=False)}
+class FalcoPhantasm(Chain):
+    TRAJECTORY = Trajectory.from_csv_file(Character.FALCO, 0, 24, -999, 999, "Data/falco_phantasm.csv")
+
+    @staticmethod
+    def create_trajectory(x_velocity):
+        trajectory = copy.deepcopy(FalcoPhantasm.TRAJECTORY)
+        x_velocity = max(2 / 3 * abs(x_velocity) - 0.05, 0)
+
+        for i in range(15):
+            trajectory.frames[i].min_horizontal_velocity = x_velocity
+            trajectory.frames[i].max_horizontal_velocity = x_velocity
+
+            if i == 0:
+                trajectory.frames[i].forward_acceleration = x_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity
+            else:
+                trajectory.frames[i].forward_acceleration = x_velocity - trajectory.frames[i - 1].max_horizontal_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity - trajectory.frames[i - 1].min_horizontal_velocity
+
+            x_velocity = max(x_velocity - 0.05, 0)
+
+        return trajectory
+
+    @staticmethod
+    def create_shorten_trajectory(amount):
+        result = copy.deepcopy(FalcoPhantasm.TRAJECTORY)
+
+        for i in range(amount):
+            result.frames[19-i].forward_acceleration = result.frames[19-i].max_horizontal_velocity - result.frames[17-i].max_horizontal_velocity
+            result.frames[19-i].backward_acceleration = result.frames[19-i].min_horizontal_velocity - result.frames[17-i].min_horizontal_velocity
+            result.frames.pop(18-i)
+
+        return result
 
     @staticmethod
     def should_use(propagate):
         smashbot_state = propagate[1]
 
         return smashbot_state.action != Action.DEAD_FALL
-
-    @staticmethod
-    def create_trajectory(character, angle):
-        trajectory = copy.deepcopy(AirDodge.TRAJECTORY_DICTIONARY[character])
-        velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
-
-        for i in range(29):
-            trajectory.frames[i].vertical_velocity = velocity[1]
-            trajectory.frames[i].min_horizontal_velocity = velocity[0]
-            trajectory.frames[i].max_horizontal_velocity = velocity[0]
-
-            if i == 0:
-                trajectory.frames[i].forward_acceleration = velocity[0]
-                trajectory.frames[i].backward_acceleration = velocity[0]
-            else:
-                trajectory.frames[i].forward_acceleration = velocity[0] - trajectory.frames[i-1].max_horizontal_velocity
-                trajectory.frames[i].backward_acceleration = velocity[0] - trajectory.frames[i-1].min_horizontal_velocity
-
-            velocity[0] *= 0.9
-            velocity[1] *= 0.9
-
-        frames = Trajectory.create_trajectory_frames(character, velocity[1] / 0.9)
-        for i in range(29, 49):
-            index = min(i - 29, len(frames) - 1)
-            trajectory.frames[i].vertical_velocity = frames[index].vertical_velocity
-            trajectory.frames[i].forward_acceleration = frames[index].forward_acceleration
-            trajectory.frames[i].backward_acceleration = frames[index].backward_acceleration
-            trajectory.frames[i].min_horizontal_velocity = frames[index].min_horizontal_velocity
-            trajectory.frames[i].max_horizontal_velocity = frames[index].max_horizontal_velocity
-
-        trajectory.frames.append(frames[min(21, len(frames) - 1)])
-        trajectory.max_ledge_grab = trajectory.get_displacement_after_frames(0, 50)[1]
-        return trajectory
 
     def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
         Chain.__init__(self)
@@ -67,20 +63,21 @@ class AirDodge(Chain):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 
-        if self.trajectory is None:
-            self.trajectory = self.__decide_trajectory(smashbot_state.character)
-
         # We're done here if...
-        if self.current_frame > 0 and smashbot_state.action not in [Action.AIRDODGE, Action.DEAD_FALL]:
+        if self.current_frame > 0 and smashbot_state.action not in [Action.FOX_ILLUSION, Action.FOX_ILLUSION_START, Action.FOX_ILLUSION_SHORTENED]:
             return False
 
         x = smashbot_state.get_inward_x()
 
+        useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+        if self.trajectory is None:
+            self.trajectory = FalcoPhantasm.create_trajectory(useful_x_velocity)
+
         # If we haven't started yet, hit the input
-        if self.current_frame < 0 and smashbot_state.action not in [Action.AIRDODGE, Action.DEAD_FALL]:
+        if self.current_frame < 0 and smashbot_state.action != Action.FOX_ILLUSION:
             self.interruptable = False
-            controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 1)
+            controller.press_button(Button.BUTTON_B)
+            controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
             self.current_frame = 0
 
             LogUtils.simple_log("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "smashbot_state.ecb_bottom", "smashbot_state.ecb_left", "smashbot_state.ecb_right",
@@ -91,17 +88,23 @@ class AirDodge(Chain):
         # Deciding if we should fade-back
         if self.current_frame >= 0:
             self.current_frame += 1
-            controller.release_button(Button.BUTTON_L)
+            controller.release_button(Button.BUTTON_B)
 
             # Check if we should still fade-back
             should_fade_back = False
-            useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
             angle = smashbot_state.get_knockback_angle(opponent_state)
             if math.cos(math.radians(angle)) > 0:
                 angle = AngleUtils.get_x_reflection(angle)
             magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
 
             recovery_distance = None
+
+            # Decide if we should shorten
+            if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY and 15 <= self.current_frame <= 18:
+                self.trajectory = FalcoPhantasm.create_shorten_trajectory(19 - self.current_frame)
+                recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, start_frame=self.current_frame)
+                if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
+                    controller.press_button(Button.BUTTON_B)
 
             # See if we can fade back on this frame
             if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
@@ -140,6 +143,3 @@ class AirDodge(Chain):
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
         self.interruptable = False
         return True
-
-    def __decide_trajectory(self, character):
-        return AirDodge.create_trajectory(character, 90)
