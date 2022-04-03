@@ -65,7 +65,7 @@ class LedgeTech(Chain):
             return True
 
         # Act normally out of wall jump
-        if smashbot_state.is_wall_teching() and smashbot_state.action_frame > 0:
+        if smashbot_state.is_wall_teching() and smashbot_state.action_frame > 1:
             return False
 
         return False
