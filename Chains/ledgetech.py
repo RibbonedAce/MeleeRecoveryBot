@@ -49,7 +49,7 @@ class LedgeTech(Chain):
 
         # Input the jump tech if we can
         if not self.teched and smashbot_state.hitlag_left > 1 and smashbot_state.can_tech(game_state):
-            self.interruptable = True
+            self.interruptable = False
             controller.tilt_analog(Button.BUTTON_MAIN, x, y)
             controller.press_button(Button.BUTTON_L)
             controller.press_button(Button.BUTTON_Y)
@@ -57,15 +57,11 @@ class LedgeTech(Chain):
             return True
 
         # Keep holding until we become actionable
-        if smashbot_state.is_wall_teching() and smashbot_state.action_frame == 0:
+        if smashbot_state.is_wall_teching() and smashbot_state.action_frame <= 1:
             self.interruptable = False
             controller.tilt_analog(Button.BUTTON_MAIN, x, y)
             controller.press_button(Button.BUTTON_L)
             controller.press_button(Button.BUTTON_Y)
             return True
-
-        # Act normally out of wall jump
-        if smashbot_state.is_wall_teching() and smashbot_state.action_frame > 1:
-            return False
 
         return False
