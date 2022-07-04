@@ -1,4 +1,3 @@
-import copy
 import math
 
 from melee import FrameData
@@ -26,7 +25,7 @@ class AirDodge(Chain):
 
     @staticmethod
     def create_trajectory(character, angle):
-        trajectory = copy.deepcopy(AirDodge.TRAJECTORY_DICTIONARY[character])
+        trajectory = AirDodge.TRAJECTORY_DICTIONARY[character].copy()
         velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
 
         for i in range(29):

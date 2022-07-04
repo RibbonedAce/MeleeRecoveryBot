@@ -1,4 +1,3 @@
-import copy
 import math
 
 from melee import FrameData
@@ -20,7 +19,7 @@ class FireFox(Chain):
 
     @staticmethod
     def create_trajectory(x_velocity, angle):
-        trajectory = copy.deepcopy(FireFox.TRAJECTORY)
+        trajectory = FireFox.TRAJECTORY.copy()
         x_velocity = max(0.8 * abs(x_velocity) - 0.02, 0)
 
         for i in range(42):

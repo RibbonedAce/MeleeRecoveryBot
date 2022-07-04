@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 import argparse
+import cProfile
 import os
 import signal
 import sys
+from pstats import SortKey
 
 import melee
 
@@ -48,6 +50,8 @@ parser.add_argument('--dolphinexecutable', '-e', type=is_dir,
                     help='Manually specify Dolphin executable')
 parser.add_argument('--stage', '-s', default="FD",
                     help='Specify which stage to select')
+parser.add_argument('--profile', '-f', action='store_true',
+                    help='Log profiling statistics about function call times')
 parser.add_argument('--character', '-c', type=get_character,
                     help='Character that SmashBot will pick' +
                          '\nMARIO = 0' +
@@ -148,30 +152,37 @@ print("Connected")
 controller_one.connect()
 controller_two.connect()
 
-# Main loop
-while True:
-    # "step" to the next frame
-    game_state = console.step()
 
-    # What menu are we in?
-    if game_state.menu_state == melee.enums.Menu.IN_GAME:
-        try:
-            agent1.act(game_state)
-            if agent2:
-                agent2.act(game_state)
-        except Exception as error:
-            agent1.controller.empty_input()
-            if agent2:
-                agent2.controller.empty_input()
+def smashbot_loop():
+    # Main loop
+    while True:
+        # "step" to the next frame
+        game_state = console.step()
+
+        # What menu are we in?
+        if game_state.menu_state == melee.enums.Menu.IN_GAME:
+            try:
+                agent1.act(game_state)
+                if agent2:
+                    agent2.act(game_state)
+            except Exception as error:
+                agent1.controller.empty_input()
+                if agent2:
+                    agent2.controller.empty_input()
+                if LogUtils.LOGGER:
+                    LogUtils.simple_log("Exception thrown:", repr(error))
+                else:
+                    raise error
+            LogUtils.simple_log("Goals:", agent1.strategy)
             if LogUtils.LOGGER:
-                LogUtils.simple_log("Exception thrown:", repr(error))
-            else:
-                raise error
-        LogUtils.simple_log("Goals:", agent1.strategy)
-        if LogUtils.LOGGER:
-            LogUtils.LOGGER.logframe(game_state)
-            LogUtils.LOGGER.writeframe()
-    elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
-        melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
-        if LogUtils.LOGGER:
-            LogUtils.LOGGER.skipframe()
+                LogUtils.LOGGER.logframe(game_state)
+                LogUtils.LOGGER.writeframe()
+        elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
+            melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
+            if LogUtils.LOGGER:
+                LogUtils.LOGGER.skipframe()
+
+if args.profile:
+    cProfile.run("smashbot_loop()", sort=SortKey.CUMULATIVE)
+else:
+    smashbot_loop()

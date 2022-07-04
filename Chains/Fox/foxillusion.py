@@ -1,4 +1,3 @@
-import copy
 import math
 
 from melee import FrameData
@@ -18,7 +17,7 @@ class FoxIllusion(Chain):
 
     @staticmethod
     def create_trajectory(x_velocity):
-        trajectory = copy.deepcopy(FoxIllusion.TRAJECTORY)
+        trajectory = FoxIllusion.TRAJECTORY.copy()
         x_velocity = max(2 / 3 * abs(x_velocity) - 0.05, 0)
 
         for i in range(19):
@@ -38,7 +37,7 @@ class FoxIllusion(Chain):
 
     @staticmethod
     def create_shorten_trajectory(amount):
-        result = copy.deepcopy(FoxIllusion.TRAJECTORY)
+        result = FoxIllusion.TRAJECTORY.copy()
 
         for i in range(amount):
             result.frames[23-i].forward_acceleration = result.frames[23-i].max_horizontal_velocity - result.frames[21-i].max_horizontal_velocity

@@ -1,3 +1,4 @@
+import copy
 import csv
 import math
 
@@ -76,6 +77,9 @@ class Trajectory:
         self.requires_extra_height = requires_extra_height
         self.max_height = self.__get_max_height()
         self.max_distance_at_max_height = self.get_distance_at_height(self.max_height, 0)
+
+    def copy(self):
+        return Trajectory(self.character, self.ascent_start, self.descent_start, self.min_ledge_grab, self.max_ledge_grab, self.requires_extra_height, copy.copy(self.frames))
 
     def get_extra_distance(self, game_state, smashbot_state, opponent_state, target, ledge=False, frame_delay=0, start_frame=0):
         knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
