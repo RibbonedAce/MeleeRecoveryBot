@@ -15,16 +15,19 @@ class HillClimb:
         self.current_point = self.best_point
 
     def get_next_point(self):
-        step_size = 0.5 * (self.upper_bound - self.lower_bound) * (1 - self.iterations / self.target_iterations)
+        step_size = 0.5 * (self.upper_bound - self.lower_bound) * ((1 - self.iterations / self.target_iterations) ** 2)
         step = MathUtils.lerp(-step_size, step_size, random.random())
         self.current_point = min(max(self.lower_bound, self.best_point + step), self.upper_bound)
+        self.iterations += 1
         return self.current_point
 
     def record_result(self, result):
         self.record_custom_result(result, self.current_point)
 
     def record_custom_result(self, result, custom_point):
-        self.iterations += 1
         if self.best_result is None or result > self.best_result:
-            self.best_result = result
-            self.best_point = custom_point
+            self.override_best_result(result, custom_point)
+
+    def override_best_result(self, result, custom_point):
+        self.best_result = result
+        self.best_point = custom_point

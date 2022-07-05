@@ -1,7 +1,6 @@
 import math
 
 from Utils.angleutils import AngleUtils
-from Utils.mathutils import MathUtils
 
 
 class ControlStick:
@@ -130,8 +129,6 @@ class ControlStick:
 
         if -near_escape <= non_cardinal_angle < 0:
             result = coordinate - non_cardinal_angle - ControlStick.DEAD_ZONE_ESCAPE
-        elif non_cardinal_angle == 0:
-            result = coordinate - non_cardinal_angle
         elif 0 < non_cardinal_angle <= near_escape:
             result = coordinate - non_cardinal_angle + ControlStick.DEAD_ZONE_ESCAPE
         return ControlStick.from_edge_coordinate(result)
@@ -146,14 +143,11 @@ class ControlStick:
 
     @staticmethod
     def from_angle(a):
-        x = round(math.acos(math.radians(a)) * ControlStick.MAX_INPUT)
-        y = round(math.asin(math.radians(a)) * ControlStick.MAX_INPUT)
-
-        if not ControlStick.__input_is_valid(x, y):
-            if abs(x) > abs(y):
-                x -= MathUtils.sign(x)
-            else:
-                y -= MathUtils.sign(y)
+        x = math.cos(math.radians(a)) * ControlStick.MAX_INPUT
+        y = math.sin(math.radians(a)) * ControlStick.MAX_INPUT
+        m = min(ControlStick.MAX_INPUT / max(abs(x), 1), ControlStick.MAX_INPUT / max(abs(y), 1))
+        x = round(x * m)
+        y = round(y * m)
 
         result = ControlStick(x, y)
         if result.to_angle() < a:

@@ -75,11 +75,19 @@ class Trajectory:
         self.max_ledge_grab = max_ledge_grab
         self.frames = frames
         self.requires_extra_height = requires_extra_height
-        self.max_height = self.__get_max_height()
-        self.max_distance_at_max_height = self.get_distance_at_height(self.max_height, 0)
 
     def copy(self):
         return Trajectory(self.character, self.ascent_start, self.descent_start, self.min_ledge_grab, self.max_ledge_grab, self.requires_extra_height, copy.copy(self.frames))
+
+    def get_max_height(self):
+        max_height = 0
+        actual_height = 0
+
+        for frame in self.frames:
+            actual_height += frame.vertical_velocity
+            max_height = max(actual_height, max_height)
+
+        return max_height
 
     def get_extra_distance(self, game_state, smashbot_state, opponent_state, target, ledge=False, frame_delay=0, start_frame=0):
         knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
@@ -96,7 +104,7 @@ class Trajectory:
         for i in range(frame_delay):
             knockback_magnitude = max(knockback_magnitude - 0.051, 0)
 
-        max_distance = self.get_distance_at_height(0, target[1] - height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
+        max_distance = self.get_distance_at_height(0, target[1] - height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame)
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
@@ -135,12 +143,18 @@ class Trajectory:
 
             if i in fade_back_frames:
                 acceleration = max(frame.backward_acceleration, min(frame.min_horizontal_velocity - velocity, drag))
+                if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
+                    acceleration = frame.min_horizontal_velocity - velocity
+
                 velocity += acceleration
                 if frame.mid_horizontal_velocity is not None:
                     velocity = min(velocity, frame.mid_horizontal_velocity)
 
             else:
                 acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
+                if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
+                    acceleration = frame.max_horizontal_velocity - velocity
+
                 velocity += acceleration
                 if frame.mid_horizontal_velocity is not None:
                     velocity = max(velocity, frame.mid_horizontal_velocity)
@@ -156,7 +170,7 @@ class Trajectory:
 
             if ledge:
                 extra_height = ledge_box_top
-                if velocity + extra_velocity < 0:
+                if velocity + extra_velocity < 0 and actual_height + ledge_box_bottom >= height:
                     extra_height = ledge_box_bottom
                 # If a recovery is prone to getting battlefielded, we need a bit more vertical distance
                 if self.requires_extra_height and velocity + extra_velocity >= 0:
@@ -180,10 +194,7 @@ class Trajectory:
         stage_vertex = (position - stage_vertex[0], stage_vertex[1] - height)
         return stage_vertex
 
-    def get_distance_traveled_above_target(self, current_velocity, height, required_distance, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None, start_frame=0):
-        if fade_back_frames is None:
-            fade_back_frames = set()
-
+    def get_distance_traveled_above_target(self, current_velocity, target, stage_vertex, knockback_angle=0, knockback_magnitude=0, start_frame=0):
         total_distance = 0
         actual_distance = 0
         actual_height = 0
@@ -193,17 +204,13 @@ class Trajectory:
         for i in range(start_frame, 600):
             frame = self.frames[min(i, len(self.frames) - 1)]
 
-            if i in fade_back_frames:
-                acceleration = max(frame.backward_acceleration, min(frame.min_horizontal_velocity - velocity, drag))
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = min(velocity, frame.mid_horizontal_velocity)
+            acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
+            if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
+                acceleration = frame.min_horizontal_velocity - velocity
 
-            else:
-                acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = max(velocity, frame.mid_horizontal_velocity)
+            velocity += acceleration
+            if frame.mid_horizontal_velocity is not None:
+                velocity = max(velocity, frame.mid_horizontal_velocity)
 
             knockback_magnitude = max(knockback_magnitude - 0.051, 0)
             extra_velocity = math.cos(math.radians(knockback_angle)) * knockback_magnitude
@@ -211,14 +218,20 @@ class Trajectory:
             actual_height += frame.vertical_velocity + math.sin(math.radians(knockback_angle)) * knockback_magnitude
             extra_height = frame.ecb_bottom
 
-            if actual_height + extra_height >= height:
-                total_distance = actual_distance
-            elif i >= self.descent_start:
+            # If we pineapple, back out early
+            if stage_vertex is not None and actual_distance > stage_vertex[0] and actual_height < stage_vertex[1]:
+                LogUtils.simple_log("Hit vertex", i, actual_distance, actual_height, target, stage_vertex)
+                return Trajectory.TOO_LOW_RESULT
+
+            if actual_height + extra_height < target[1] and i >= self.descent_start:
                 if velocity + extra_velocity < 0:
-                    total_distance = actual_distance
+                    total_distance += velocity + extra_velocity
                 break
 
-        return total_distance - required_distance
+            elif actual_height + extra_height >= target[1] or actual_distance < target[0]:
+                total_distance += velocity + extra_velocity
+
+        return total_distance
 
     def get_displacement_after_frames(self, current_velocity, num_frames, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None):
         if fade_back_frames is None:
@@ -249,13 +262,3 @@ class Trajectory:
             actual_height += frame.vertical_velocity + math.sin(math.radians(knockback_angle)) * knockback_magnitude
 
         return actual_distance, actual_height
-
-    def __get_max_height(self):
-        max_height = 0
-        actual_height = 0
-
-        for frame in self.frames:
-            actual_height += frame.vertical_velocity
-            max_height = max(actual_height, max_height)
-
-        return max_height

@@ -38,7 +38,7 @@ class FalconKick(Chain):
         return smashbot_state.position.y > \
                -FalconKick.DISPLACEMENT[1] - knockback[1] - \
                FrameData.INSTANCE.dj_height(smashbot_state) * (1 + smashbot_state.jumps_left) - \
-               FalconDive.TRAJECTORY.max_height - FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
+               FalconDive.TRAJECTORY.get_max_height() - FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 
     def __init__(self):
         Chain.__init__(self)

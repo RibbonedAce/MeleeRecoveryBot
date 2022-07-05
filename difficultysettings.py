@@ -20,7 +20,6 @@ class DifficultySettings:
     AIR_DODGE_WEIGHT = 1
     REVERSE_RECOVERY_CHANCE = 1
     LEDGE_TECH_CHANCE = 1
-    GRAB_LEDGE_CHANCE = 0.5
     SDI_AMOUNT = 1
     DANGER_THRESHOLD = 30
     FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -97,10 +96,6 @@ class DifficultySettings:
         return random.random() < DifficultySettings.REVERSE_RECOVERY_CHANCE
 
     @staticmethod
-    def should_grab_ledge():
-        return random.random() < DifficultySettings.GRAB_LEDGE_CHANCE
-
-    @staticmethod
     def __random_float(start, stop):
         return MathUtils.lerp(start, stop, random.random())
 
@@ -121,7 +116,6 @@ class DifficultySettings:
             DifficultySettings.AIR_DODGE_WEIGHT = 0
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
-            DifficultySettings.GRAB_LEDGE_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
@@ -145,7 +139,6 @@ class DifficultySettings:
             DifficultySettings.AIR_DODGE_WEIGHT = 0
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
-            DifficultySettings.GRAB_LEDGE_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
             DifficultySettings.DANGER_THRESHOLD = -5
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.NEVER
@@ -169,7 +162,6 @@ class DifficultySettings:
             DifficultySettings.AIR_DODGE_WEIGHT = 1
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0.5
-            DifficultySettings.GRAB_LEDGE_CHANCE = 1
             DifficultySettings.SDI_AMOUNT = 0.2
             DifficultySettings.DANGER_THRESHOLD = 15
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -193,7 +185,6 @@ class DifficultySettings:
             DifficultySettings.AIR_DODGE_WEIGHT = 1
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0.25
             DifficultySettings.LEDGE_TECH_CHANCE = 1
-            DifficultySettings.GRAB_LEDGE_CHANCE = 0.5
             DifficultySettings.SDI_AMOUNT = 0.4
             DifficultySettings.DANGER_THRESHOLD = 30
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS
@@ -217,7 +208,6 @@ class DifficultySettings:
             DifficultySettings.AIR_DODGE_WEIGHT = 0.5
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
-            DifficultySettings.GRAB_LEDGE_CHANCE = 0.5
             DifficultySettings.SDI_AMOUNT = 1
             DifficultySettings.DANGER_THRESHOLD = 30
             DifficultySettings.FAST_FALL = FAST_FALL_MODE.ALWAYS

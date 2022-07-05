@@ -101,7 +101,6 @@ class Recover(Tactic):
         self.time_to_recover = False
         self.recovery_mode = DifficultySettings.get_recovery_mode()
         self.recovery_target = DifficultySettings.get_recovery_target()
-        self.grab_ledge = DifficultySettings.should_grab_ledge()
         self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
@@ -125,7 +124,7 @@ class Recover(Tactic):
         target = (stage_edge, 0)
 
         # If we are currently moving away from the stage, DI in
-        if self.grab_ledge and DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(game_state, smashbot_state, opponent_state, target):
+        if self.recovery_target.ledge and DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(game_state, smashbot_state, opponent_state, target):
             self.chain = None
             self.pick_chain(DriftIn)
             return
@@ -168,14 +167,14 @@ class Recover(Tactic):
             if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
                 distance_left = max(fire_fox_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False, 0),
                                     fire_fox_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, True, 0))
-                if distance_left > 0:
+                if distance_left <= self.last_distance or distance_left > 0:
                     self.time_to_recover = True
             # Recover at the ledge or stage
             else:
-                distance_left = fire_fox_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 1)
+                distance_left = fire_fox_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.height == RECOVERY_HEIGHT.LEDGE, 1)
+                if distance_left <= self.last_distance and distance_left <= 0:
+                    self.time_to_recover = True
 
-            if distance_left <= self.last_distance and distance_left <= 0:
-                self.time_to_recover = True
             self.last_distance = distance_left
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)

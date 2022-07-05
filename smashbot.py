@@ -152,7 +152,6 @@ print("Connected")
 controller_one.connect()
 controller_two.connect()
 
-
 def smashbot_loop():
     # Main loop
     while True:
