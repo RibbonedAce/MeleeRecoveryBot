@@ -9,7 +9,7 @@ from Utils import AngleUtils, ControlStick, HillClimb, LogUtils, MathUtils, Reco
 from Utils.enums import FADE_BACK_MODE
 
 
-class FireSpacie(RecoveryChain, metaclass=ABCMeta):
+class FireAnimal(RecoveryChain, metaclass=ABCMeta):
     ANGLES_TO_TEST = [ControlStick.from_angle(90).to_edge_coordinate(True),
                       ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_up_y()).to_edge_coordinate(True),
                       ControlStick.from_angle(45).to_edge_coordinate(True),

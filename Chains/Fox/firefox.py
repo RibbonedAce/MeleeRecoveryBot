@@ -2,11 +2,11 @@ import math
 
 from melee.enums import Character
 
-from Chains.Abstract import FireSpacie
+from Chains.Abstract import FireAnimal
 from Utils import MathUtils, Trajectory
 
 
-class FireFox(FireSpacie):
+class FireFox(FireAnimal):
     TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 42, 78, -999, 999, "Data/fire_fox.csv", requires_extra_height=True, include_fall_frames=False)
 
     @classmethod
