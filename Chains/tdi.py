@@ -2,14 +2,13 @@ from melee.enums import Button
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils.angleutils import AngleUtils
+from Utils import AngleUtils, LogUtils
 from Utils.enums import TDI_MODE
-from Utils.logutils import LogUtils
 
 
 class TDI(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         # If we do not want to TDI, then do not

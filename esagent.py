@@ -1,6 +1,6 @@
 from melee.enums import Action, Character, ProjectileType
 
-from Strategies.onlyrecover import OnlyRecover
+from Strategies import OnlyRecover
 
 
 class ESAgent:

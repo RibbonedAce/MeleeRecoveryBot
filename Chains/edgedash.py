@@ -1,12 +1,12 @@
 from melee.enums import Action, Button
 
 from Chains.chain import Chain
-from Utils.logutils import LogUtils
+from Utils import LogUtils
 
 
 class EdgeDash(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         return smashbot_state.action in [Action.EDGE_HANGING, Action.EDGE_CATCHING]

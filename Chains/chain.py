@@ -2,8 +2,8 @@ from abc import ABCMeta
 
 
 class Chain(metaclass=ABCMeta):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         return True
 
     def __init__(self):

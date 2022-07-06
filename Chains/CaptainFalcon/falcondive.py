@@ -3,39 +3,19 @@ import math
 from melee import FrameData
 from melee.enums import Action, Button, Character
 
-from Chains.chain import Chain
+from Chains.Abstract import RecoveryChain
 from difficultysettings import DifficultySettings
-from Utils.angleutils import AngleUtils
+from Utils import AngleUtils, LogUtils, MathUtils, Trajectory
 from Utils.enums import FADE_BACK_MODE
-from Utils.logutils import LogUtils
-from Utils.mathutils import MathUtils
-from Utils.recoverytarget import RecoveryTarget
-from Utils.trajectory import Trajectory
 
 
-class FalconDive(Chain):
+class FalconDive(RecoveryChain):
     TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 44, -999, 999, "Data/falcon_dive.csv")
     REVERSE_TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 44, 15, 999, "Data/reverse_falcon_dive.csv")
 
-    @staticmethod
-    def should_use(propagate):
-        smashbot_state = propagate[1]
-
-        return smashbot_state.action != Action.DEAD_FALL
-
-    @staticmethod
-    def get_trajectory(reverse=False):
-        trajectory = FalconDive.TRAJECTORY
-        if reverse:
-            trajectory = FalconDive.REVERSE_TRAJECTORY
-        return trajectory
-
-    def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
-        Chain.__init__(self)
-        self.target_coords = target_coords
-        self.recovery_target = recovery_target
-        self.current_frame = -1
-        self.trajectory = None
+    @classmethod
+    def create_trajectory(cls, smashbot_state, x_velocity, angle=0):
+        return cls.TRAJECTORY
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -111,7 +91,7 @@ class FalconDive(Chain):
                         frame.mid_horizontal_velocity > useful_x_velocity + frame.forward_acceleration:
                     x_input = 0.5
                 # Do not fully fade-forward if it would make us turn around unintentionally
-                if self.trajectory == FalconDive.REVERSE_TRAJECTORY and \
+                if self.trajectory == self.REVERSE_TRAJECTORY and \
                         smashbot_state.action == Action.FIREFOX_WAIT_AIR and smashbot_state.action_frame == 12:
                     x_input = 0.6 - 0.2 * x
 
@@ -125,6 +105,6 @@ class FalconDive(Chain):
     def __decide_trajectory(self, game_state, smashbot_state, opponent_state):
         # Pick reverse trajectory if we can make it and if we want to
         if DifficultySettings.should_reverse() and \
-                FalconDive.REVERSE_TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, self.target_coords, self.recovery_target.ledge, 0) > 0:
-            return FalconDive.REVERSE_TRAJECTORY
-        return FalconDive.TRAJECTORY
+                self.REVERSE_TRAJECTORY.get_extra_distance(game_state, smashbot_state, opponent_state, self.target_coords, self.recovery_target.ledge, 0) > 0:
+            return self.REVERSE_TRAJECTORY
+        return self.TRAJECTORY

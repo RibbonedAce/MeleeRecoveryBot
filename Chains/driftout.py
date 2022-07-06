@@ -4,8 +4,8 @@ from Chains.chain import Chain
 
 
 class DriftOut(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
 

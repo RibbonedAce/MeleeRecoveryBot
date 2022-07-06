@@ -17,8 +17,8 @@ class TECH_DIRECTION(Enum):
 
 # Grab and throw opponent
 class Tech(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]

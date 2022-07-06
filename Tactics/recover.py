@@ -1,38 +1,39 @@
 from melee.enums import Character
 
 from Tactics import CaptainFalcon, Falco, Fox
+from Tactics.Abstract import AbstractRecover
 from Tactics.tactic import Tactic
 
 
 class Recover(Tactic):
-    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.Recover,
-                        Character.FOX: Fox.Recover,
-                        Character.FALCO: Falco.Recover}
+    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.CaptainFalconRecover,
+                        Character.FOX: Fox.FoxRecover,
+                        Character.FALCO: Falco.FalcoRecover}
 
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
-        clazz = Recover.CLASS_DICTIONARY.get(smashbot_state.character)
+        clazz = cls.CLASS_DICTIONARY.get(smashbot_state.character)
         if clazz is None:
-            return False
+            return AbstractRecover.should_use(propagate)
 
         return clazz.should_use(propagate)
 
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
-        self.initialized = False
-        self.instance = None
+        self.__initialized = False
+        self.__instance = None
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
-        if not self.initialized:
-            self.initialized = True
-            clazz = Recover.CLASS_DICTIONARY.get(smashbot_state.character)
+        if not self.__initialized:
+            self.__initialized = True
+            clazz = self.CLASS_DICTIONARY.get(smashbot_state.character)
             if clazz is not None:
-                self.instance = clazz(self.controller, self.difficulty)
+                self.__instance = clazz(self.controller, self.difficulty)
 
-        if self.instance is None:
+        if self.__instance is None:
             return
 
-        self.instance.step(game_state, smashbot_state, opponent_state)
-        self.chain = self.instance.chain
+        self.__instance.step(game_state, smashbot_state, opponent_state)
+        self.chain = self.__instance.chain

@@ -3,14 +3,13 @@ from melee.enums import Button
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
+from Utils import LogUtils, Trajectory
 from Utils.enums import FAST_FALL_MODE
-from Utils.logutils import LogUtils
-from Utils.trajectory import Trajectory
 
 
 class FastFall(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]

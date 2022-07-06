@@ -2,9 +2,8 @@ from abc import ABCMeta
 
 
 class Tactic(metaclass=ABCMeta):
-
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         return False
 
     def __init__(self, controller, difficulty):
@@ -26,8 +25,7 @@ class Tactic(metaclass=ABCMeta):
         self.chain.controller.empty_input()
         self.chain.step(self._propagate[0], self._propagate[1], self._propagate[2])
 
-    def step_internal(self, game_state, smashbot_state, opponent_state) -> bool:
-        ...
+    def step_internal(self, game_state, smashbot_state, opponent_state): ...
 
     def step(self, game_state, smashbot_state, opponent_state):
         self._propagate = (game_state, smashbot_state, opponent_state)

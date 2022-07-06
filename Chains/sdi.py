@@ -4,26 +4,24 @@ from melee.enums import Button
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils.angleutils import AngleUtils
-from Utils.logutils import LogUtils
-from Utils.mathutils import MathUtils
+from Utils import AngleUtils, LogUtils, MathUtils
 
 
 class SDI(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         return smashbot_state.hitlag_left > 2
 
-    @staticmethod
-    def angle_to_cardinal(angle):
+    @classmethod
+    def __angle_to_cardinal(cls, angle):
         """For the given angle, return the nearest cardinal (8 directions) direction"""
         corrected_angle = AngleUtils.correct_for_cardinal(angle)
         return AngleUtils.angle_to_xy(corrected_angle)
 
-    @staticmethod
-    def cardinal_left(cardinal):
+    @classmethod
+    def __cardinal_left(cls, cardinal):
         """For the given cardinal, return the cardinal to the left of it"""
         angle = AngleUtils.refit_angle(math.degrees(math.atan2(cardinal[1] * 2 - 1, cardinal[0] * 2 - 1)))
         if angle <= 17 or angle >= 343:
@@ -45,8 +43,8 @@ class SDI(Chain):
 
         return AngleUtils.angle_to_xy(new_angle)
 
-    @staticmethod
-    def cardinal_right(cardinal):
+    @classmethod
+    def __cardinal_right(cls, cardinal):
         """For the given cardinal, return the cardinal to the left of it"""
         angle = AngleUtils.refit_angle(math.degrees(math.atan2(cardinal[1] * 2 - 1, cardinal[0] * 2 - 1)))
         if angle <= 17 or angle >= 343:
@@ -68,8 +66,8 @@ class SDI(Chain):
 
         return AngleUtils.angle_to_xy(new_angle)
 
-    @staticmethod
-    def touching_ground(smashbot_state):
+    @classmethod
+    def __touching_ground(cls, smashbot_state):
         """Returns whether we're on top of the ground, but not necessarily triggering the on_ground flag
 
         If we're on the ground, we don't want to DI down, so it's important to know
@@ -108,7 +106,7 @@ class SDI(Chain):
             # We're off the stage, or we're hit by a spike, so let's SDI back onto the stage
             if smashbot_state.off_stage or knockback_angle > 180:
                 angle = 90 + 90 * MathUtils.sign(smashbot_state.position.x)
-                self.cardinal = SDI.angle_to_cardinal(angle)
+                self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Off-stage SDI cardinal:", self.cardinal)
 
             # Survival SDI
@@ -116,7 +114,7 @@ class SDI(Chain):
             elif no_di_danger > DifficultySettings.DANGER_THRESHOLD * (smashbot_state.jumps_left + 1):
                 # Which cardinal direction is the most opposite the direction?
                 angle = AngleUtils.refit_angle(knockback_angle + 180)
-                self.cardinal = SDI.angle_to_cardinal(angle)
+                self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Survival SDI angle:", angle, smashbot_state.speed_y_attack, smashbot_state.speed_x_attack)
 
             # Combo SDI
@@ -126,7 +124,7 @@ class SDI(Chain):
                 if smashbot_state.on_ground:
                     angle = AngleUtils.refit_angle(math.degrees(math.atan2(smashbot_state.position.y - opponent_state.position.y,
                                                     smashbot_state.position.x - opponent_state.position.x)))
-                self.cardinal = SDI.angle_to_cardinal(angle)
+                self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Combo SDI angle:", angle)
 
             # If on ground, then we can't SDI up or down
@@ -134,7 +132,7 @@ class SDI(Chain):
                 self.cardinal = (int(angle < 90 or angle > 270), 0.5)
 
             # If we're not ON the actual ground, but touching it, then don't SDI down
-            if SDI.touching_ground(smashbot_state):
+            if self.__touching_ground(smashbot_state):
                 if self.cardinal[1] == 0:
                     self.cardinal = (self.cardinal[0], 0.5)
                     if self.cardinal[0] == 0.5:
@@ -149,7 +147,7 @@ class SDI(Chain):
 
             # If we're on the ground, and want to move horizontally, just alternate neutral and the direction
             #   This will avoid accidentally moving upwards
-            if SDI.touching_ground(smashbot_state) and self.cardinal[1] == 0.5:
+            if self.__touching_ground(smashbot_state) and self.cardinal[1] == 0.5:
                 # Return to neutral if held in any direction
                 if self.last_input != 0:
                     x, y = 0.5, 0.5
@@ -162,12 +160,12 @@ class SDI(Chain):
 
             # Use cardinal right if not there before
             elif self.last_input != 2 and self.last_sdi != 2:
-                x, y = SDI.cardinal_right(self.cardinal)
+                x, y = self.__cardinal_right(self.cardinal)
                 self.last_input = 2
                 self.last_sdi = 2
             # Use cardinal left if not there before
             elif self.last_input != 3 and self.last_sdi != 3:
-                x, y = SDI.cardinal_left(self.cardinal)
+                x, y = self.__cardinal_left(self.cardinal)
                 self.last_input = 3
                 self.last_sdi = 3
 

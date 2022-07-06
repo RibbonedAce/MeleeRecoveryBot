@@ -1,28 +1,21 @@
 import math
+from abc import ABCMeta
+from typing import Type
 
 from melee import FrameData
 from melee.enums import Action
 
-from Chains.airdodge import AirDodge
-from Chains.driftin import DriftIn
-from Chains.driftout import DriftOut
-from Chains.edgedash import EdgeDash
-from Chains.Falco import FalcoPhantasm, FireBird
-from Chains.fastfall import FastFall
-from Chains.jumpinward import JumpInward
-from Chains.jumpoutward import JumpOutward
+from Chains import AirDodge, Chain, DriftIn, DriftOut, EdgeDash, FastFall, JumpInward, JumpOutward
+from Chains.Abstract import RecoveryChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils.angleutils import AngleUtils
-from Utils.controlstick import ControlStick
+from Utils import MathUtils, Trajectory
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
-from Utils.mathutils import MathUtils
-from Utils.trajectory import Trajectory
 
 
-class Recover(Tactic):
-    @staticmethod
-    def should_use(propagate):
+class AbstractRecover(Tactic, metaclass=ABCMeta):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
@@ -87,8 +80,25 @@ class Recover(Tactic):
 
         return False
 
-    @staticmethod
-    def __can_hold_drift(game_state, smashbot_state, opponent_state, target):
+    @classmethod
+    def _get_primary_recovery_class(cls) -> Type[RecoveryChain]: ...
+
+    @classmethod
+    def _get_secondary_recovery_class(cls) -> Type[RecoveryChain]: ...
+
+    @classmethod
+    def _get_stall_class(cls) -> Type[Chain]: ...
+
+    @classmethod
+    def _get_primary_recovery_trajectory(cls, smashbot_state, stage_edge):
+        return cls._get_primary_recovery_class().create_trajectory(smashbot_state, smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
+
+    @classmethod
+    def _get_secondary_recovery_trajectory(cls, smashbot_state):
+        return cls._get_secondary_recovery_class().create_trajectory(smashbot_state, smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
+
+    @classmethod
+    def _can_hold_drift(cls, game_state, smashbot_state, opponent_state, target):
         trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
         distance = trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False)
         if distance <= 0 and smashbot_state.is_facing_inwards():
@@ -123,54 +133,50 @@ class Recover(Tactic):
         target = (stage_edge, 0)
 
         # If we are currently moving away from the stage, DI in
-        if self.recovery_target.ledge and DriftIn.should_use(self._propagate) and Recover.__can_hold_drift(game_state, smashbot_state, opponent_state, target):
+        if self.recovery_target.ledge and DriftIn.should_use(self._propagate) and self._can_hold_drift(game_state, smashbot_state, opponent_state, target):
             self.chain = None
             self.pick_chain(DriftIn)
             return
 
         # Air dodge
-        air_dodge_distance = AirDodge.create_trajectory(smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
-        if self.recovery_mode == RECOVERY_MODE.AIR_DODGE and AirDodge.should_use(self._propagate) and \
+        air_dodge_distance = AirDodge.create_trajectory(smashbot_state, smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
                 (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and air_dodge_distance > 0:
             self.chain = None
             self.pick_chain(AirDodge, [target, self.recovery_target])
             return
 
-        # Falco Phantasm
-        phantasm_trajectory = FalcoPhantasm.create_trajectory(smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
-        phantasm_distance = phantasm_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
-        if self.recovery_mode == RECOVERY_MODE.SECONDARY and FalcoPhantasm.should_use(self._propagate) and phantasm_distance > 0:
+        # Secondary recovery
+        secondary_recovery_class = self._get_secondary_recovery_class()
+        secondary_recovery_distance = self._get_secondary_recovery_trajectory(smashbot_state).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        if secondary_recovery_class.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and secondary_recovery_distance > 0:
             self.chain = None
-            self.pick_chain(FalcoPhantasm, [target, self.recovery_target])
+            self.pick_chain(secondary_recovery_class, [target, self.recovery_target])
             return
 
-        # If we cannot air dodge or Falco Phantasm when we want to, Fire Bird ASAP
+        # If we cannot air dodge or secondary recovery when we want to, primary recovery ASAP
         if smashbot_state.speed_y_self < 0 and smashbot_state.jumps_left == 0 and \
-                (self.recovery_mode == RECOVERY_MODE.SECONDARY and phantasm_distance == Trajectory.TOO_LOW_RESULT or
+                (self.recovery_mode == RECOVERY_MODE.SECONDARY and secondary_recovery_distance == Trajectory.TOO_LOW_RESULT or
                  self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT):
             self.time_to_recover = True
 
-        # If we are wall teching, Fire Bird ASAP
+        # If we are wall teching, primary recovery ASAP
         wall_teching = smashbot_state.is_wall_teching()
         if wall_teching:
             self.time_to_recover = True
 
-        # Decide how we can Fire Bird
+        # Decide how we can primary recovery
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
-            angle_to_ledge = AngleUtils.correct_for_cardinal(math.degrees(math.atan2(-smashbot_state.position.y, abs(smashbot_state.position.x) - stage_edge)))
-            min_angle = ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_angle()
-            test_angle = max(angle_to_ledge, min_angle)
-            fire_bird_trajectory = FireBird.create_trajectory(smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x), test_angle)
-
             # Recover ASAP
+            primary_recovery_trajectory = self._get_primary_recovery_trajectory(smashbot_state, stage_edge)
             if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
-                distance_left = max(fire_bird_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False, 0),
-                                    fire_bird_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, True, 0))
+                distance_left = max(primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False, 0),
+                                    primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, True, 0))
                 if distance_left <= self.last_distance or distance_left > 0:
                     self.time_to_recover = True
             # Recover at the ledge or stage
             else:
-                distance_left = fire_bird_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.height == RECOVERY_HEIGHT.LEDGE, 1)
+                distance_left = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.height == RECOVERY_HEIGHT.LEDGE, 1)
                 if distance_left <= self.last_distance and distance_left <= 0:
                     self.time_to_recover = True
 
@@ -198,10 +204,17 @@ class Recover(Tactic):
                 return
 
         # Recover when we're ready
-        if FireBird.should_use(self._propagate) and \
+        primary_recovery_class = self._get_primary_recovery_class()
+        if primary_recovery_class.should_use(self._propagate) and \
                 (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
             self.chain = None
-            self.pick_chain(FireBird, [target, self.recovery_target])
+            self.pick_chain(primary_recovery_class, [target, self.recovery_target])
+            return
+
+        # If we can do a Falcon Kick to get back easier, then do so
+        stall_class = self._get_stall_class()
+        if stall_class.should_use(self._propagate):
+            self.pick_chain(stall_class)
             return
 
         # Drift out from the stage if too far in

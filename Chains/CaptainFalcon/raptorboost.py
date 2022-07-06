@@ -3,29 +3,17 @@ import math
 from melee import FrameData
 from melee.enums import Action, Button, Character
 
-from Chains.chain import Chain
-from Utils.angleutils import AngleUtils
+from Chains.Abstract import RecoveryChain
+from Utils import AngleUtils, LogUtils, MathUtils, Trajectory
 from Utils.enums import FADE_BACK_MODE
-from Utils.logutils import LogUtils
-from Utils.mathutils import MathUtils
-from Utils.recoverytarget import RecoveryTarget
-from Utils.trajectory import Trajectory
 
 
-class RaptorBoost(Chain):
+class RaptorBoost(RecoveryChain):
     TRAJECTORY = Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, -64, "Data/raptor_boost.csv")
 
-    @staticmethod
-    def should_use(propagate):
-        smashbot_state = propagate[1]
-
-        return smashbot_state.action != Action.DEAD_FALL
-
-    def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
-        Chain.__init__(self)
-        self.target_coords = target_coords
-        self.recovery_target = recovery_target
-        self.current_frame = -1
+    @classmethod
+    def create_trajectory(cls, smashbot_state, x_velocity, angle=0):
+        return cls.TRAJECTORY
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -74,11 +62,11 @@ class RaptorBoost(Chain):
                     for i in range(self.current_frame, 600):
                         fade_back_frames.add(i)
 
-                recovery_distance = RaptorBoost.TRAJECTORY.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, RaptorBoost.TRAJECTORY.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
+                recovery_distance = self.TRAJECTORY.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, RaptorBoost.TRAJECTORY.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, fade_back_frames, self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     should_fade_back = True
 
-            frame = RaptorBoost.TRAJECTORY.frames[min(self.current_frame, len(RaptorBoost.TRAJECTORY.frames) - 1)]
+            frame = self.TRAJECTORY.frames[min(self.current_frame, len(RaptorBoost.TRAJECTORY.frames) - 1)]
 
             if should_fade_back:
                 x_input = 1 - x

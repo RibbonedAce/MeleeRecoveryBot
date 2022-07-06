@@ -4,8 +4,8 @@ from Chains.chain import Chain
 
 
 class Wiggle(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         return smashbot_state.action == Action.TUMBLING or \

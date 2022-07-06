@@ -9,8 +9,8 @@ from Utils.enums import STALL_MODE
 class FalconKick(Chain):
     DISPLACEMENT = (49, -132)
 
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
@@ -31,12 +31,12 @@ class FalconKick(Chain):
         knockback = smashbot_state.get_remaining_knockback(opponent_state)
         diff_x = abs(smashbot_state.position.x) - game_state.get_stage_edge() + abs(knockback[0])
         # Should not Falcon Kick if too close unless we want to
-        if diff_x <= 40 + FalconKick.DISPLACEMENT[0] and falcon_kick_mode == STALL_MODE.SMART:
+        if diff_x <= 40 + cls.DISPLACEMENT[0] and falcon_kick_mode == STALL_MODE.SMART:
             return False
 
         # Falcon Kick if we are high enough
         return smashbot_state.position.y > \
-               -FalconKick.DISPLACEMENT[1] - knockback[1] - \
+               -cls.DISPLACEMENT[1] - knockback[1] - \
                FrameData.INSTANCE.dj_height(smashbot_state) * (1 + smashbot_state.jumps_left) - \
                FalconDive.TRAJECTORY.get_max_height() - FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 

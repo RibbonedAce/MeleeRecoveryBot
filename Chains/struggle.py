@@ -5,8 +5,8 @@ from Chains.chain import Chain
 
 # Struggle out of a grab
 class Struggle(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         return smashbot_state.is_grabbed()

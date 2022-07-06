@@ -1,2 +1,2 @@
-from Tactics.Falco.mitigate import Mitigate
-from Tactics.Falco.recover import Recover
+from Tactics.Falco.falcomitigate import FalcoMitigate
+from Tactics.Falco.falcorecover import FalcoRecover

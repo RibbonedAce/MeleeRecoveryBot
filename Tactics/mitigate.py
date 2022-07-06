@@ -1,21 +1,22 @@
 from melee.enums import Character
 
 from Tactics import CaptainFalcon, Falco, Fox
+from Tactics.Abstract import AbstractMitigate
 from Tactics.tactic import Tactic
 
 
 class Mitigate(Tactic):
-    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.Mitigate,
-                        Character.FOX: Fox.Mitigate,
-                        Character.FALCO: Falco.Mitigate}
+    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.CaptainFalconMitigate,
+                        Character.FOX: Fox.FoxMitigate,
+                        Character.FALCO: Falco.FalcoMitigate}
 
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
-        clazz = Mitigate.CLASS_DICTIONARY.get(smashbot_state.character)
+        clazz = cls.CLASS_DICTIONARY.get(smashbot_state.character)
         if clazz is None:
-            return False
+            return AbstractMitigate.should_use(propagate)
 
         return clazz.should_use(propagate)
 
@@ -27,7 +28,7 @@ class Mitigate(Tactic):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         if not self.initialized:
             self.initialized = True
-            clazz = Mitigate.CLASS_DICTIONARY.get(smashbot_state.character)
+            clazz = self.CLASS_DICTIONARY.get(smashbot_state.character)
             if clazz is not None:
                 self.instance = clazz(self.controller, self.difficulty)
 

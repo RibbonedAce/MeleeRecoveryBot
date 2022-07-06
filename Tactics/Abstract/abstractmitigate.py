@@ -1,23 +1,17 @@
+from abc import ABCMeta
+from typing import Type
+
 from melee.enums import Action
 
-from Chains.amsahtech import AmsahTech
-from Chains.driftin import DriftIn
-from Chains.Falco import FireBird
-from Chains.jumpinward import JumpInward
-from Chains.ledgetech import LedgeTech
-from Chains.nothing import Nothing
-from Chains.sdi import SDI
-from Chains.struggle import Struggle
-from Chains.tdi import TDI
-from Chains.tech import Tech
-from Chains.wiggle import Wiggle
+from Chains import AmsahTech, DriftIn, JumpInward, LedgeTech, Nothing, SDI, Struggle, TDI, Tech, Wiggle
+from Chains.Abstract import RecoveryChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
 
 
-class Mitigate(Tactic):
-    @staticmethod
-    def should_use(propagate):
+class AbstractMitigate(Tactic, metaclass=ABCMeta):
+    @classmethod
+    def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
         # Grabbed
@@ -37,6 +31,9 @@ class Mitigate(Tactic):
             return True
 
         return False
+
+    @classmethod
+    def _get_meteor_cancel_class(cls) -> Type[RecoveryChain]: ...
 
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
@@ -88,10 +85,11 @@ class Mitigate(Tactic):
             return
 
         # Meteor cancel 8 frames after hit-lag ended
-        if FireBird.should_use(self._propagate) and \
+        meteor_cancel_class = self._get_meteor_cancel_class()
+        if meteor_cancel_class.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
                 smashbot_state.can_special_meteor_cancel(game_state):
-            self.pick_chain(FireBird)
+            self.pick_chain(meteor_cancel_class)
             return
 
         if Wiggle.should_use(self._propagate):

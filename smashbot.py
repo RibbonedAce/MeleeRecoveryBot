@@ -10,7 +10,7 @@ import melee
 
 from difficultysettings import DifficultySettings
 from esagent import ESAgent
-from Utils.logutils import LogUtils
+from Utils import LogUtils
 
 
 def check_port(value):

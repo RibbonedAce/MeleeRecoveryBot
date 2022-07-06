@@ -4,8 +4,8 @@ from Chains.chain import Chain
 
 
 class DropFromAngel(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         return smashbot_state.get_stock_duration(game_state) <= 120 and smashbot_state.invulnerability_left > 0 and smashbot_state.position.y > 1

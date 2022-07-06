@@ -1,8 +1,7 @@
 import random
 
+from Utils import MathUtils, RecoveryTarget
 from Utils.enums import AMSAH_TECH_MODE, FAST_FALL_MODE, RECOVERY_MODE, STALL_MODE, TDI_MODE
-from Utils.mathutils import MathUtils
-from Utils.recoverytarget import RecoveryTarget
 
 
 class DifficultySettings:

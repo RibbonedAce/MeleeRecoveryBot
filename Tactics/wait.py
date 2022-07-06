@@ -2,14 +2,13 @@ import melee
 from melee import FrameData
 from melee.enums import Action
 
-from Chains.dropfromangel import DropFromAngel
-from Chains.nothing import Nothing
+from Chains import DropFromAngel, Nothing
 from Tactics.tactic import Tactic
 
 
 class Wait(Tactic):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]

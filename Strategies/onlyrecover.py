@@ -1,7 +1,5 @@
 from Strategies.strategy import Strategy
-from Tactics.mitigate import Mitigate
-from Tactics.recover import Recover
-from Tactics.wait import Wait
+from Tactics import Mitigate, Recover, Wait
 
 
 class OnlyRecover(Strategy):

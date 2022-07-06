@@ -1,2 +1,2 @@
-from Tactics.Fox.mitigate import Mitigate
-from Tactics.Fox.recover import Recover
+from Tactics.Fox.foxmitigate import FoxMitigate
+from Tactics.Fox.foxrecover import FoxRecover

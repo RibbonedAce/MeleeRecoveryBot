@@ -5,14 +5,13 @@ from melee import Action, Button, FrameData, GameState
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils.angleutils import AngleUtils
+from Utils import AngleUtils, MathUtils
 from Utils.enums import AMSAH_TECH_MODE
-from Utils.mathutils import MathUtils
 
 
 class AmsahTech(Chain):
-    @staticmethod
-    def should_use(propagate):
+    @classmethod
+    def should_use(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
@@ -24,14 +23,14 @@ class AmsahTech(Chain):
 
         stage_edge = game_state.get_stage_edge()
         # Cannot Amsah tech if can't stick on ground
-        if not AmsahTech.can_stick_on_ground(smashbot_state, opponent_state, stage_edge):
+        if not cls.__can_stick_on_ground(smashbot_state, opponent_state, stage_edge):
             return False
 
         # Cannot Amsah tech if close to edge (need "- 6" since inputting TDI moves character)
         if abs(smashbot_state.position.x) > stage_edge - 6:
             return False
 
-        can_slide_off = AmsahTech.should_slide_off(smashbot_state, opponent_state, stage_edge)
+        can_slide_off = cls.__should_slide_off(smashbot_state, opponent_state, stage_edge)
         # Cannot Amsah tech if in tech lockout unless you can also slide off
         if GameState.TECH_LOCKOUT[smashbot_state.get_port(game_state)] > smashbot_state.hitlag_left - 2 and not can_slide_off:
             return False
@@ -53,8 +52,8 @@ class AmsahTech(Chain):
 
         return True
 
-    @staticmethod
-    def can_stick_on_ground(smashbot_state, opponent_state, stage_edge):
+    @classmethod
+    def __can_stick_on_ground(cls, smashbot_state, opponent_state, stage_edge):
         # Cannot stick on ground if not already there
         if not smashbot_state.on_ground:
             return False
@@ -81,8 +80,8 @@ class AmsahTech(Chain):
         # Cannot stick on ground if close to ledge (need "- 6" because you move when inputting TDI)
         return abs(smashbot_state.x) <= stage_edge - 6
 
-    @staticmethod
-    def should_slide_off(smashbot_state, opponent_state, stage_edge):
+    @classmethod
+    def __should_slide_off(cls, smashbot_state, opponent_state, stage_edge):
         # If we do not want to slide off, do not
         if DifficultySettings.AMSAH_TECH != AMSAH_TECH_MODE.SMART:
             return False
@@ -136,7 +135,7 @@ class AmsahTech(Chain):
             # Input the tech
             if smashbot_state.hitlag_left == 1:
                 # Slide off instead if possible
-                if not AmsahTech.should_slide_off(smashbot_state, opponent_state, game_state.get_stage_edge()):
+                if not self.__should_slide_off(smashbot_state, opponent_state, game_state.get_stage_edge()):
                     controller.press_button(Button.BUTTON_L)
                 self.teched = True
 
