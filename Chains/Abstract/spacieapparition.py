@@ -5,13 +5,43 @@ from melee import FrameData
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import AngleUtils, LogUtils, MathUtils, Trajectory
+from Utils import AngleUtils, LogUtils, MathUtils
 from Utils.enums import FADE_BACK_MODE
 
 
 class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
     @classmethod
-    def create_shorten_trajectory(cls, amount) -> Trajectory: ...
+    def create_shorten_trajectory(cls, amount):
+        result = cls.create_trajectory(None, 0)
+        shorten_frame = cls._get_shorten_frame()
+
+        for i in range(amount):
+            result.frames[shorten_frame + 4 - i].forward_acceleration = result.frames[shorten_frame + 4 - i].max_horizontal_velocity - result.frames[shorten_frame + 2 - i].max_horizontal_velocity
+            result.frames[shorten_frame + 4 - i].backward_acceleration = result.frames[shorten_frame + 4 - i].min_horizontal_velocity - result.frames[shorten_frame + 2 - i].min_horizontal_velocity
+            result.frames.pop(shorten_frame + 3 - i)
+
+        return result
+
+    @classmethod
+    def _get_shorten_frame(cls) -> int: ...
+
+    @classmethod
+    def _adjust_trajectory(cls, trajectory, x_velocity):
+        x_velocity = max(2 / 3 * abs(x_velocity) - 0.05, 0)
+        for i in range(cls._get_shorten_frame()):
+            trajectory.frames[i].min_horizontal_velocity = x_velocity
+            trajectory.frames[i].max_horizontal_velocity = x_velocity
+
+            if i == 0:
+                trajectory.frames[i].forward_acceleration = x_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity
+            else:
+                trajectory.frames[i].forward_acceleration = x_velocity - trajectory.frames[i - 1].max_horizontal_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity - trajectory.frames[i - 1].min_horizontal_velocity
+
+            x_velocity = max(x_velocity - 0.05, 0)
+
+        return trajectory
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
@@ -53,8 +83,9 @@ class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
             recovery_distance = None
 
             # Decide if we should shorten
-            if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY and 15 <= self.current_frame <= 18:
-                self.trajectory = self.create_shorten_trajectory(19 - self.current_frame)
+            shorten_frame = self._get_shorten_frame()
+            if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY and shorten_frame <= self.current_frame <= shorten_frame + 3:
+                self.trajectory = self.create_shorten_trajectory(shorten_frame + 4 - self.current_frame)
                 recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, angle, magnitude, start_frame=self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     controller.press_button(Button.BUTTON_B)

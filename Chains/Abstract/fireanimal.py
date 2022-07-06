@@ -20,6 +20,58 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
                       ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_down_y()).to_edge_coordinate(True),
                       ControlStick.from_angle(-90).to_edge_coordinate(True)]
 
+    @classmethod
+    def _get_fire_travel_deceleration(cls) -> float: ...
+
+    @classmethod
+    def _get_fire_travel_slow_start_frame(cls) -> int: ...
+
+    @classmethod
+    def _get_fire_travel_start_speed(cls) -> float: ...
+
+    @classmethod
+    def _get_fire_travel_end_frame(cls) -> int: ...
+
+    @classmethod
+    def _adjust_trajectory(cls, trajectory, smashbot_state, x_velocity, angle):
+        x_velocity = MathUtils.sign(x_velocity) * max(0.8 * abs(x_velocity) - 0.02, 0)
+
+        for i in range(42):
+            trajectory.frames[i].min_horizontal_velocity = x_velocity
+            trajectory.frames[i].max_horizontal_velocity = x_velocity
+
+            if i == 0:
+                trajectory.frames[i].forward_acceleration = x_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity
+            else:
+                trajectory.frames[i].forward_acceleration = x_velocity - trajectory.frames[i - 1].max_horizontal_velocity
+                trajectory.frames[i].backward_acceleration = x_velocity - trajectory.frames[i - 1].min_horizontal_velocity
+
+            x_velocity = MathUtils.sign(x_velocity) * max(abs(x_velocity) - 0.02, 0)
+
+        x_angle = math.cos(math.radians(angle))
+        y_angle = math.sin(math.radians(angle))
+        magnitude = cls._get_fire_travel_start_speed()
+        travel_end_frame = cls._get_fire_travel_end_frame()
+
+        for i in range(42, travel_end_frame):
+            trajectory.frames[i].vertical_velocity = y_angle * magnitude
+            trajectory.frames[i].min_horizontal_velocity = x_angle * magnitude
+            trajectory.frames[i].max_horizontal_velocity = x_angle * magnitude
+            trajectory.frames[i].forward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].max_horizontal_velocity
+            trajectory.frames[i].backward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].min_horizontal_velocity
+
+            if i > cls._get_fire_travel_slow_start_frame():
+                magnitude = max(magnitude - cls._get_fire_travel_deceleration(), 0)
+
+        gravity = FrameData.INSTANCE.get_gravity(smashbot_state.character)
+        terminal_velocity = FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
+        for i in range(travel_end_frame, travel_end_frame + 20):
+            trajectory.frames[i].vertical_velocity = max(trajectory.frames[i - 1].vertical_velocity - gravity, -terminal_velocity)
+
+        trajectory.frames += Trajectory.create_trajectory_frames(smashbot_state.character, trajectory.frames[travel_end_frame + 19].vertical_velocity)
+        return trajectory
+
     def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
         RecoveryChain.__init__(self, target_coords, recovery_target)
         self.last_action_frame = -1
