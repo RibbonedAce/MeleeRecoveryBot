@@ -24,7 +24,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
     def _get_fire_travel_deceleration(cls) -> float: ...
 
     @classmethod
-    def _get_fire_travel_slow_start_frame(cls) -> int: ...
+    def _get_fire_travel_deceleration_start_frame(cls) -> int: ...
 
     @classmethod
     def _get_fire_travel_start_speed(cls) -> float: ...
@@ -61,7 +61,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
             trajectory.frames[i].forward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].max_horizontal_velocity
             trajectory.frames[i].backward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].min_horizontal_velocity
 
-            if i > cls._get_fire_travel_slow_start_frame():
+            if i > cls._get_fire_travel_deceleration_start_frame():
                 magnitude = max(magnitude - cls._get_fire_travel_deceleration(), 0)
 
         gravity = FrameData.INSTANCE.get_gravity(smashbot_state.character)

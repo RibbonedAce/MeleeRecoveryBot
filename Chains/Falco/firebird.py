@@ -16,7 +16,7 @@ class FireBird(FireAnimal):
         return 0.17
 
     @classmethod
-    def _get_fire_travel_slow_start_frame(cls):
+    def _get_fire_travel_deceleration_start_frame(cls):
         return 43
 
     @classmethod

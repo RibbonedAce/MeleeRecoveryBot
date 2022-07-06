@@ -16,7 +16,7 @@ class FireFox(FireAnimal):
         return 0.1
 
     @classmethod
-    def _get_fire_travel_slow_start_frame(cls):
+    def _get_fire_travel_deceleration_start_frame(cls):
         return 45
 
     @classmethod
