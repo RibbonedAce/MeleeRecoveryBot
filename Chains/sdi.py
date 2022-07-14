@@ -2,6 +2,7 @@ import math
 
 from melee.enums import Button
 
+from Chains.amsahtech import AmsahTech
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
 from Utils import AngleUtils, LogUtils, MathUtils
@@ -102,12 +103,17 @@ class SDI(Chain):
             no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, knockback_angle)
 
             # Situationally-specific SDI
-            #   Some hits require specific SDI to get out of a tricky combo. Account for those first, here
-            # We're off the stage, or we're hit by a spike, so let's SDI back onto the stage
+            #   We're off the stage, or we're hit by a spike, so let's SDI back onto the stage
             if smashbot_state.off_stage or knockback_angle > 180:
                 angle = 90 + 90 * MathUtils.sign(smashbot_state.position.x)
                 self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Off-stage SDI cardinal:", self.cardinal)
+
+            #   SDI down so that we can Amsah tech
+            elif AmsahTech.primary_conditions_met(smashbot_state, opponent_state, game_state) and AmsahTech.more_sdi_needed(smashbot_state):
+                angle = -90
+                self.cardinal = self.__angle_to_cardinal(angle)
+                LogUtils.simple_log("Amsah Tech SDI cardinal:", self.cardinal)
 
             # Survival SDI
             #   If we're at risk of dying from the hit, then SDI backwards to go further back to cut into the knockback
@@ -131,12 +137,12 @@ class SDI(Chain):
             if smashbot_state.on_ground:
                 self.cardinal = (int(angle < 90 or angle > 270), 0.5)
 
-            # If we're not ON the actual ground, but touching it, then don't SDI down
-            if self.__touching_ground(smashbot_state):
-                if self.cardinal[1] == 0:
-                    self.cardinal = (self.cardinal[0], 0.5)
-                    if self.cardinal[0] == 0.5:
-                        self.cardinal = (int(angle < 90 or angle > 270), 0.5)
+            # # If we're not ON the actual ground, but touching it, then don't SDI down
+            # if self.__touching_ground(smashbot_state):
+            #     if self.cardinal[1] == 0:
+            #         self.cardinal = (self.cardinal[0], 0.5)
+            #         if self.cardinal[0] == 0.5:
+            #             self.cardinal = (int(angle < 90 or angle > 270), 0.5)
 
         LogUtils.simple_log("Committed SDI cardinal:", self.cardinal)
 

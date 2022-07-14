@@ -23,9 +23,9 @@ class LedgeTech(Chain):
         if smashbot_state.hitlag_left <= 2:
             return False
 
-        tech_point = min(abs(smashbot_state.position.x + smashbot_state.ecb_left[0]), abs(smashbot_state.position.x + smashbot_state.ecb_right[0]))
+        tech_point = min(abs(smashbot_state.position.x + smashbot_state.ecb.left.x), abs(smashbot_state.position.x + smashbot_state.ecb.right.x))
         return game_state.get_stage_edge() - 3 <= tech_point <= game_state.get_stage_edge() + 6 and \
-               smashbot_state.position.y + smashbot_state.ecb_left[1] < 6 / math.sqrt(2)
+               smashbot_state.position.y + smashbot_state.ecb.left.y < 6 / math.sqrt(2)
 
     def __init__(self):
         Chain.__init__(self)
@@ -37,7 +37,7 @@ class LedgeTech(Chain):
         x = smashbot_state.get_inward_x()
         y = 0.5
         # Do a diagonal-downward SDI input if slightly above ledge
-        if smashbot_state.position.y + smashbot_state.ecb_left[1] > 0:
+        if smashbot_state.position.y + smashbot_state.ecb.left.y > 0:
             y = 0
 
         # Wait one frame to reset the stick to set up SDI

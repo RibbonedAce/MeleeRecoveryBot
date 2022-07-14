@@ -38,6 +38,7 @@ class PlayerStateExtensions:
         PlayerState.can_special_meteor_cancel = PlayerStateExtensions.__can_special_meteor_cancel
         PlayerState.get_port = PlayerStateExtensions.__get_port
         PlayerState.get_stock_duration = PlayerStateExtensions.__get_stock_duration
+        PlayerState.get_incurred_hitlag = PlayerStateExtensions.__get_incurred_hitlag
     
     @staticmethod
     def __get_position_after_drift(player_state, other_state, frames=1):
@@ -212,6 +213,10 @@ class PlayerStateExtensions:
     @staticmethod
     def __get_stock_duration(player_state, game_state):
         return GameState.STOCK_DURATION[player_state.get_port(game_state)]
+
+    @staticmethod
+    def __get_incurred_hitlag(player_state, game_state):
+        return GameState.INCURRED_HITLAG[player_state.get_port(game_state)]
 
     @staticmethod
     def __get_hit_lag_duration(player_state, damage):

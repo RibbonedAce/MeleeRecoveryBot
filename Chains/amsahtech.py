@@ -1,5 +1,5 @@
 import math
-from math import cos, radians, sin
+from math import radians
 
 from melee import Action, Button, FrameData, GameState
 
@@ -16,16 +16,20 @@ class AmsahTech(Chain):
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
+        return cls.primary_conditions_met(smashbot_state, opponent_state, game_state) and not cls.more_sdi_needed(smashbot_state)
+
+    @classmethod
+    def primary_conditions_met(cls, smashbot_state, opponent_state, game_state):
         tech_mode = DifficultySettings.AMSAH_TECH
         # If we do not want to tech, do not
         if tech_mode == AMSAH_TECH_MODE.NEVER:
             return False
 
-        stage_edge = game_state.get_stage_edge()
-        # Cannot Amsah tech if can't stick on ground
-        if not cls.__can_stick_on_ground(smashbot_state, opponent_state, stage_edge):
+        # If cannot tech knockback angle/magnitude, do not tech
+        if not cls.__knockback_is_techable(smashbot_state, opponent_state, game_state):
             return False
 
+        stage_edge = game_state.get_stage_edge()
         # Cannot Amsah tech if close to edge (need "- 6" since inputting TDI moves character)
         if abs(smashbot_state.position.x) > stage_edge - 6:
             return False
@@ -40,7 +44,7 @@ class AmsahTech(Chain):
             return True
 
         angle = smashbot_state.get_knockback_angle(opponent_state)
-        x = cos(radians(angle))
+        x = math.cos(math.radians(angle))
         # Should not Amsah tech if close to opponent when tech is finished
         if x > 0 and smashbot_state.position.x > stage_edge - 30 or \
                 x < 0 and smashbot_state.position.x < -(stage_edge - 30):
@@ -53,17 +57,21 @@ class AmsahTech(Chain):
         return True
 
     @classmethod
-    def __can_stick_on_ground(cls, smashbot_state, opponent_state, stage_edge):
-        # Cannot stick on ground if not already there
-        if not smashbot_state.on_ground:
-            return False
-
-        # Cannot stick on ground if already out of hit-lag (mainly from throws)
+    def more_sdi_needed(cls, smashbot_state):
+        # We can still SDI if we have more hit-lag
         if smashbot_state.hitlag_left != 2:
-            return False
+            return True
 
-        # Cannot stick on ground if in the air
-        if smashbot_state.position.y > 3:
+        # We should still try to SDI if we are above the ground
+        if smashbot_state.position.y + smashbot_state.ecb.bottom.y > 3:
+            return True
+
+        return False
+
+    @classmethod
+    def __knockback_is_techable(cls, smashbot_state, opponent_state, game_state):
+        # We should not SDI if the total hit-lag is too large (ECB shenanigans)
+        if smashbot_state.get_incurred_hitlag(game_state) > 9:
             return False
 
         # Cannot stick on ground if you don't go into knockdown
@@ -72,13 +80,12 @@ class AmsahTech(Chain):
 
         angle = smashbot_state.get_knockback_angle(opponent_state)
         tech_angle = AngleUtils.get_combo_di_launch_angle(angle)
-        v_knockback = smashbot_state.get_knockback_magnitude(opponent_state) * sin(radians(tech_angle))
-        # If grounded after ASDI down and 1 gravity frame, can Amsah tech
+        v_knockback = smashbot_state.get_knockback_magnitude(opponent_state) * math.sin(radians(tech_angle))
+        # If not grounded after ASDI down and 1 gravity frame, can't Amsah tech
         if v_knockback > 3 + FrameData.INSTANCE.get_gravity(smashbot_state.character):
             return False
 
-        # Cannot stick on ground if close to ledge (need "- 6" because you move when inputting TDI)
-        return abs(smashbot_state.x) <= stage_edge - 6
+        return True
 
     @classmethod
     def __should_slide_off(cls, smashbot_state, opponent_state, stage_edge):

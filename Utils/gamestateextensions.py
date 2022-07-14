@@ -14,6 +14,7 @@ class GameStateExtensions:
         GameState.PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.PREV_PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.STOCK_DURATION = {1: 0, 2: 0, 3: 0, 4: 0}
+        GameState.INCURRED_HITLAG = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.STAGE_DATA = GameStateExtensions.__init_stage_data()
         GameState.SMASHBOT_PORT = 0
         GameState.OPPONENT_PORT = 0
@@ -109,3 +110,7 @@ class GameStateExtensions:
             if player_state.action in [Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
                                        Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN]:
                 GameState.STOCK_DURATION[port] = 0
+
+            # Incurred hitlag, in frames
+            if player_state.hitlag_left == 0 or player_state.hitlag_left > GameState.INCURRED_HITLAG[port]:
+                GameState.INCURRED_HITLAG[port] = player_state.hitlag_left

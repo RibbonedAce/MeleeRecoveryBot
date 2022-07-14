@@ -14,6 +14,7 @@ class Struggle(Chain):
     def step_internal(self, game_state, smashbot_state, opponent_state):
         # Just naively press and release every button every other frame
         controller = self.controller
+        self.interruptable = True
 
         # Press every button
         if game_state.frame % 2:
