@@ -137,13 +137,6 @@ class SDI(Chain):
             if smashbot_state.on_ground:
                 self.cardinal = (int(angle < 90 or angle > 270), 0.5)
 
-            # # If we're not ON the actual ground, but touching it, then don't SDI down
-            # if self.__touching_ground(smashbot_state):
-            #     if self.cardinal[1] == 0:
-            #         self.cardinal = (self.cardinal[0], 0.5)
-            #         if self.cardinal[0] == 0.5:
-            #             self.cardinal = (int(angle < 90 or angle > 270), 0.5)
-
         LogUtils.simple_log("Committed SDI cardinal:", self.cardinal)
 
         self.frames += 1
