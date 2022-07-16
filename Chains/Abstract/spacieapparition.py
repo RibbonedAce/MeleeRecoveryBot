@@ -5,7 +5,7 @@ from melee import FrameData
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import AngleUtils, LogUtils, MathUtils
+from Utils import AngleUtils, LogUtils
 from Utils.enums import FADE_BACK_MODE
 
 
@@ -52,7 +52,7 @@ class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
 
         x = smashbot_state.get_inward_x()
 
-        useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+        useful_x_velocity = smashbot_state.get_inward_x_velocity()
         if self.trajectory is None:
             self.trajectory = self.create_trajectory(smashbot_state, useful_x_velocity)
 

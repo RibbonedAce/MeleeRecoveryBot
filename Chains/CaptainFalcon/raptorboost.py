@@ -4,7 +4,7 @@ from melee import FrameData
 from melee.enums import Action, Button, Character
 
 from Chains.Abstract import RecoveryChain
-from Utils import AngleUtils, LogUtils, MathUtils, Trajectory
+from Utils import AngleUtils, LogUtils, Trajectory
 from Utils.enums import FADE_BACK_MODE
 
 
@@ -43,7 +43,7 @@ class RaptorBoost(RecoveryChain):
 
             # Check if we should still fade-back
             should_fade_back = False
-            useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+            useful_x_velocity = smashbot_state.get_inward_x_velocity()
             angle = smashbot_state.get_knockback_angle(opponent_state)
             if math.cos(math.radians(angle)) > 0:
                 angle = AngleUtils.get_x_reflection(angle)

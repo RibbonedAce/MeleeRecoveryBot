@@ -89,7 +89,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
         if self.current_frame > 0 and smashbot_state.action not in [Action.FIREFOX_AIR, Action.FIREFOX_WAIT_AIR, Action.SWORD_DANCE_1_AIR, Action.DEAD_FALL]:
             return False
 
-        useful_x_velocity = smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x)
+        useful_x_velocity = smashbot_state.get_inward_x_velocity()
         if self.trajectory is None:
             self.trajectory = self.create_trajectory(smashbot_state, useful_x_velocity, ControlStick.coordinate_num_to_angle(self.min_angle))
             self.start_x_velocity = useful_x_velocity

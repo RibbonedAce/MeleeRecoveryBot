@@ -27,6 +27,7 @@ class PlayerStateExtensions:
         PlayerState.is_suffering_damage = PlayerStateExtensions.__is_suffering_damage
         PlayerState.get_inward_x = PlayerStateExtensions.__get_inward_x
         PlayerState.get_outward_x = PlayerStateExtensions.__get_outward_x
+        PlayerState.get_inward_x_velocity = PlayerStateExtensions.__get_inward_x_velocity
         PlayerState.is_facing_inwards = PlayerStateExtensions.__is_facing_inwards
         PlayerState.is_grabbed = PlayerStateExtensions.__is_grabbed
         PlayerState.is_wall_teching = PlayerStateExtensions.__is_wall_teching
@@ -167,6 +168,10 @@ class PlayerStateExtensions:
     @staticmethod
     def __get_outward_x(player_state):
         return 1 - player_state.get_inward_x()
+
+    @staticmethod
+    def __get_inward_x_velocity(player_state):
+        return player_state.speed_air_x_self * -MathUtils.sign(player_state.position.x)
 
     @staticmethod
     def __is_facing_inwards(player_state):
