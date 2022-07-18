@@ -5,7 +5,7 @@ from Utils import Trajectory
 
 
 class FalcoPhantasm(SpacieApparition):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FALCO, 0, 24, -999, 999, "Data/falco_phantasm.csv")
+    TRAJECTORY = Trajectory.from_csv_file(Character.FALCO, 0, 24, -999, 999, "Data/Trajectories/falco_phantasm.csv")
 
     @classmethod
     def create_trajectory(cls, smashbot_state, x_velocity, angle=0):

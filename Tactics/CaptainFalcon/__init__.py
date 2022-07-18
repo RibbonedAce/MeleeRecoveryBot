@@ -1,2 +1,2 @@
-from Tactics.CaptainFalcon.captainfalconmitigate import CaptainFalconMitigate
-from Tactics.CaptainFalcon.captainfalconrecover import CaptainFalconRecover
+from Tactics.CaptainFalcon.falconmitigate import FalconMitigate
+from Tactics.CaptainFalcon.falconrecover import FalconRecover

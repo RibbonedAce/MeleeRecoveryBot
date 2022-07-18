@@ -5,7 +5,7 @@ from Utils import Trajectory
 
 
 class FoxIllusion(SpacieApparition):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 0, 15, -999, 999, "Data/fox_illusion.csv")
+    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 0, 15, -999, 999, "Data/Trajectories/fox_illusion.csv")
 
     @classmethod
     def create_trajectory(cls, smashbot_state, x_velocity, angle=0):

@@ -5,7 +5,7 @@ SmashBot that helps the player in practicing edgeguarding. Based on the work of 
 **Player Characters**: Captain Falcon, Falco, Fox, Ganondorf, Jigglypuff, Marth, Peach, Pikachu, Samus, Sheik, Zelda<br>
 (NOTE: you can choose other characters, but the bot will not DI properly for throws)<br>
 <br>
-**Smashbot Characters**: Captain Falcon<br>
+**Smashbot Characters**: Captain Falcon, Fox, Falco, Ganondorf<br>
 <br>
 **Stages**: Battlefield, Dreamland N64, Final Destination, Fountain of Dreams, Pokemon Stadium (frozen), Yoshi's Story<br>
 (NOTE: recoveries involving platforms are not yet supported, and the bot has only been extensively tested on Final Destination so far)

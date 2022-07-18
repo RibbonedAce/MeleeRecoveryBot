@@ -1,0 +1,2 @@
+from Tactics.Ganondorf.ganondorfmitigate import GanondorfMitigate
+from Tactics.Ganondorf.ganondorfrecover import GanondorfRecover

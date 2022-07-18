@@ -1,16 +1,16 @@
-from Chains.CaptainFalcon import FalconDive, FalconKick, RaptorBoost
+from Chains.Ganondorf import DarkDive, GerudoDragon, WizardsFoot
 from Tactics.Abstract import AbstractRecover
 
 
-class CaptainFalconRecover(AbstractRecover):
+class GanondorfRecover(AbstractRecover):
     @classmethod
     def _get_primary_recovery_class(cls):
-        return FalconDive
+        return DarkDive
 
     @classmethod
     def _get_secondary_recovery_class(cls):
-        return RaptorBoost
+        return GerudoDragon
 
     @classmethod
     def _get_stall_class(cls):
-        return FalconKick
+        return WizardsFoot

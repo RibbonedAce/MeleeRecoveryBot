@@ -1,68 +1,42 @@
 import math
+from abc import ABCMeta
 
 from melee import FrameData
-from melee.enums import Action, Button, Character
+from melee.enums import Action, Button
 
-from Chains.Abstract import RecoveryChain
+from Chains.Abstract.recoverychain import RecoveryChain
+from difficultysettings import DifficultySettings
 from Utils import AngleUtils, LogUtils, Trajectory
 from Utils.enums import FADE_BACK_MODE
 
 
-class AirDodge(RecoveryChain):
-    TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, 999, "Data/Trajectories/falcon_air_dodge.csv", include_fall_frames=False),
-                             Character.FOX: Trajectory.from_csv_file(Character.FOX, 0, 30, -999, 999, "Data/Trajectories/falcon_air_dodge.csv", include_fall_frames=False),
-                             Character.FALCO: Trajectory.from_csv_file(Character.FALCO, 0, 30, -999, 999, "Data/Trajectories/falco_air_dodge.csv", include_fall_frames=False),
-                             Character.GANONDORF: Trajectory.from_csv_file(Character.GANONDORF, 0, 30, -999, 999, "Data/Trajectories/ganondorf_air_dodge.csv", include_fall_frames=False)}
-
+class ElementalDive(RecoveryChain, metaclass=ABCMeta):
     @classmethod
     def create_trajectory(cls, smashbot_state, x_velocity, angle=0):
-        trajectory = AirDodge.TRAJECTORY_DICTIONARY[smashbot_state.character].copy()
-        velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
+        return cls._get_normal_trajectory()
 
-        for i in range(29):
-            trajectory.frames[i].vertical_velocity = velocity[1]
-            trajectory.frames[i].min_horizontal_velocity = velocity[0]
-            trajectory.frames[i].max_horizontal_velocity = velocity[0]
+    @classmethod
+    def _get_normal_trajectory(cls) -> Trajectory: ...
 
-            if i == 0:
-                trajectory.frames[i].forward_acceleration = velocity[0]
-                trajectory.frames[i].backward_acceleration = velocity[0]
-            else:
-                trajectory.frames[i].forward_acceleration = velocity[0] - trajectory.frames[i-1].max_horizontal_velocity
-                trajectory.frames[i].backward_acceleration = velocity[0] - trajectory.frames[i-1].min_horizontal_velocity
-
-            velocity[0] *= 0.9
-            velocity[1] *= 0.9
-
-        frames = Trajectory.create_trajectory_frames(smashbot_state.character, velocity[1] / 0.9)
-        for i in range(29, 49):
-            index = min(i - 29, len(frames) - 1)
-            trajectory.frames[i].vertical_velocity = frames[index].vertical_velocity
-            trajectory.frames[i].forward_acceleration = frames[index].forward_acceleration
-            trajectory.frames[i].backward_acceleration = frames[index].backward_acceleration
-            trajectory.frames[i].min_horizontal_velocity = frames[index].min_horizontal_velocity
-            trajectory.frames[i].max_horizontal_velocity = frames[index].max_horizontal_velocity
-
-        trajectory.frames.append(frames[min(21, len(frames) - 1)])
-        trajectory.max_ledge_grab = trajectory.get_displacement_after_frames(0, 50)[1]
-        return trajectory
+    @classmethod
+    def _get_reverse_trajectory(cls) -> Trajectory: ...
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 
         if self.trajectory is None:
-            self.trajectory = AirDodge.create_trajectory(smashbot_state, smashbot_state.character, 90)
+            self.trajectory = self.__decide_trajectory(game_state, smashbot_state, opponent_state)
 
         # We're done here if...
-        if self.current_frame > 0 and smashbot_state.action not in [Action.AIRDODGE, Action.DEAD_FALL]:
+        if self.current_frame > 0 and smashbot_state.action not in [Action.FIREFOX_WAIT_AIR, Action.FIREFOX_GROUND, Action.FIREFOX_AIR, Action.DEAD_FALL]:
             return False
 
         x = smashbot_state.get_inward_x()
 
         # If we haven't started yet, hit the input
-        if self.current_frame < 0 and smashbot_state.action not in [Action.AIRDODGE, Action.DEAD_FALL]:
+        if self.current_frame < 0 and smashbot_state.action not in [Action.FIREFOX_WAIT_AIR, Action.FIREFOX_GROUND, Action.FIREFOX_AIR, Action.DEAD_FALL]:
             self.interruptable = False
-            controller.press_button(Button.BUTTON_L)
+            controller.press_button(Button.BUTTON_B)
             controller.tilt_analog(Button.BUTTON_MAIN, 0.5, 1)
             self.current_frame = 0
 
@@ -74,7 +48,7 @@ class AirDodge(RecoveryChain):
         # Deciding if we should fade-back
         if self.current_frame >= 0:
             self.current_frame += 1
-            controller.release_button(Button.BUTTON_L)
+            controller.release_button(Button.BUTTON_B)
 
             # Check if we should still fade-back
             should_fade_back = False
@@ -109,6 +83,10 @@ class AirDodge(RecoveryChain):
                 if frame.mid_horizontal_velocity is not None and \
                         frame.mid_horizontal_velocity < useful_x_velocity + frame.backward_acceleration:
                     x_input = 0.5
+                # Do not fully fade-back if it would make us turn around unintentionally
+                if self.trajectory == self._get_normal_trajectory() and \
+                        smashbot_state.action == Action.FIREFOX_WAIT_AIR and smashbot_state.action_frame == 12:
+                    x_input = 0.4 + 0.2 * x
 
             else:
                 x_input = x
@@ -116,6 +94,10 @@ class AirDodge(RecoveryChain):
                 if frame.mid_horizontal_velocity is not None and \
                         frame.mid_horizontal_velocity > useful_x_velocity + frame.forward_acceleration:
                     x_input = 0.5
+                # Do not fully fade-forward if it would make us turn around unintentionally
+                if self.trajectory == self._get_reverse_trajectory() and \
+                        smashbot_state.action == Action.FIREFOX_WAIT_AIR and smashbot_state.action_frame == 12:
+                    x_input = 0.6 - 0.2 * x
 
             LogUtils.simple_log(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb.bottom.y, smashbot_state.ecb.left.x, smashbot_state.ecb.right.x,
                                 FrameData.INSTANCE.get_ledge_box_horizontal(smashbot_state.character), FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character), self.recovery_target.ledge, self.recovery_target.fade_back_mode, x_input, should_fade_back, recovery_distance,
@@ -123,3 +105,10 @@ class AirDodge(RecoveryChain):
             controller.tilt_analog(Button.BUTTON_MAIN, x_input, 0.5)
         self.interruptable = False
         return True
+
+    def __decide_trajectory(self, game_state, smashbot_state, opponent_state):
+        # Pick reverse trajectory if we can make it and if we want to
+        if DifficultySettings.should_reverse() and \
+                self._get_reverse_trajectory().get_extra_distance(game_state, smashbot_state, opponent_state, self.target_coords, self.recovery_target.ledge, 0) > 0:
+            return self._get_reverse_trajectory()
+        return self._get_normal_trajectory()

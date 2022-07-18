@@ -5,7 +5,7 @@ from Utils import Trajectory
 
 
 class FireBird(FireAnimal):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FALCO, 42, 70, -999, 999, "Data/fire_bird.csv", requires_extra_height=True, include_fall_frames=False)
+    TRAJECTORY = Trajectory.from_csv_file(Character.FALCO, 42, 70, -999, 999, "Data/Trajectories/fire_bird.csv", requires_extra_height=True, include_fall_frames=False)
 
     @classmethod
     def create_trajectory(cls, smashbot_state, x_velocity, angle=0):

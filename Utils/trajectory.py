@@ -170,8 +170,8 @@ class Trajectory:
 
             if ledge:
                 extra_height = ledge_box_top
-                if velocity + extra_velocity < 0 and actual_height + ledge_box_bottom >= height:
-                    extra_height = ledge_box_bottom
+                if velocity + extra_velocity < 0 and actual_height + max(ledge_box_bottom, frame.ecb_bottom) >= height:
+                    extra_height = max(ledge_box_bottom, frame.ecb_bottom)
                 # If a recovery is prone to getting battlefielded, we need a bit more vertical distance
                 if self.requires_extra_height and velocity + extra_velocity >= 0:
                     extra_height -= 2
