@@ -9,7 +9,7 @@ from Chains import AirDodge, Chain, DriftIn, DriftOut, EdgeDash, FastFall, JumpI
 from Chains.Abstract import RecoveryChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils import MathUtils, Trajectory
+from Utils import Trajectory
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
 
 
@@ -91,11 +91,11 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
 
     @classmethod
     def _get_primary_recovery_trajectory(cls, smashbot_state, stage_edge):
-        return cls._get_primary_recovery_class().create_trajectory(smashbot_state, smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
+        return cls._get_primary_recovery_class().create_trajectory(smashbot_state, smashbot_state.get_inward_x_velocity())
 
     @classmethod
     def _get_secondary_recovery_trajectory(cls, smashbot_state):
-        return cls._get_secondary_recovery_class().create_trajectory(smashbot_state, smashbot_state.speed_air_x_self * -MathUtils.sign(smashbot_state.position.x))
+        return cls._get_secondary_recovery_class().create_trajectory(smashbot_state, smashbot_state.get_inward_x_velocity())
 
     @classmethod
     def _can_hold_drift(cls, game_state, smashbot_state, opponent_state, target):
