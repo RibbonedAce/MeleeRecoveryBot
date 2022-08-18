@@ -88,7 +88,7 @@ The SmashBot has a few preset difficulty settings that change how it will recove
 
 # Limitations & Problems
 - **The bot only functions correctly with Slippi up to version 2.3.1**
-- The bot will frequently bug out the Character Select Screen when you go to change the game optiond. The workaround is to not go into those settings more than once
+- The bot will frequently bug out the Character Select Screen when you go to change the game options. The workaround is to not go into those settings more than once
 - The bot will not adjust recovery based on any action the player is doing (apart from hit mitigation such as DI'ing and teching)
 - The bot will not recover to side or top platforms
 - The bot will occasionally SD or perform an obviously wrong option as a result of many of its actions needing to be frame-perfect
