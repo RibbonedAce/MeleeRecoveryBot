@@ -17,6 +17,7 @@ class DifficultySettings:
     PRIMARY_RECOVERY_WEIGHT = 1
     SECONDARY_RECOVERY_WEIGHT = 1
     AIR_DODGE_WEIGHT = 1
+    HOLD_DRIFT_CHANCE = 0.5
     REVERSE_RECOVERY_CHANCE = 1
     LEDGE_TECH_CHANCE = 1
     SDI_AMOUNT = 1
@@ -95,6 +96,10 @@ class DifficultySettings:
         return random.random() < DifficultySettings.REVERSE_RECOVERY_CHANCE
 
     @staticmethod
+    def should_hold_drift():
+        return random.random() < DifficultySettings.HOLD_DRIFT_CHANCE
+
+    @staticmethod
     def __random_float(start, stop):
         return MathUtils.lerp(start, stop, random.random())
 
@@ -113,6 +118,7 @@ class DifficultySettings:
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
             DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 0
             DifficultySettings.AIR_DODGE_WEIGHT = 0
+            DifficultySettings.HOLD_DRIFT_CHANCE = 0
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
@@ -136,6 +142,7 @@ class DifficultySettings:
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 0
             DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 0
+            DifficultySettings.HOLD_DRIFT_CHANCE = 0
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0
             DifficultySettings.SDI_AMOUNT = 0
@@ -159,6 +166,7 @@ class DifficultySettings:
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 0
             DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 1
+            DifficultySettings.HOLD_DRIFT_CHANCE = 1
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0
             DifficultySettings.LEDGE_TECH_CHANCE = 0.5
             DifficultySettings.SDI_AMOUNT = 0.2
@@ -182,6 +190,7 @@ class DifficultySettings:
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
             DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 1
+            DifficultySettings.HOLD_DRIFT_CHANCE = 0.5
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 0.25
             DifficultySettings.LEDGE_TECH_CHANCE = 1
             DifficultySettings.SDI_AMOUNT = 0.4
@@ -205,6 +214,7 @@ class DifficultySettings:
             DifficultySettings.PRIMARY_RECOVERY_WEIGHT = 1
             DifficultySettings.SECONDARY_RECOVERY_WEIGHT = 1
             DifficultySettings.AIR_DODGE_WEIGHT = 0.5
+            DifficultySettings.HOLD_DRIFT_CHANCE = 0.5
             DifficultySettings.REVERSE_RECOVERY_CHANCE = 1
             DifficultySettings.LEDGE_TECH_CHANCE = 1
             DifficultySettings.SDI_AMOUNT = 1

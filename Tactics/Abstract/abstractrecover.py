@@ -98,18 +98,16 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         return cls._get_secondary_recovery_class().create_trajectory(smashbot_state, smashbot_state.get_inward_x_velocity())
 
     @classmethod
-    def _can_hold_drift(cls, game_state, smashbot_state, opponent_state, target):
+    def _can_hold_drift(cls, game_state, smashbot_state, opponent_state, target, ledge):
         trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
-        distance = trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False)
-        if distance <= 0 and smashbot_state.is_facing_inwards():
-            distance = trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, True)
-        return distance > 0
+        return trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, ledge) > 0
 
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
         self.time_to_recover = False
         self.recovery_mode = DifficultySettings.get_recovery_mode()
         self.recovery_target = DifficultySettings.get_recovery_target()
+        self.should_hold_drift = DifficultySettings.should_hold_drift()
         self.last_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, game_state, smashbot_state, opponent_state):
@@ -132,8 +130,9 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
 
         target = (stage_edge, 0)
 
-        # If we are currently moving away from the stage, DI in
-        if self.recovery_target.ledge and DriftIn.should_use(self._propagate) and self._can_hold_drift(game_state, smashbot_state, opponent_state, target):
+        # If we can recover without using any more moves, then just hold in
+        if self.should_hold_drift and DriftIn.should_use(self._propagate) and \
+                self._can_hold_drift(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge):
             self.chain = None
             self.pick_chain(DriftIn)
             return
