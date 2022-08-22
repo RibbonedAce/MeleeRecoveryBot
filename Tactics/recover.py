@@ -1,15 +1,20 @@
 from melee.enums import Character
 
-from Tactics import CaptainFalcon, Falco, Fox, Ganondorf
 from Tactics.Abstract import AbstractRecover
+from Tactics.CaptainFalcon import FalconRecover
+from Tactics.Falco import FalcoRecover
+from Tactics.Fox import FoxRecover
+from Tactics.Ganondorf import GanondorfRecover
+from Tactics.Marth import MarthRecover
 from Tactics.tactic import Tactic
 
 
 class Recover(Tactic):
-    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.FalconRecover,
-                        Character.FOX: Fox.FoxRecover,
-                        Character.FALCO: Falco.FalcoRecover,
-                        Character.GANONDORF: Ganondorf.GanondorfRecover}
+    CLASS_DICTIONARY = {Character.CPTFALCON: FalconRecover,
+                        Character.FOX: FoxRecover,
+                        Character.FALCO: FalcoRecover,
+                        Character.GANONDORF: GanondorfRecover,
+                        Character.MARTH: MarthRecover}
 
     @classmethod
     def should_use(cls, propagate):

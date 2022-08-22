@@ -1,15 +1,20 @@
 from melee.enums import Character
 
-from Tactics import CaptainFalcon, Falco, Fox, Ganondorf
 from Tactics.Abstract import AbstractMitigate
+from Tactics.CaptainFalcon import FalconMitigate
+from Tactics.Falco import FalcoMitigate
+from Tactics.Fox import FoxMitigate
+from Tactics.Ganondorf import GanondorfMitigate
+from Tactics.Marth import MarthMitigate
 from Tactics.tactic import Tactic
 
 
 class Mitigate(Tactic):
-    CLASS_DICTIONARY = {Character.CPTFALCON: CaptainFalcon.FalconMitigate,
-                        Character.FOX: Fox.FoxMitigate,
-                        Character.FALCO: Falco.FalcoMitigate,
-                        Character.GANONDORF: Ganondorf.GanondorfMitigate}
+    CLASS_DICTIONARY = {Character.CPTFALCON: FalconMitigate,
+                        Character.FOX: FoxMitigate,
+                        Character.FALCO: FalcoMitigate,
+                        Character.GANONDORF: GanondorfMitigate,
+                        Character.MARTH: MarthMitigate}
 
     @classmethod
     def should_use(cls, propagate):
