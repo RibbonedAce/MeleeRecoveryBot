@@ -43,7 +43,7 @@ class AirDodge(RecoveryChain):
             trajectory.frames[i].min_horizontal_velocity = frames[index].min_horizontal_velocity
             trajectory.frames[i].max_horizontal_velocity = frames[index].max_horizontal_velocity
 
-        trajectory.frames.append(frames[min(21, len(frames) - 1)])
+        trajectory.frames += frames[min(20, len(frames) - 1):]
         trajectory.max_ledge_grab = trajectory.get_displacement_after_frames(0, 50)[1]
         return trajectory
 
