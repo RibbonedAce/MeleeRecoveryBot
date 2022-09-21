@@ -1,6 +1,3 @@
-from numpy import copy
-
-
 class MathUtils:
     @staticmethod
     def lerp(a, b, x):
@@ -9,24 +6,6 @@ class MathUtils:
     @staticmethod
     def i_lerp(a, b, c):
         return (c - a) / (b - a)
-
-    @staticmethod
-    def location(a, b, c):
-        if c < a and c < b:
-            return 0
-        if c > a and c > b:
-            return 1
-
-        ma = max(a, b)
-        mi = min(a, b)
-        return MathUtils.i_lerp(mi, ma, c)
-
-    @staticmethod
-    def transform_array(array, l, params):
-        result = copy(array)
-        for i in range(0, len(result.flat), params):
-            result.flat[i: i + params] = l(result.flat[i: i + params])
-        return result[:, 0: int(array.shape[1] / params)]
 
     @staticmethod
     def sign(x):
