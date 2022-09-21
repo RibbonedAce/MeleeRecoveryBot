@@ -17,6 +17,18 @@ class TrajectoryFrame:
         self.ecb_bottom = ecb_bottom
         self.ecb_inward = ecb_inward
 
+    def copy(self):
+        return TrajectoryFrame(
+            self.vertical_velocity,
+            self.forward_acceleration,
+            self.backward_acceleration,
+            self.max_horizontal_velocity,
+            self.mid_horizontal_velocity,
+            self.min_horizontal_velocity,
+            self.ecb_bottom,
+            self.ecb_inward
+        )
+
     def __str__(self):
         return "TrajectoryFrame(vert={}, acl_f={}, acl_b={}, max_h={}, mid_h={}, min_h={}, ecb_b={}, ecb_i={})".format(
             self.vertical_velocity,

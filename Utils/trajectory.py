@@ -77,7 +77,7 @@ class Trajectory:
         self.requires_extra_height = requires_extra_height
 
     def copy(self):
-        return Trajectory(self.character, self.ascent_start, self.descent_start, self.min_ledge_grab, self.max_ledge_grab, self.requires_extra_height, copy.copy(self.frames))
+        return Trajectory(self.character, self.ascent_start, self.descent_start, self.min_ledge_grab, self.max_ledge_grab, self.requires_extra_height, [f.copy() for f in self.frames])
 
     def get_max_height(self):
         max_height = 0
