@@ -12,7 +12,7 @@ from Utils.enums import FADE_BACK_MODE
 class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
     @classmethod
     def create_shorten_trajectory(cls, amount):
-        result = cls.create_trajectory(None, 0)
+        result = cls.create_trajectory(None, None, 0)
         shorten_frame = cls._get_shorten_frame()
 
         for i in range(amount):
@@ -54,7 +54,7 @@ class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
 
         useful_x_velocity = smashbot_state.get_inward_x_velocity()
         if self.trajectory is None:
-            self.trajectory = self.create_trajectory(smashbot_state, useful_x_velocity)
+            self.trajectory = self.create_trajectory(game_state, smashbot_state, useful_x_velocity)
 
         # If we haven't started yet, hit the input
         if self.current_frame < 0 and smashbot_state.action != Action.FOX_ILLUSION:

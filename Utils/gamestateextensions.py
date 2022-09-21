@@ -11,6 +11,7 @@ class GameStateExtensions:
         GameState.TECH_LOCKOUT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.METEOR_JUMP_LOCKOUT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.METEOR_SPECIAL_LOCKOUT = {1: 0, 2: 0, 3: 0, 4: 0}
+        GameState.STALL_CHARGE = {1: True, 2: True, 3: True, 4: True}
         GameState.PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.PREV_PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.STOCK_DURATION = {1: 0, 2: 0, 3: 0, 4: 0}
@@ -83,12 +84,18 @@ class GameStateExtensions:
             else:
                 GameState.METEOR_JUMP_LOCKOUT[port] = max(0, GameState.METEOR_JUMP_LOCKOUT[port] - 1)
 
-            # Fire-fox meteor cancel lockout
+            # Recovery meteor cancel lockout
             if controller_state.button[Button.BUTTON_B] and \
                     controller_state.main_stick[1] > 0.8:
                 GameState.METEOR_SPECIAL_LOCKOUT[port] = 40
             else:
                 GameState.METEOR_SPECIAL_LOCKOUT[port] = max(0, GameState.METEOR_SPECIAL_LOCKOUT[port] - 1)
+
+            # Stall charge
+            if player_state.action == Action.SWORD_DANCE_1_AIR:
+                GameState.STALL_CHARGE[port] = False
+            elif player_state.action in [Action.LANDING, Action.LANDING_SPECIAL] or GameState.STOCK_DURATION[port] < 30:
+                GameState.STALL_CHARGE[port] = True
 
             # Keep a ledge grab count
             if player_state.action == Action.EDGE_CATCHING and player_state.action_frame == 1:

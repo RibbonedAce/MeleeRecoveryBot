@@ -45,7 +45,7 @@ class SideSlide(RecoveryChain, metaclass=ABCMeta):
             magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
 
             recovery_distance = None
-            trajectory = self.create_trajectory(smashbot_state, useful_x_velocity)
+            trajectory = self.create_trajectory(game_state, smashbot_state, useful_x_velocity)
 
             # See if we can fade back on this frame
             if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:

@@ -22,6 +22,7 @@ class FrameDataExtensions:
         FrameData.INSTANCE.get_terminal_velocity = FrameDataExtensions.__get_terminal_velocity
         FrameData.INSTANCE.get_air_mobility = FrameDataExtensions.__get_air_mobility
         FrameData.INSTANCE.get_air_speed = FrameDataExtensions.__get_air_speed
+        FrameData.INSTANCE.get_dj_speed = FrameDataExtensions.__get_dj_speed
 
     @staticmethod
     def __init_attack_data():
@@ -120,3 +121,7 @@ class FrameDataExtensions:
     @staticmethod
     def __get_air_speed(character):
         return FrameData.CHARACTER_DATA[character]["AirSpeed"]
+
+    @staticmethod
+    def __get_dj_speed(character):
+        return FrameData.CHARACTER_DATA[character]["InitDJSpeed_x"], FrameData.CHARACTER_DATA[character]["InitDJSpeed"]

@@ -5,8 +5,8 @@ from typing import Type
 from melee import FrameData
 from melee.enums import Action
 
-from Chains import AirDodge, Chain, DriftIn, DriftOut, EdgeDash, FastFall, JumpInward, JumpOutward
-from Chains.Abstract import RecoveryChain
+from Chains import AirDodge, DriftIn, DriftOut, EdgeDash, FastFall, JumpInward, JumpOutward
+from Chains.Abstract import NeverUse, RecoveryChain, StallChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
 from Utils import Trajectory
@@ -87,15 +87,15 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
     def _get_secondary_recovery_class(cls) -> Type[RecoveryChain]: ...
 
     @classmethod
-    def _get_stall_class(cls) -> Type[Chain]: ...
+    def _get_stall_class(cls) -> Type[StallChain]: ...
 
     @classmethod
-    def _get_primary_recovery_trajectory(cls, smashbot_state, stage_edge):
-        return cls._get_primary_recovery_class().create_trajectory(smashbot_state, smashbot_state.get_inward_x_velocity())
+    def _get_primary_recovery_trajectory(cls, game_state, smashbot_state):
+        return cls._get_primary_recovery_class().create_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity())
 
     @classmethod
-    def _get_secondary_recovery_trajectory(cls, smashbot_state):
-        return cls._get_secondary_recovery_class().create_trajectory(smashbot_state, smashbot_state.get_inward_x_velocity())
+    def _get_secondary_recovery_trajectory(cls, game_state, smashbot_state):
+        return cls._get_secondary_recovery_class().create_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity())
 
     @classmethod
     def _can_hold_drift(cls, game_state, smashbot_state, opponent_state, target, ledge):
@@ -115,8 +115,6 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             self.pick_chain(EdgeDash)
             return
 
-        stage_edge = game_state.get_stage_edge()
-
         # If we're in dead max fall, just drift towards the stage
         if DriftIn.should_use(self._propagate) and smashbot_state.action == Action.DEAD_FALL:
             self.chain = None
@@ -128,7 +126,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             self.pick_chain(FastFall)
             return
 
-        target = (stage_edge, 0)
+        target = (game_state.get_stage_edge(), 0)
 
         # If we can recover without using any more moves, then just hold in
         if self.should_hold_drift and DriftIn.should_use(self._propagate) and \
@@ -138,7 +136,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             return
 
         # Air dodge
-        air_dodge_distance = AirDodge.create_trajectory(smashbot_state, smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        air_dodge_distance = AirDodge.create_trajectory(game_state, smashbot_state, smashbot_state.character, 90).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
         if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
                 (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and air_dodge_distance > 0:
             self.chain = None
@@ -147,7 +145,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
 
         # Secondary recovery
         secondary_recovery_class = self._get_secondary_recovery_class()
-        secondary_recovery_distance = self._get_secondary_recovery_trajectory(smashbot_state).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
+        secondary_recovery_distance = self._get_secondary_recovery_trajectory(game_state, smashbot_state).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
         if secondary_recovery_class.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and secondary_recovery_distance > 0:
             self.chain = None
             self.pick_chain(secondary_recovery_class, [target, self.recovery_target])
@@ -166,20 +164,27 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
 
         # Decide how we can primary recovery
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
-            # Recover ASAP
-            primary_recovery_trajectory = self._get_primary_recovery_trajectory(smashbot_state, stage_edge)
-            if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
-                distance_left = max(primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, False, 0),
-                                    primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, True, 0))
-                if distance_left <= self.last_distance or distance_left > 0:
-                    self.time_to_recover = True
-            # Recover at the ledge or stage
+            primary_recovery_trajectory = self._get_primary_recovery_trajectory(game_state, smashbot_state)
+            stall_class_to_drift_with = self._get_stall_class() if self._get_stall_class() is not NeverUse else None
+            if stall_class_to_drift_with is None:
+                drift_trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
             else:
-                distance_left = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.height == RECOVERY_HEIGHT.LEDGE, 1)
-                if distance_left <= self.last_distance and distance_left <= 0:
-                    self.time_to_recover = True
+                drift_trajectory = stall_class_to_drift_with.create_stall_drift_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity(), smashbot_state.speed_y_self)
 
-            self.last_distance = distance_left
+            num_frames = drift_trajectory.get_frame_at_height(target[1] - (smashbot_state.position.y + primary_recovery_trajectory.get_max_height()))
+            early_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0, stall_class=stall_class_to_drift_with)
+            mid_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames // 2, stall_class=stall_class_to_drift_with)
+            late_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames, stall_class=stall_class_to_drift_with)
+            max_distance = max(early_distance, mid_distance, late_distance)
+
+            # Recover ASAP
+            if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
+                if max_distance <= self.last_distance or early_distance > 0:
+                    self.time_to_recover = True
+                self.last_distance = max_distance
+            # Recover at the ledge or stage
+            elif num_frames <= 1 or max_distance < 0:
+                self.time_to_recover = True
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
         if self.recovery_target.height == RECOVERY_HEIGHT.LEDGE:
@@ -210,7 +215,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             self.pick_chain(primary_recovery_class, [target, self.recovery_target])
             return
 
-        # If we can do a Falcon Kick to get back easier, then do so
+        # If we can stall to get back easier, then do so
         stall_class = self._get_stall_class()
         if stall_class.should_use(self._propagate):
             self.pick_chain(stall_class)

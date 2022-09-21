@@ -8,7 +8,7 @@ from Utils import RecoveryTarget, Trajectory
 
 class RecoveryChain(Chain, metaclass=ABCMeta):
     @classmethod
-    def create_trajectory(cls, smashbot_state, x_velocity, angle=0) -> Trajectory: ...
+    def create_trajectory(cls, game_state, smashbot_state, x_velocity, angle=0.0) -> Trajectory: ...
 
     @classmethod
     def should_use(cls, propagate):

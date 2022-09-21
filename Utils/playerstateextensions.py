@@ -37,6 +37,7 @@ class PlayerStateExtensions:
         PlayerState.can_tech = PlayerStateExtensions.__can_tech
         PlayerState.can_jump_meteor_cancel = PlayerStateExtensions.__can_jump_meteor_cancel
         PlayerState.can_special_meteor_cancel = PlayerStateExtensions.__can_special_meteor_cancel
+        PlayerState.stall_is_charged = PlayerStateExtensions.__stall_is_charged
         PlayerState.get_port = PlayerStateExtensions.__get_port
         PlayerState.get_stock_duration = PlayerStateExtensions.__get_stock_duration
         PlayerState.get_incurred_hitlag = PlayerStateExtensions.__get_incurred_hitlag
@@ -214,6 +215,10 @@ class PlayerStateExtensions:
     @staticmethod
     def __can_special_meteor_cancel(player_state, game_state):
         return GameState.METEOR_SPECIAL_LOCKOUT[player_state.get_port(game_state)] <= 0
+
+    @staticmethod
+    def __stall_is_charged(player_state, game_state):
+        return GameState.STALL_CHARGE[player_state.get_port(game_state)]
 
     @staticmethod
     def __get_stock_duration(player_state, game_state):

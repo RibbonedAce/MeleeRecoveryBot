@@ -5,3 +5,4 @@ from Chains.Abstract.neveruse import NeverUse
 from Chains.Abstract.recoverychain import RecoveryChain
 from Chains.Abstract.sideslide import SideSlide
 from Chains.Abstract.spacieapparition import SpacieApparition
+from Chains.Abstract.stallchain import StallChain

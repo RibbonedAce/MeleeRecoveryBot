@@ -12,10 +12,11 @@ class AirDodge(RecoveryChain):
     TRAJECTORY_DICTIONARY = {Character.CPTFALCON: Trajectory.from_csv_file(Character.CPTFALCON, 0, 30, -999, 999, "Data/Trajectories/falcon_air_dodge.csv", include_fall_frames=False),
                              Character.FOX: Trajectory.from_csv_file(Character.FOX, 0, 30, -999, 999, "Data/Trajectories/falcon_air_dodge.csv", include_fall_frames=False),
                              Character.FALCO: Trajectory.from_csv_file(Character.FALCO, 0, 30, -999, 999, "Data/Trajectories/falco_air_dodge.csv", include_fall_frames=False),
-                             Character.GANONDORF: Trajectory.from_csv_file(Character.GANONDORF, 0, 30, -999, 999, "Data/Trajectories/ganondorf_air_dodge.csv", include_fall_frames=False)}
+                             Character.GANONDORF: Trajectory.from_csv_file(Character.GANONDORF, 0, 30, -999, 999, "Data/Trajectories/ganondorf_air_dodge.csv", include_fall_frames=False),
+                             Character.MARTH: Trajectory.from_csv_file(Character.MARTH, 0, 30, -999, 999, "Data/Trajectories/marth_air_dodge.csv", include_fall_frames=False)}
 
     @classmethod
-    def create_trajectory(cls, smashbot_state, x_velocity, angle=0):
+    def create_trajectory(cls, game_state, smashbot_state, x_velocity, angle=0.0):
         trajectory = AirDodge.TRAJECTORY_DICTIONARY[smashbot_state.character].copy()
         velocity = [2.79 * math.cos(math.radians(angle)), 2.79 * math.sin(math.radians(angle))]
 
@@ -51,7 +52,7 @@ class AirDodge(RecoveryChain):
         controller = self.controller
 
         if self.trajectory is None:
-            self.trajectory = AirDodge.create_trajectory(smashbot_state, smashbot_state.character, 90)
+            self.trajectory = AirDodge.create_trajectory(game_state, smashbot_state, smashbot_state.character, 90)
 
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in [Action.AIRDODGE, Action.DEAD_FALL]:

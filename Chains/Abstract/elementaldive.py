@@ -12,7 +12,7 @@ from Utils.enums import FADE_BACK_MODE
 
 class ElementalDive(RecoveryChain, metaclass=ABCMeta):
     @classmethod
-    def create_trajectory(cls, smashbot_state, x_velocity, angle=0):
+    def create_trajectory(cls, game_state, smashbot_state, x_velocity, angle=0.0):
         return cls._get_normal_trajectory()
 
     @classmethod

@@ -91,7 +91,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
 
         useful_x_velocity = smashbot_state.get_inward_x_velocity()
         if self.trajectory is None:
-            self.trajectory = self.create_trajectory(smashbot_state, useful_x_velocity, ControlStick.coordinate_num_to_angle(self.min_angle))
+            self.trajectory = self.create_trajectory(game_state, smashbot_state, useful_x_velocity, ControlStick.coordinate_num_to_angle(self.min_angle))
             self.start_x_velocity = useful_x_velocity
 
             # If going for ledge and facing backwards, do not go straight up or down
@@ -137,7 +137,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
             LogUtils.simple_log(current_angle, self.best_angle)
 
             # Test current angle in trial
-            self.trajectory = self.create_trajectory(smashbot_state, self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
+            self.trajectory = self.create_trajectory(game_state, smashbot_state, self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
             fade_back_frames = set()
             if self.recovery_target.fade_back_mode == FADE_BACK_MODE.LATE:
                 for i in range(self.current_frame, 600):
