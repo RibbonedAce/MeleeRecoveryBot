@@ -171,7 +171,11 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             else:
                 drift_trajectory = stall_class_to_drift_with.create_stall_drift_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity(), smashbot_state.speed_y_self)
 
-            num_frames = drift_trajectory.get_last_frame_at_height(target[1] - (smashbot_state.position.y + primary_recovery_trajectory.get_max_height()))
+            max_descent = target[1] - (smashbot_state.position.y + primary_recovery_trajectory.get_max_height())
+            if self.recovery_target.ledge:
+                max_descent -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
+            num_frames = drift_trajectory.get_last_frame_at_height(max_descent)
+
             early_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0, stall_class=stall_class_to_drift_with)
             mid_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames // 2, stall_class=stall_class_to_drift_with)
             late_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames, stall_class=stall_class_to_drift_with)
