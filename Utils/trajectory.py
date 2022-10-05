@@ -126,7 +126,7 @@ class Trajectory:
             drift_trajectory = stall_class.create_stall_drift_trajectory(game_state, smashbot_state, velocity, smashbot_state.speed_y_self)
 
         displacement = drift_trajectory.get_displacement_after_frames(velocity, frame_delay, knockback_angle, knockback_magnitude)
-        position = abs(smashbot_state.position.x) + displacement[0]
+        position = abs(smashbot_state.position.x) - displacement[0]
         height = smashbot_state.position.y + displacement[1]
         stage_vertex = self.get_relative_stage_vertex(game_state, position, height)
 
@@ -157,7 +157,7 @@ class Trajectory:
 
         return self.get_distance(current_velocity, height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
 
-    def get_frame_at_height(self, height):
+    def get_last_frame_at_height(self, height):
         actual_height = 0
         frame_number = 500
         need_to_update = True
@@ -165,7 +165,7 @@ class Trajectory:
         for i in range(0, 500):
             actual_height += self.frames[i].vertical_velocity
             if actual_height <= height and need_to_update:
-                frame_number = i
+                frame_number = i - 1
                 need_to_update = False
             elif actual_height > height and not need_to_update:
                 need_to_update = True
