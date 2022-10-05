@@ -169,6 +169,7 @@ def smashbot_loop():
                 if agent2:
                     agent2.controller.empty_input()
                 if LogUtils.LOGGER:
+                    print("Exception thrown:", repr(error))
                     LogUtils.simple_log("Exception thrown:", repr(error))
                 else:
                     raise error
