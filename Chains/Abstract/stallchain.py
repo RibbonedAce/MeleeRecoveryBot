@@ -25,13 +25,14 @@ class StallChain(Chain, metaclass=ABCMeta):
         while len(frames) < num_required:
             frames.append(frames[-1])
 
-        for i in range(10):
-            frames += cls.create_trajectory(game_state, smashbot_state, frames[-1].max_horizontal_velocity, first_charge).frames
+        new_x_velocity = frames[-1].max_horizontal_velocity if len(frames) > 0 else start_x_velocity
+        for i in range(5):
+            frames += cls.create_trajectory(game_state, smashbot_state, new_x_velocity, first_charge).frames
             if cls._double_jumps_gained() > 0:
                 new_frames = Trajectory.create_jump_trajectory_frames(smashbot_state.character)
             else:
                 new_frames = Trajectory.create_trajectory_frames(smashbot_state.character, frames[-1].vertical_velocity)
-            num_required = (air_speed - frames[-1].max_horizontal_velocity) // mobility
+            num_required = int((air_speed - frames[-1].max_horizontal_velocity) // mobility)
             new_frames = new_frames[:num_required]
             while len(new_frames) < num_required:
                 new_frames.append(frames[-1])
