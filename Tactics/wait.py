@@ -14,7 +14,7 @@ class Wait(Tactic):
         opponent_state = propagate[2]
 
         # Make an exception for shine states, since we're still actionable for them
-        if smashbot_state.action in [Action.DOWN_B_GROUND_START, Action.DOWN_B_GROUND, Action.DOWN_B_STUN]:
+        if smashbot_state.action in {Action.DOWN_B_GROUND_START, Action.DOWN_B_GROUND, Action.DOWN_B_STUN}:
             return False
 
         # If we're in the cooldown for an attack, just do nothing.
@@ -28,16 +28,16 @@ class Wait(Tactic):
         if smashbot_state.action == Action.EDGE_TEETERING_START and opponent_pushing:
             return True
 
-        if smashbot_state.action in [Action.THROW_UP, Action.THROW_DOWN, Action.THROW_FORWARD, Action.THROW_BACK]:
+        if smashbot_state.action in {Action.THROW_UP, Action.THROW_DOWN, Action.THROW_FORWARD, Action.THROW_BACK}:
             return True
 
-        if smashbot_state.action in [Action.UPTILT, Action.UPSMASH]:
+        if smashbot_state.action in {Action.UPTILT, Action.UPSMASH}:
             return True
 
-        if smashbot_state.action in [Action.BACKWARD_TECH, Action.NEUTRAL_TECH, Action.FORWARD_TECH,
+        if smashbot_state.action in {Action.BACKWARD_TECH, Action.NEUTRAL_TECH, Action.FORWARD_TECH,
                                      Action.TECH_MISS_UP, Action.EDGE_GETUP_QUICK, Action.EDGE_GETUP_SLOW,
                                      Action.EDGE_ROLL_QUICK, Action.EDGE_ROLL_SLOW, Action.SHIELD_STUN,
-                                     Action.TECH_MISS_DOWN, Action.LANDING_SPECIAL]:
+                                     Action.TECH_MISS_DOWN, Action.LANDING_SPECIAL}:
             return True
 
         if smashbot_state.action == Action.LANDING and smashbot_state.action_frame <= 3:

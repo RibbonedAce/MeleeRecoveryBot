@@ -184,8 +184,8 @@ class PlayerStateExtensions:
 
     @staticmethod
     def __is_grabbed(player_state):
-        return player_state.action in [Action.GRABBED, Action.GRAB_PUMMELED, Action.GRAB_PULL,
-                                       Action.GRAB_PULLING_HIGH, Action.GRABBED_WAIT_HIGH, Action.PUMMELED_HIGH]
+        return player_state.action in {Action.GRABBED, Action.GRAB_PUMMELED, Action.GRAB_PULL,
+                                       Action.GRAB_PULLING_HIGH, Action.GRABBED_WAIT_HIGH, Action.PUMMELED_HIGH}
 
     @staticmethod
     def __is_wall_teching(player_state):
@@ -197,8 +197,8 @@ class PlayerStateExtensions:
 
     @staticmethod
     def __is_dead(player_state):
-        return player_state.action in [Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
-                                       Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN]
+        return player_state.action in {Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
+                                       Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN}
 
     @staticmethod
     def __get_recent_damage(player_state, game_state):

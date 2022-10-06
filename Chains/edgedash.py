@@ -9,7 +9,7 @@ class EdgeDash(Chain):
     def should_use(cls, propagate):
         smashbot_state = propagate[1]
 
-        return smashbot_state.action in [Action.EDGE_HANGING, Action.EDGE_CATCHING]
+        return smashbot_state.action in {Action.EDGE_HANGING, Action.EDGE_CATCHING}
 
     def __init__(self):
         Chain.__init__(self)

@@ -20,11 +20,11 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
-        on_edge = smashbot_state.action in [Action.EDGE_HANGING, Action.EDGE_CATCHING]
-        opponent_on_edge = opponent_state.action in [Action.EDGE_HANGING, Action.EDGE_CATCHING, Action.EDGE_GETUP_SLOW,
+        on_edge = smashbot_state.action in {Action.EDGE_HANGING, Action.EDGE_CATCHING}
+        opponent_on_edge = opponent_state.action in {Action.EDGE_HANGING, Action.EDGE_CATCHING, Action.EDGE_GETUP_SLOW,
                                                      Action.EDGE_GETUP_QUICK, Action.EDGE_ATTACK_SLOW,
                                                      Action.EDGE_ATTACK_QUICK, Action.EDGE_ROLL_SLOW,
-                                                     Action.EDGE_ROLL_QUICK]
+                                                     Action.EDGE_ROLL_QUICK}
 
         # If the opponent is on-stage, and we're on-edge, we need to ledge-dash
         if not opponent_state.off_stage and on_edge:
@@ -40,8 +40,8 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         # We can now assume that we're off the stage...
 
         # If opponent is dead
-        if opponent_state.action in [Action.DEAD_DOWN, Action.DEAD_RIGHT, Action.DEAD_LEFT,
-                                     Action.DEAD_FLY, Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER]:
+        if opponent_state.action in {Action.DEAD_DOWN, Action.DEAD_RIGHT, Action.DEAD_LEFT,
+                                     Action.DEAD_FLY, Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER}:
             return True
 
         # If opponent is on stage
@@ -140,7 +140,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
                 (smashbot_state.is_facing_inwards() or not self.recovery_target.ledge) and air_dodge_distance > 0:
             self.chain = None
-            self.pick_chain(AirDodge, [target, self.recovery_target])
+            self.pick_chain(AirDodge, (target, self.recovery_target))
             return
 
         # Secondary recovery
@@ -148,7 +148,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         secondary_recovery_distance = self._get_secondary_recovery_trajectory(game_state, smashbot_state).get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0)
         if secondary_recovery_class.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.SECONDARY and secondary_recovery_distance > 0:
             self.chain = None
-            self.pick_chain(secondary_recovery_class, [target, self.recovery_target])
+            self.pick_chain(secondary_recovery_class, (target, self.recovery_target))
             return
 
         # If we cannot air dodge or secondary recovery when we want to, primary recovery ASAP
@@ -216,7 +216,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         if primary_recovery_class.should_use(self._propagate) and \
                 (smashbot_state.speed_y_self <= 0 or wall_teching) and self.time_to_recover:
             self.chain = None
-            self.pick_chain(primary_recovery_class, [target, self.recovery_target])
+            self.pick_chain(primary_recovery_class, (target, self.recovery_target))
             return
 
         # If we can stall to get back easier, then do so

@@ -67,7 +67,7 @@ class GameStateExtensions:
         GameState.SMASHBOT_PORT = smashbot_port
         GameState.OPPONENT_PORT = opponent_port
 
-        for port in [smashbot_port, opponent_port]:
+        for port in (smashbot_port, opponent_port):
             player_state = game_state.player[port]
             controller_state = player_state.controller_state
 
@@ -94,7 +94,7 @@ class GameStateExtensions:
             # Stall charge
             if player_state.action == Action.SWORD_DANCE_1_AIR:
                 GameState.STALL_CHARGE[port] = False
-            elif player_state.action in [Action.LANDING, Action.LANDING_SPECIAL] or GameState.STOCK_DURATION[port] < 30:
+            elif player_state.action in {Action.LANDING, Action.LANDING_SPECIAL} or GameState.STOCK_DURATION[port] < 30:
                 GameState.STALL_CHARGE[port] = True
 
             # Keep a ledge grab count
@@ -114,8 +114,8 @@ class GameStateExtensions:
 
             # How long the current stock has lasted, in frames
             GameState.STOCK_DURATION[port] += 1
-            if player_state.action in [Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
-                                       Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN]:
+            if player_state.action in {Action.DEAD_FLY_STAR, Action.DEAD_FLY_SPLATTER, Action.DEAD_FLY,
+                                       Action.DEAD_LEFT, Action.DEAD_RIGHT, Action.DEAD_DOWN}:
                 GameState.STOCK_DURATION[port] = 0
 
             # Incurred hitlag, in frames
