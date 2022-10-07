@@ -151,11 +151,11 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             self.pick_chain(secondary_recovery_class, (target, self.recovery_target))
             return
 
-        # If we cannot air dodge or secondary recovery when we want to, primary recovery ASAP
+        # If we cannot air dodge or secondary recovery when we want to, primary recovery instead
         if smashbot_state.speed_y_self < 0 and smashbot_state.jumps_left == 0 and \
                 (self.recovery_mode == RECOVERY_MODE.SECONDARY and secondary_recovery_distance == Trajectory.TOO_LOW_RESULT or
                  self.recovery_mode == RECOVERY_MODE.AIR_DODGE and air_dodge_distance == Trajectory.TOO_LOW_RESULT):
-            self.time_to_recover = True
+            self.recovery_mode = RECOVERY_MODE.PRIMARY
 
         # If we are wall teching, primary recovery ASAP
         wall_teching = smashbot_state.is_wall_teching()
@@ -187,7 +187,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
                     self.time_to_recover = True
                 self.last_distance = max_distance
             # Recover at the ledge or stage
-            elif num_frames <= 1 or max_distance < 0:
+            elif num_frames <= 0 or max_distance < 0:
                 self.time_to_recover = True
 
         double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)

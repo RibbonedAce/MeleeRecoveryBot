@@ -163,7 +163,7 @@ class Trajectory:
         need_to_update = True
 
         for i in range(0, 500):
-            actual_height += self.frames[i].vertical_velocity
+            actual_height += self.frames[min(i, len(self.frames) - 1)].vertical_velocity
             if actual_height <= height and need_to_update:
                 frame_number = i - 1
                 need_to_update = False
