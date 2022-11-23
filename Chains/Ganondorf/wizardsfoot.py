@@ -9,9 +9,17 @@ class WizardsFoot(DescendingBoot):
     TRAJECTORY = Trajectory.from_csv_file(Character.GANONDORF, 0, 12, -999, 999, "Data/Trajectories/wizards_foot.csv", include_fall_frames=False)
 
     @classmethod
-    def create_trajectory(cls, game_state, smashbot_state, x_velocity, force_charge=None):
+    def create_trajectory(cls, x_velocity, stall_charge):
         return cls.TRAJECTORY
 
     @classmethod
-    def _get_primary_recovery(cls, game_state, smashbot_state):
-        return DarkDive.TRAJECTORY
+    def _get_recovery_height(cls):
+        return DarkDive.TRAJECTORY.max_height
+
+    @classmethod
+    def _get_stall_height_loss(cls):
+        return cls.TRAJECTORY.height_displacement
+
+    @classmethod
+    def _get_stall_duration(cls):
+        return len(cls.TRAJECTORY.frames)

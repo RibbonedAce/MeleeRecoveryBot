@@ -10,12 +10,12 @@ class DancingBlade(StallChain):
     TRAJECTORY = Trajectory.from_csv_file(Character.MARTH, 0, 1, -999, 999, "Data/Trajectories/dancing_blade.csv", include_fall_frames=False)
 
     @classmethod
-    def create_trajectory(cls, game_state, smashbot_state, x_velocity, force_charge=None):
+    def create_trajectory(cls, x_velocity, stall_charge):
         trajectory = cls.TRAJECTORY.copy()
         x_velocity = MathUtils.sign(x_velocity) * max(0.8 * abs(x_velocity) - 0.0025, 0)
 
         y_velocity = trajectory.frames[0].vertical_velocity
-        if force_charge != True and (force_charge == False or not smashbot_state.stall_is_charged(game_state)):
+        if stall_charge != True and (stall_charge == False or not smashbot_state.stall_is_charged(game_state)):
             y_velocity -= 1
 
         for i in range(29):
@@ -37,12 +37,16 @@ class DancingBlade(StallChain):
         return trajectory
 
     @classmethod
-    def _get_primary_recovery(cls, game_state, smashbot_state):
-        return DolphinSlash.create_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity())
+    def _get_recovery_height(cls):
+        return DolphinSlash.TRAJECTORY.max_height
 
     @classmethod
-    def _double_jumps_gained(cls):
-        return 0
+    def _get_stall_height_loss(cls):
+        return cls.TRAJECTORY.height_displacement
+
+    @classmethod
+    def _get_stall_duration(cls):
+        return len(cls.TRAJECTORY.frames)
 
     @classmethod
     def _min_stall_speed(cls, character):

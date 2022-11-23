@@ -10,10 +10,6 @@ class DescendingBoot(StallChain, metaclass=ABCMeta):
     def _double_jumps_gained(cls):
         return 1
 
-    @classmethod
-    def _min_stall_speed(cls, character):
-        return -100
-
     def step_internal(self, game_state, smashbot_state, opponent_state):
         controller = self.controller
 

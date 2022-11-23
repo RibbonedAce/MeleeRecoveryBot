@@ -3,6 +3,8 @@ from collections import defaultdict, OrderedDict
 
 from melee import Action, Character, FrameData
 
+from Utils import MathUtils
+
 
 class FrameDataExtensions:
     @staticmethod
@@ -23,6 +25,7 @@ class FrameDataExtensions:
         FrameData.INSTANCE.get_air_mobility = FrameDataExtensions.__get_air_mobility
         FrameData.INSTANCE.get_air_speed = FrameDataExtensions.__get_air_speed
         FrameData.INSTANCE.get_dj_speed = FrameDataExtensions.__get_dj_speed
+        FrameData.INSTANCE.fast_dj_height = FrameDataExtensions.__fast_dj_height
 
     @staticmethod
     def __init_attack_data():
@@ -125,3 +128,14 @@ class FrameDataExtensions:
     @staticmethod
     def __get_dj_speed(character):
         return FrameData.CHARACTER_DATA[character]["InitDJSpeed_x"], FrameData.CHARACTER_DATA[character]["InitDJSpeed"]
+
+    @staticmethod
+    def __fast_dj_height(character):
+        # Peach's DJ doesn't follow normal physics rules. Hardcoded it
+        if character == Character.PEACH:
+            return 33.218964577
+
+        gravity = FrameData.CHARACTER_DATA[character]["Gravity"]
+        initdjspeed = FrameData.CHARACTER_DATA[character]["InitDJSpeed"]
+
+        return MathUtils.linear_sum(initdjspeed, initdjspeed % gravity, -gravity)

@@ -102,7 +102,7 @@ class DolphinSlash(RecoveryChain):
             if self.current_frame == 1:
                 self.controller.release_button(Button.BUTTON_B)
 
-                self.trajectory = self.create_trajectory(game_state, smashbot_state, inward_x_velocity, self.__convert_to_recovery_angle(self.ANGLES_TO_TEST[0]))
+                self.trajectory = self.create_trajectory(game_state, smashbot_state, inward_x_velocity, self.__convert_to_recovery_angle(self.ANGLES_TO_TEST[1]))
 
             next_point = self.ANGLES_TO_TEST[min(self.current_frame - 1, len(self.ANGLES_TO_TEST) - 1)]
             current_angle = ControlStick.from_edge_coordinate(next_point).correct_for_cardinal_strict().to_edge_coordinate(True)

@@ -9,7 +9,7 @@ from Chains import AirDodge, DriftIn, DriftOut, EdgeDash, FastFall, JumpInward, 
 from Chains.Abstract import NeverUse, RecoveryChain, StallChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils import Trajectory
+from Utils import LogUtils, Trajectory
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
 
 
@@ -166,21 +166,21 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             primary_recovery_trajectory = self._get_primary_recovery_trajectory(game_state, smashbot_state)
             stall_class_to_drift_with = self._get_stall_class() if self._get_stall_class() is not NeverUse else None
-            if stall_class_to_drift_with is None:
+            if stall_class_to_drift_with is None or not stall_class_to_drift_with.should_use(self._propagate):
                 drift_trajectory = Trajectory.create_drift_trajectory(smashbot_state.character, smashbot_state.speed_y_self)
             else:
-                drift_trajectory = stall_class_to_drift_with.create_stall_drift_trajectory(game_state, smashbot_state, smashbot_state.get_inward_x_velocity(), smashbot_state.speed_y_self)
+                drift_trajectory = stall_class_to_drift_with.create_stall_drift_trajectory(game_state, smashbot_state, opponent_state, smashbot_state.get_inward_x_velocity(), smashbot_state.speed_y_self)
 
-            max_descent = target[1] - (smashbot_state.position.y + primary_recovery_trajectory.get_max_height())
+            max_descent = target[1] - (smashbot_state.position.y + primary_recovery_trajectory.max_height)
             if self.recovery_target.ledge:
                 max_descent -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
             num_frames = drift_trajectory.get_last_frame_at_height(max_descent)
 
-            early_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0, stall_class=stall_class_to_drift_with)
-            mid_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames // 2, stall_class=stall_class_to_drift_with)
-            late_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames, stall_class=stall_class_to_drift_with)
-            max_distance = max(early_distance, mid_distance, late_distance)
+            early_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, 0, drift_trajectory=drift_trajectory)
+            late_distance = primary_recovery_trajectory.get_extra_distance(game_state, smashbot_state, opponent_state, target, self.recovery_target.ledge, num_frames, drift_trajectory=drift_trajectory)
+            max_distance = max(early_distance, late_distance)
 
+            LogUtils.simple_log("Descent frames:", num_frames)
             # Recover ASAP
             if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
                 if max_distance <= self.last_distance or early_distance > 0:
@@ -190,7 +190,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             elif num_frames <= 0 or max_distance < 0:
                 self.time_to_recover = True
 
-        double_jump_height = -(FrameData.INSTANCE.dj_height(smashbot_state)) + FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
+        double_jump_height = FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character) - FrameData.INSTANCE.fast_dj_height(smashbot_state)
         if self.recovery_target.height == RECOVERY_HEIGHT.LEDGE:
             double_jump_height -= FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
 

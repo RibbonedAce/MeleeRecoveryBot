@@ -14,3 +14,9 @@ class MathUtils:
         elif x < 0:
             return -1
         return 0
+
+    @staticmethod
+    def linear_sum(start, end, increase):
+        m_end = end / abs(increase)
+        m_start = start / abs(increase)
+        return ((m_end + 1) * m_end / 2 - (m_start + 1) * m_start / 2) * increase
