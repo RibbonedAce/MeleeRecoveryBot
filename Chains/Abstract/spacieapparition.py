@@ -1,10 +1,8 @@
-import math
 from abc import ABCMeta
 
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import AngleUtils
 from Utils.enums import FADE_BACK_MODE
 
 
@@ -54,10 +52,7 @@ class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
             return self._input_move(Button.BUTTON_B, (inward_x, 0.5))
 
         self._increment_current_frame(smashbot_state)
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(knockback_angle)) > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Deciding if we should fade-back
@@ -71,11 +66,11 @@ class SpacieApparition(RecoveryChain, metaclass=ABCMeta):
             shorten_frame = self._get_shorten_frame()
             if self.recovery_target.fade_back_mode == FADE_BACK_MODE.EARLY and shorten_frame <= self.current_frame <= shorten_frame + 3:
                 self.trajectory = self.create_shorten_trajectory(shorten_frame + 4 - self.current_frame)
-                recovery_distance = self.trajectory.get_distance(inward_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, knockback_angle, knockback_magnitude, start_frame=self.current_frame)
+                recovery_distance = self.trajectory.get_distance(inward_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, knockback, start_frame=self.current_frame)
                 if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                     self.controller.press_button(Button.BUTTON_B)
 
-            self._perform_fade_back(game_state, smashbot_state, knockback_angle, knockback_magnitude, inward_x_velocity, inward_x)
+            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
 
         self.interruptable = False
         return True

@@ -3,6 +3,7 @@ from Utils.controlstick import ControlStick
 from Utils.framedataextensions import FrameDataExtensions
 from Utils.gamestateextensions import GameStateExtensions
 from Utils.hillclimb import HillClimb
+from Utils.knockback import Knockback
 from Utils.logutils import LogUtils
 from Utils.mathutils import MathUtils
 from Utils.playerstateextensions import PlayerStateExtensions

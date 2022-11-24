@@ -45,13 +45,13 @@ class RecoveryChain(Chain, metaclass=ABCMeta):
             self.current_frame += 1
             self.last_action_frame = smashbot_state.action_frame
 
-    def _perform_fade_back(self, game_state, smashbot_state, knockback_angle, knockback_magnitude, useful_x_velocity, inward_x):
+    def _perform_fade_back(self, game_state, smashbot_state, knockback, useful_x_velocity, inward_x):
         recovery_distance = None
         should_fade_back = False
 
         # See if we can fade back on this frame
         if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
-            recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, knockback_angle, knockback_magnitude, self._generate_fade_back_frames(), self.current_frame)
+            recovery_distance = self.trajectory.get_distance(useful_x_velocity, self.target_coords[1] - smashbot_state.position.y, self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y), self.recovery_target.ledge, knockback, self._generate_fade_back_frames(), self.current_frame)
             if abs(smashbot_state.position.x) - recovery_distance <= self.target_coords[0]:
                 should_fade_back = True
 

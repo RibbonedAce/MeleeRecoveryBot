@@ -1,11 +1,10 @@
 import math
-from math import radians
 
 from melee import Action, Button, FrameData, GameState
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils import AngleUtils, MathUtils
+from Utils import AngleUtils, Knockback, MathUtils
 from Utils.enums import AMSAH_TECH_MODE
 
 
@@ -43,7 +42,7 @@ class AmsahTech(Chain):
         if tech_mode == AMSAH_TECH_MODE.ALWAYS:
             return True
 
-        angle = smashbot_state.get_knockback_angle(opponent_state)
+        angle = smashbot_state.get_knockback(opponent_state).angle
         x = math.cos(math.radians(angle))
         # Should not Amsah tech if close to opponent when tech is finished
         if x > 0 and smashbot_state.position.x > stage_edge - 30 or \
@@ -78,9 +77,9 @@ class AmsahTech(Chain):
         if smashbot_state.hitstun_frames_left < 32:
             return False
 
-        angle = smashbot_state.get_knockback_angle(opponent_state)
-        tech_angle = AngleUtils.get_combo_di_launch_angle(angle)
-        v_knockback = smashbot_state.get_knockback_magnitude(opponent_state) * math.sin(radians(tech_angle))
+        knockback = smashbot_state.get_knockback(opponent_state)
+        knockback.angle = AngleUtils.get_combo_di_launch_angle(knockback.angle)
+        v_knockback = knockback.get_vertical_displacement()
         # If not grounded after ASDI down and 1 gravity frame, can't Amsah tech
         if v_knockback > 3 + FrameData.INSTANCE.get_gravity(smashbot_state.character):
             return False
@@ -94,8 +93,9 @@ class AmsahTech(Chain):
             return False
 
         x = smashbot_state.position.x
-        angle = AngleUtils.get_combo_di_launch_angle(smashbot_state.get_knockback_angle(opponent_state))
-        knockback_x = smashbot_state.get_knockback_magnitude(opponent_state) * math.cos(math.radians(angle))
+        knockback = smashbot_state.get_knockback(opponent_state)
+        knockback.angle = AngleUtils.get_combo_di_launch_angle(knockback.angle)
+        knockback_x = knockback.get_horizontal_displacement()
         # If knockback is too strong, do not slide off
         if abs(knockback_x) > 3.2:
             return False
@@ -106,7 +106,7 @@ class AmsahTech(Chain):
 
         # There is a point where slide deceleration transfers from normal knockback deceleration to character friction, but the timing
         # is different for each character, so just use whatever decelerates more
-        deceleration = max(FrameData.INSTANCE.get_friction(smashbot_state.character), 0.051)
+        deceleration = max(FrameData.INSTANCE.get_friction(smashbot_state.character), Knockback.DECELERATION)
 
         frames = 0
         # If we slide off within 30 frames, then it's safe
@@ -129,7 +129,7 @@ class AmsahTech(Chain):
         controller = self.controller
 
         if self.x is None or self.y is None:
-            inputs = AngleUtils.angle_to_xy(AngleUtils.get_combo_di(smashbot_state.get_knockback_angle(opponent_state)))
+            inputs = AngleUtils.angle_to_xy(AngleUtils.get_combo_di(smashbot_state.get_knockback(opponent_state).angle))
             self.x = inputs[0]
             self.y = inputs[1]
 

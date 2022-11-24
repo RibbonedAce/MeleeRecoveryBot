@@ -5,7 +5,7 @@ from melee import FrameData
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import AngleUtils, ControlStick, HillClimb, LogUtils, MathUtils, RecoveryTarget, Trajectory
+from Utils import ControlStick, HillClimb, LogUtils, MathUtils, RecoveryTarget, Trajectory
 from Utils.enums import FADE_BACK_MODE
 
 
@@ -93,10 +93,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
             return self._input_move(Button.BUTTON_B, (0.5, 1))
 
         self._increment_current_frame(smashbot_state)
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(knockback_angle)) > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Calculating and applying angle
@@ -126,9 +123,9 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
             stage_vertex = self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y)
 
             if self.recovery_target.is_max():
-                recovery_distance = self.trajectory.get_distance_traveled_above_target(inward_x_velocity, relative_target, stage_vertex, knockback_angle, knockback_magnitude, self.current_frame)
+                recovery_distance = self.trajectory.get_distance_traveled_above_target(inward_x_velocity, relative_target, stage_vertex, knockback, self.current_frame)
             else:
-                recovery_distance = self.trajectory.get_distance(inward_x_velocity, relative_target[1], stage_vertex, self.recovery_target.ledge, knockback_angle, knockback_magnitude, self._generate_fade_back_frames(), self.current_frame)
+                recovery_distance = self.trajectory.get_distance(inward_x_velocity, relative_target[1], stage_vertex, self.recovery_target.ledge, knockback, self._generate_fade_back_frames(), self.current_frame)
 
             # Record angle for hill-climbing
             extra_distance = recovery_distance - (abs(smashbot_state.position.x) - self.target_coords[0])
@@ -170,7 +167,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
             self.controller.tilt_analog(Button.BUTTON_MAIN, (1 - inward_x) + (2 * inward_x - 1) * xy[0], xy[1])
 
         elif self.current_frame >= 42:
-            self._perform_fade_back(game_state, smashbot_state, knockback_angle, knockback_magnitude, inward_x_velocity, inward_x)
+            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
 
         LogUtils.simple_log("frame number:", self.current_frame, smashbot_state.action_frame)
         self.interruptable = False

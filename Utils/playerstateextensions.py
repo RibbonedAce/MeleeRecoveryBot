@@ -3,6 +3,7 @@ import math
 from melee import Action, FrameData, GameState, PlayerState, port_detector
 
 from Utils.angleutils import AngleUtils
+from Utils.knockback import Knockback
 from Utils.mathutils import MathUtils
 from Utils.trajectory import Trajectory
 
@@ -11,11 +12,10 @@ class PlayerStateExtensions:
     @staticmethod
     def init_extensions():
         PlayerState.get_position_after_drift = PlayerStateExtensions.__get_position_after_drift
-        PlayerState.get_remaining_knockback = PlayerStateExtensions.__get_remaining_knockback
         PlayerState.get_position_after_hit_stun = PlayerStateExtensions.__get_position_after_hit_stun
         PlayerState.get_knockback_danger = PlayerStateExtensions.__get_knockback_danger
-        PlayerState.get_knockback_angle = PlayerStateExtensions.__get_knockback_angle
-        PlayerState.get_knockback_magnitude = PlayerStateExtensions.__get_knockback_magnitude
+        PlayerState.get_knockback = PlayerStateExtensions.__get_knockback
+        PlayerState.get_relative_knockback = PlayerStateExtensions.__get_relative_knockback
         PlayerState.get_hit_stun_frames = PlayerStateExtensions.__get_hit_stun_frames
         PlayerState.get_duration_stuck = PlayerStateExtensions.__get_duration_stuck
         PlayerState.get_attack = PlayerStateExtensions.__get_attack
@@ -45,8 +45,6 @@ class PlayerStateExtensions:
     @staticmethod
     def __get_position_after_drift(player_state, other_state, frames=1):
         trajectory = Trajectory.create_drift_trajectory(player_state.character, player_state.speed_y_self)
-        angle = player_state.get_knockback_angle(other_state)
-        magnitude = player_state.get_knockback_magnitude(other_state)
 
         x_vel = abs(player_state.speed_air_x_self)
         x = player_state.position.x
@@ -54,40 +52,22 @@ class PlayerStateExtensions:
 
         for i in range(frames):
             drag = FrameData.INSTANCE.get_air_friction(player_state.character)
-
             frame = trajectory[min(i, len(trajectory) - 1)]
-
             x_vel += min(frame.forward_acceleration, max(frame.max_horizontal_velocity - x_vel, -drag))
-            magnitude = max(magnitude - 0.051, 0)
 
-            x += -MathUtils.sign(x) * x_vel + math.cos(math.radians(angle)) * magnitude
-            y += frame.vertical_velocity + math.sin(math.radians(angle)) * magnitude
+            x += -MathUtils.sign(x) * x_vel
+            y += frame.vertical_velocity
 
-        return x, y
-
-    @staticmethod
-    def __get_remaining_knockback(player_state, other_state, angle=None, magnitude=None):
-        if angle is None:
-            angle = player_state.get_knockback_angle(other_state)
-        if magnitude is None:
-            magnitude = player_state.get_knockback_magnitude(other_state)
-
-        x = 0
-        y = 0
-
-        while magnitude > 0:
-            magnitude = max(magnitude - 0.051, 0)
-            x += math.cos(math.radians(angle)) * magnitude
-            y += math.sin(math.radians(angle)) * magnitude
-
-        return x, y
+        displacement_x, displacement_y = player_state.get_knockback(other_state).get_total_displacement(frames)
+        return x + displacement_x, y + displacement_y
 
     @staticmethod
-    def __get_position_after_hit_stun(player_state, other_state, stage_edge, angle=None, magnitude=None):
-        if angle is None:
-            angle = player_state.get_knockback_angle(other_state)
-        if magnitude is None:
-            magnitude = player_state.get_knockback_magnitude(other_state)
+    def __get_position_after_hit_stun(player_state, other_state, stage_edge, override_angle=None, override_magnitude=None):
+        knockback = player_state.get_knockback(other_state)
+        if override_angle is not None:
+            knockback.angle = override_angle
+        if override_magnitude is None:
+            knockback.magnitude = override_magnitude
 
         frames = player_state.get_hit_stun_frames(other_state)
         y_vel = player_state.speed_y_self
@@ -97,23 +77,23 @@ class PlayerStateExtensions:
         highest_y = y
 
         for i in range(frames):
-            actual_y_vel = y_vel + magnitude * math.sin(math.radians(angle))
-            x += magnitude * math.cos(math.radians(angle))
+            actual_y_vel = y_vel + knockback.get_vertical_displacement()
+            x += knockback.get_horizontal_displacement()
             y += actual_y_vel
             highest_y = max(y, highest_y)
 
             # If we are going to hit the stage, just say we landed there
-            if highest_y > -6 > y and abs(x) < stage_edge and actual_y_vel < 0:
+            if y < -6 < highest_y and abs(x) < stage_edge and actual_y_vel < 0:
                 break
 
             y_vel = max(y_vel - FrameData.INSTANCE.get_gravity(player_state.character), -FrameData.INSTANCE.get_terminal_velocity(player_state.character))
-            magnitude = max(magnitude - 0.051, 0)
+            knockback = knockback.with_advanced_frames(1)
 
         return x, y
 
     @staticmethod
-    def __get_knockback_danger(player_state, other_state, stage_edge, knockback_angle):
-        position = player_state.get_position_after_hit_stun(other_state, stage_edge, knockback_angle)
+    def __get_knockback_danger(player_state, other_state, stage_edge, override_angle):
+        position = player_state.get_position_after_hit_stun(other_state, stage_edge, override_angle)
         x = abs(position[0]) - stage_edge
         y = position[1]
         angle = math.atan2(y, x)
@@ -121,33 +101,32 @@ class PlayerStateExtensions:
         return magnitude * math.cos(angle + math.radians(45))
 
     @staticmethod
-    def __get_knockback_angle(player_state, other_state):
+    def __get_knockback(player_state, other_state):
         # We don't have time to calculate throw knockback as throws have no hit-lag,
         # so need to retrieve data stored externally
         if player_state.is_being_thrown():
-            return other_state.get_attack_angle()
-        return AngleUtils.refit_angle(math.degrees(math.atan2(player_state.speed_y_attack, player_state.speed_x_attack)))
+            return Knockback(other_state.get_attack_angle(), player_state.get_attack_magnitude(other_state))
+        return Knockback(AngleUtils.refit_angle(math.degrees(math.atan2(player_state.speed_y_attack, player_state.speed_x_attack))),
+                         math.sqrt(player_state.speed_x_attack ** 2 + player_state.speed_y_attack ** 2))
 
     @staticmethod
-    def __get_knockback_magnitude(player_state, other_state):
-        # We don't have time to calculate throw knockback as throws have no hit-lag,
-        # so need to retrieve data stored externally
-        if player_state.is_being_thrown():
-            return player_state.get_attack_magnitude(other_state)
-        return math.sqrt(player_state.speed_x_attack ** 2 + player_state.speed_y_attack ** 2)
+    def __get_relative_knockback(player_state, other_state):
+        knockback = player_state.get_knockback(player_state, other_state)
+        if math.cos(math.radians(knockback.angle)) > 0:
+            knockback.angle = AngleUtils.get_x_reflection(knockback.angle)
 
     @staticmethod
     def __get_hit_stun_frames(player_state, other_state):
         # We don't have time to calculate throw knockback as throws have no hit-lag,
         # so need to calculate manually
         if player_state.is_being_thrown():
-            return round(player_state.get_knockback_magnitude(other_state) * 40 / 3)
+            return round(player_state.get_knockback(other_state).magnitude * 40 / 3)
         return player_state.hitstun_frames_left
 
     @staticmethod
     def __is_bouncing(player_state, other_state):
         return player_state.hitstun_frames_left >= 32 and player_state.hitlag_left > 0 and \
-               player_state.hitstun_frames_left / player_state.get_knockback_magnitude(other_state) > 14
+               player_state.hitstun_frames_left / player_state.get_knockback(other_state).magnitude > 14
 
     @staticmethod
     def __is_being_thrown(player_state):

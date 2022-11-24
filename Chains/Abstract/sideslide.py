@@ -1,10 +1,8 @@
-import math
 from abc import ABCMeta
 
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import AngleUtils
 
 
 class SideSlide(RecoveryChain, metaclass=ABCMeta):
@@ -20,10 +18,7 @@ class SideSlide(RecoveryChain, metaclass=ABCMeta):
             return self._input_move(Button.BUTTON_B, (inward_x, 0.5))
 
         self._increment_current_frame(smashbot_state)
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(knockback_angle)) > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Deciding if we should fade-back
@@ -33,7 +28,7 @@ class SideSlide(RecoveryChain, metaclass=ABCMeta):
 
                 self.trajectory = self.create_trajectory(game_state, smashbot_state, inward_x_velocity)
 
-            self._perform_fade_back(game_state, smashbot_state, knockback_angle, knockback_magnitude, inward_x_velocity, inward_x)
+            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
 
         self.interruptable = False
         return True

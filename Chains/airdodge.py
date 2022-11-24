@@ -3,7 +3,7 @@ import math
 from melee.enums import Action, Button, Character
 
 from Chains.Abstract import RecoveryChain
-from Utils import AngleUtils, Trajectory
+from Utils import Trajectory
 
 
 class AirDodge(RecoveryChain):
@@ -58,10 +58,7 @@ class AirDodge(RecoveryChain):
             return self._input_move(Button.BUTTON_L, (0.5, 1))
 
         self._increment_current_frame(smashbot_state)
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(knockback_angle)) > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Deciding if we should fade-back
@@ -71,7 +68,7 @@ class AirDodge(RecoveryChain):
 
                 self.trajectory = self.create_trajectory(game_state, smashbot_state, smashbot_state.character, 90)
 
-            self._perform_fade_back(game_state, smashbot_state, knockback_angle, knockback_magnitude, inward_x_velocity, inward_x)
+            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
 
         self.interruptable = False
         return True

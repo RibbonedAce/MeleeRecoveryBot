@@ -99,12 +99,12 @@ class SDI(Chain):
 
         if self.cardinal is None:
             stage_edge = game_state.get_stage_edge()
-            knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-            no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, knockback_angle)
+            start_angle = smashbot_state.get_knockback(opponent_state).angle
+            no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, start_angle)
 
             # Situationally-specific SDI
             #   We're off the stage, or we're hit by a spike, so let's SDI back onto the stage
-            if smashbot_state.off_stage or knockback_angle > 180:
+            if smashbot_state.off_stage or start_angle > 180:
                 angle = 90 + 90 * MathUtils.sign(smashbot_state.position.x)
                 self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Off-stage SDI cardinal:", self.cardinal)
@@ -119,14 +119,14 @@ class SDI(Chain):
             #   If we're at risk of dying from the hit, then SDI backwards to go further back to cut into the knockback
             elif no_di_danger > DifficultySettings.DANGER_THRESHOLD * (smashbot_state.jumps_left + 1):
                 # Which cardinal direction is the most opposite the direction?
-                angle = AngleUtils.refit_angle(knockback_angle + 180)
+                angle = AngleUtils.refit_angle(start_angle + 180)
                 self.cardinal = self.__angle_to_cardinal(angle)
                 LogUtils.simple_log("Survival SDI angle:", angle, smashbot_state.speed_y_attack, smashbot_state.speed_x_attack)
 
             # Combo SDI
             #   SDI away from the opponent to keep from from following up
             else:
-                angle = knockback_angle
+                angle = start_angle
                 if smashbot_state.on_ground:
                     angle = AngleUtils.refit_angle(math.degrees(math.atan2(smashbot_state.position.y - opponent_state.position.y,
                                                     smashbot_state.position.x - opponent_state.position.x)))

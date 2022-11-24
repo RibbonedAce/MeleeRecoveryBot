@@ -1,4 +1,3 @@
-import math
 import random
 from enum import Enum
 
@@ -28,15 +27,14 @@ class Tech(Chain):
         if smashbot_state.position.y > -4 and smashbot_state.is_flying_in_hit_stun():
             frames_until_landing = 0
             speed = smashbot_state.speed_y_self
-            knockback_angle = math.radians(smashbot_state.get_knockback_angle(opponent_state))
-            knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+            knockback = smashbot_state.get_knockback(opponent_state)
             height = smashbot_state.position.y
 
-            while height > 0 or speed + knockback_magnitude * math.sin(knockback_angle) > 0:
-                height += speed + knockback_magnitude * math.sin(knockback_angle)
+            while height > 0 or speed + knockback.get_vertical_displacement() > 0:
+                height += speed + knockback.get_vertical_displacement()
                 speed -= FrameData.INSTANCE.get_gravity(smashbot_state.character)
                 speed = max(speed, -FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character))
-                knockback_magnitude = max(knockback_magnitude - 0.051, 0)
+                knockback = knockback.with_advanced_frames(1)
                 frames_until_landing += 1
                 # Break if it will be false anyway
                 if frames_until_landing >= 3:

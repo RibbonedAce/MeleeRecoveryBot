@@ -1,11 +1,9 @@
 import csv
-import math
 
 from melee import FrameData
 
-from Utils.angleutils import AngleUtils
+from Utils.knockback import Knockback
 from Utils.logutils import LogUtils
-from Utils.mathutils import MathUtils
 from Utils.trajectoryframe import TrajectoryFrame
 
 
@@ -62,12 +60,6 @@ class Trajectory:
         return frames
 
     @staticmethod
-    def get_knockback_displacement(num_frames, angle, magnitude):
-        end_magnitude = max(magnitude - 0.051 * num_frames, 0)
-        total_magnitude = MathUtils.linear_sum(magnitude, end_magnitude, -0.051)
-        return total_magnitude * math.cos(math.radians(angle)), total_magnitude * math.sin(math.radians(angle))
-
-    @staticmethod
     def from_csv_file(character, ascent_start, descent_start, min_ledge_grab, max_ledge_grab, path, requires_extra_height=False, include_fall_frames=True):
         frames = []
         with open(path) as csv_file:
@@ -115,25 +107,21 @@ class Trajectory:
         if drift_trajectory is None:
             drift_trajectory = Trajectory.create_drift_trajectory(self.character, smashbot_state.speed_y_self)
 
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if smashbot_state.position.x > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
 
         velocity = smashbot_state.get_inward_x_velocity()
-        displacement = drift_trajectory.get_displacement_after_frames(velocity, frame_delay, knockback_angle, knockback_magnitude)
+        displacement = drift_trajectory.get_displacement_after_frames(velocity, frame_delay, knockback)
         position = abs(smashbot_state.position.x) - displacement[0]
         height = smashbot_state.position.y + displacement[1]
         stage_vertex = self.get_relative_stage_vertex(game_state, position, height)
 
         for i in range(frame_delay):
-            knockback_magnitude = max(knockback_magnitude - 0.051, 0)
             acceleration = min(FrameData.INSTANCE.get_air_mobility(smashbot_state.character),
                                max(FrameData.INSTANCE.get_air_speed(smashbot_state.character) - velocity,
                                    -FrameData.INSTANCE.get_air_friction(smashbot_state.character)))
             velocity += acceleration
 
-        max_distance = self.get_distance_at_height(velocity, target[1] - height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame)
+        max_distance = self.get_distance_at_height(velocity, target[1] - height, stage_vertex, ledge, knockback.with_advanced_frames(frame_delay), start_frame)
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
         actual_distance = position - target[0]
@@ -141,7 +129,7 @@ class Trajectory:
             LogUtils.simple_log("Trajectory Data:", ledge, position, target[0], max_distance - actual_distance)
         return max_distance - actual_distance
 
-    def get_distance_at_height(self, current_velocity, height, stage_vertex=None, ledge=False, knockback_angle=0, knockback_magnitude=0, start_frame=0):
+    def get_distance_at_height(self, current_velocity, height, stage_vertex=None, ledge=False, knockback=Knockback.zero(), start_frame=0):
         if ledge:
             actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
             if actual_height < self.min_ledge_grab:
@@ -151,7 +139,7 @@ class Trajectory:
                 LogUtils.simple_log("Too low:", actual_height, self.max_ledge_grab)
                 return Trajectory.TOO_LOW_RESULT
 
-        return self.get_distance(current_velocity, height, stage_vertex, ledge, knockback_angle, knockback_magnitude, start_frame=start_frame)
+        return self.get_distance(current_velocity, height, stage_vertex, ledge, knockback, start_frame=start_frame)
 
     def get_last_frame_at_height(self, height):
         actual_height = 0
@@ -170,7 +158,7 @@ class Trajectory:
 
         return frame_number
 
-    def get_distance(self, current_velocity, height, stage_vertex, ledge=False, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None, start_frame=0):
+    def get_distance(self, current_velocity, height, stage_vertex, ledge=False, knockback=Knockback.zero(), fade_back_frames=None, start_frame=0):
         if fade_back_frames is None:
             fade_back_frames = set()
 
@@ -205,10 +193,10 @@ class Trajectory:
                 if frame.mid_horizontal_velocity is not None:
                     velocity = max(velocity, frame.mid_horizontal_velocity)
 
-            knockback_magnitude = max(knockback_magnitude - 0.051, 0)
-            extra_velocity = math.cos(math.radians(knockback_angle)) * knockback_magnitude
+            knockback = knockback.with_advanced_frames(1)
+            extra_velocity = knockback.get_horizontal_displacement()
             actual_distance += velocity + extra_velocity
-            actual_height += frame.vertical_velocity + math.sin(math.radians(knockback_angle)) * knockback_magnitude
+            actual_height += frame.vertical_velocity + knockback.get_vertical_displacement()
 
             # If we pineapple, back out early
             if stage_vertex is not None and actual_distance > stage_vertex[0] and actual_height < stage_vertex[1]:
@@ -240,7 +228,7 @@ class Trajectory:
         stage_vertex = (position - stage_vertex[0], stage_vertex[1] - height)
         return stage_vertex
 
-    def get_distance_traveled_above_target(self, current_velocity, target, stage_vertex, knockback_angle=0, knockback_magnitude=0, start_frame=0):
+    def get_distance_traveled_above_target(self, current_velocity, target, stage_vertex, knockback=Knockback.zero(), start_frame=0):
         total_distance = 0
         actual_distance = 0
         actual_height = 0
@@ -258,10 +246,10 @@ class Trajectory:
             if frame.mid_horizontal_velocity is not None:
                 velocity = max(velocity, frame.mid_horizontal_velocity)
 
-            knockback_magnitude = max(knockback_magnitude - 0.051, 0)
-            extra_velocity = math.cos(math.radians(knockback_angle)) * knockback_magnitude
+            knockback = knockback.with_advanced_frames(1)
+            extra_velocity = knockback.get_horizontal_displacement()
             actual_distance += velocity + extra_velocity
-            actual_height += frame.vertical_velocity + math.sin(math.radians(knockback_angle)) * knockback_magnitude
+            actual_height += frame.vertical_velocity + knockback.get_vertical_displacement()
             extra_height = frame.ecb_bottom
 
             # If we pineapple, back out early
@@ -279,7 +267,7 @@ class Trajectory:
 
         return total_distance
 
-    def get_displacement_after_frames(self, current_velocity, num_frames, knockback_angle=0, knockback_magnitude=0, fade_back_frames=None):
+    def get_displacement_after_frames(self, current_velocity, num_frames, knockback=Knockback.zero(), fade_back_frames=None):
         if fade_back_frames is None:
             fade_back_frames = set()
 
@@ -304,17 +292,17 @@ class Trajectory:
 
             actual_distance += velocity
 
-        return actual_distance + self.get_knockback_displacement(num_frames, knockback_angle, knockback_magnitude)[0], \
-               self.get_height_displacement_after_frames(num_frames, knockback_angle, knockback_magnitude)
+        return actual_distance + knockback.get_total_displacement(num_frames)[0], \
+               self.get_height_displacement_after_frames(num_frames, knockback)
 
-    def get_height_displacement_after_frames(self, num_frames, knockback_angle=0, knockback_magnitude=0):
+    def get_height_displacement_after_frames(self, num_frames, knockback=Knockback.zero()):
         actual_height = 0
 
         for i in range(num_frames):
             frame = self.frames[min(i, len(self.frames) - 1)]
             actual_height += frame.vertical_velocity
 
-        return actual_height + self.get_knockback_displacement(num_frames, knockback_angle, knockback_magnitude)[1]
+        return actual_height + knockback.get_total_displacement(num_frames)[1]
 
     def __calculate_max_height(self):
         max_height = 0

@@ -1,11 +1,10 @@
-import math
 from abc import ABCMeta
 
 from melee import FrameData
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils import AngleUtils, Trajectory
+from Utils import Trajectory
 from Utils.enums import STALL_MODE
 
 
@@ -44,9 +43,9 @@ class StallChain(Chain, metaclass=ABCMeta):
         regain_speed_frames = Trajectory.create_trajectory_frames(smashbot_state.character, no_charge_stall_frames[-1].vertical_velocity)
         num_required = int((air_speed - frames[-1].max_horizontal_velocity) // mobility)
 
-        angle, magnitude = cls.__get_knockback_stats(smashbot_state, opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         displacement = Trajectory(smashbot_state.character, 0, 0, -999, 999, False, frames).height_displacement
-        remaining_height = cls.__get_remaining_height(smashbot_state.position.y - displacement, smashbot_state, angle, magnitude)
+        remaining_height = cls.__get_remaining_height(smashbot_state.position.y - displacement, smashbot_state, knockback)
 
         while remaining_height > 0:
             frames += no_charge_stall_frames
@@ -61,7 +60,7 @@ class StallChain(Chain, metaclass=ABCMeta):
             frames += new_frames
 
             displacement = Trajectory(smashbot_state.character, 0, 0, -999, 999, False, frames).height_displacement
-            remaining_height = cls.__get_remaining_height(smashbot_state.position.y - displacement, smashbot_state, angle, magnitude)
+            remaining_height = cls.__get_remaining_height(smashbot_state.position.y - displacement, smashbot_state, knockback)
 
         return Trajectory(smashbot_state.character, 0, 0, -999, 999, False, frames)
 
@@ -88,17 +87,17 @@ class StallChain(Chain, metaclass=ABCMeta):
         if abs(smashbot_state.speed_air_x_self) < cls._min_stall_speed(smashbot_state.character):
             return False
 
-        angle, magnitude = cls.__get_knockback_stats(smashbot_state, opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
 
         # Should not stall if not high enough to recover after
-        if cls.__get_remaining_height(smashbot_state.position.y, smashbot_state, angle, magnitude) <= 0:
+        if cls.__get_remaining_height(smashbot_state.position.y, smashbot_state, knockback) <= 0:
             return False
 
         # Should not stall if too close unless we want to
         if stall_mode == STALL_MODE.SMART:
             diff_x = abs(smashbot_state.position.x) - game_state.get_stage_edge()
             trajectory = cls.create_trajectory(smashbot_state.get_inward_x_velocity(), smashbot_state.stall_is_charged(game_state))
-            displacement = trajectory.get_displacement_after_frames(smashbot_state.get_inward_x_velocity(), len(trajectory.frames), angle, magnitude)[0]
+            displacement = trajectory.get_displacement_after_frames(smashbot_state.get_inward_x_velocity(), len(trajectory.frames), knockback)[0]
             return diff_x <= 40 + displacement
 
         return True
@@ -121,18 +120,10 @@ class StallChain(Chain, metaclass=ABCMeta):
         return -100
 
     @classmethod
-    def __get_remaining_height(cls, start_height, smashbot_state, angle, magnitude):
-        return start_height + cls._get_stall_height_loss() + Trajectory.get_knockback_displacement(cls._get_stall_duration(), angle, magnitude)[1] + \
+    def __get_remaining_height(cls, start_height, smashbot_state, knockback):
+        return start_height + cls._get_stall_height_loss() + knockback.get_total_displacement(cls._get_stall_duration())[1] + \
                FrameData.INSTANCE.fast_dj_height(smashbot_state) * (cls._double_jumps_gained() + smashbot_state.jumps_left) + \
                cls._get_recovery_height() + FrameData.INSTANCE.get_ledge_box_top(smashbot_state.character)
-
-    @classmethod
-    def __get_knockback_stats(cls, smashbot_state, opponent_state):
-        angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(angle)) > 0:
-            angle = AngleUtils.get_x_reflection(angle)
-        magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
-        return angle, magnitude
 
     def __init__(self):
         Chain.__init__(self)

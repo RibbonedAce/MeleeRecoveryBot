@@ -4,7 +4,7 @@ from melee import FrameData
 from melee.enums import Action, Button, Character
 
 from Chains.Abstract import RecoveryChain
-from Utils import AngleUtils, ControlStick, LogUtils, MathUtils, Trajectory, TrajectoryFrame
+from Utils import ControlStick, LogUtils, MathUtils, Trajectory, TrajectoryFrame
 from Utils.enums import FADE_BACK_MODE
 
 
@@ -91,10 +91,7 @@ class DolphinSlash(RecoveryChain):
             return self._input_move(Button.BUTTON_B, (0.5, 1))
 
         self._increment_current_frame(smashbot_state)
-        knockback_angle = smashbot_state.get_knockback_angle(opponent_state)
-        if math.cos(math.radians(knockback_angle)) > 0:
-            knockback_angle = AngleUtils.get_x_reflection(knockback_angle)
-        knockback_magnitude = smashbot_state.get_knockback_magnitude(opponent_state)
+        knockback = smashbot_state.get_relative_knockback(opponent_state)
         inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Calculating and applying angle
@@ -113,9 +110,9 @@ class DolphinSlash(RecoveryChain):
             stage_vertex = self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y)
 
             if self.recovery_target.is_max():
-                recovery_distance = self.trajectory.get_distance_traveled_above_target(inward_x_velocity, relative_target, stage_vertex, knockback_angle, knockback_magnitude, self.current_frame)
+                recovery_distance = self.trajectory.get_distance_traveled_above_target(inward_x_velocity, relative_target, stage_vertex, knockback, self.current_frame)
             else:
-                recovery_distance = self.trajectory.get_distance(inward_x_velocity, relative_target[1], stage_vertex, self.recovery_target.ledge, knockback_angle, knockback_magnitude, self._generate_fade_back_frames(), self.current_frame)
+                recovery_distance = self.trajectory.get_distance(inward_x_velocity, relative_target[1], stage_vertex, self.recovery_target.ledge, knockback, self._generate_fade_back_frames(), self.current_frame)
 
             # Record angle
             extra_distance = recovery_distance - (abs(smashbot_state.position.x) - self.target_coords[0])
@@ -149,7 +146,7 @@ class DolphinSlash(RecoveryChain):
 
         # Deciding if we should fade-back
         elif self.current_frame >= 6:
-            self._perform_fade_back(game_state, smashbot_state, knockback_angle, knockback_magnitude, inward_x_velocity, inward_x)
+            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
 
         self.interruptable = False
         return True
