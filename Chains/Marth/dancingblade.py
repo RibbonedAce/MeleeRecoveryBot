@@ -15,7 +15,7 @@ class DancingBlade(StallChain):
         x_velocity = MathUtils.sign(x_velocity) * max(0.8 * abs(x_velocity) - 0.0025, 0)
 
         y_velocity = trajectory.frames[0].vertical_velocity
-        if stall_charge != True and (stall_charge == False or not smashbot_state.stall_is_charged(game_state)):
+        if not stall_charge:
             y_velocity -= 1
 
         for i in range(29):

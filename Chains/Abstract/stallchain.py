@@ -1,3 +1,4 @@
+import math
 from abc import ABCMeta
 
 from melee import FrameData
@@ -25,22 +26,35 @@ class StallChain(Chain, metaclass=ABCMeta):
             frames.append(frames[-1])
 
         frames += cls.create_trajectory(new_x_velocity, smashbot_state.stall_is_charged(game_state)).frames
+
+        new_x_velocity = max(air_speed, frames[-1].max_horizontal_velocity)
+        no_charge_trajectory = cls.create_trajectory(new_x_velocity, False)
+        stall_displacement = no_charge_trajectory.get_displacement_after_frames(new_x_velocity, len(no_charge_trajectory.frames))
+        stall_angle = math.atan2(stall_displacement[1], stall_displacement[0])
         jump_frames = Trajectory.create_jump_trajectory_frames(smashbot_state.character)
+        regain_speed_frames = Trajectory.create_trajectory_frames(smashbot_state.character, no_charge_trajectory.frames[-1].vertical_velocity)
+
         if cls._double_jumps_gained() > 0:
             new_frames = jump_frames
         else:
-            new_frames = Trajectory.create_trajectory_frames(smashbot_state.character, frames[-1].vertical_velocity)
+            new_frames = regain_speed_frames
 
-        new_x_velocity = max(air_speed, frames[-1].max_horizontal_velocity)
         num_required = int((air_speed - frames[-1].max_horizontal_velocity) // mobility)
+        found_angle = False
+        for i in range(len(new_frames)):
+            if math.atan2(new_frames[i].vertical_velocity, new_frames[i].max_horizontal_velocity) < stall_angle:
+                num_required = max(num_required, i)
+                found_angle = True
+                break
+        if not found_angle:
+            num_required = len(new_frames)
+
         new_frames = new_frames[:num_required]
         while len(new_frames) < num_required:
             new_frames.append(frames[-1])
 
         frames += new_frames
 
-        no_charge_stall_frames = cls.create_trajectory(new_x_velocity, False).frames
-        regain_speed_frames = Trajectory.create_trajectory_frames(smashbot_state.character, no_charge_stall_frames[-1].vertical_velocity)
         num_required = int((air_speed - frames[-1].max_horizontal_velocity) // mobility)
 
         knockback = smashbot_state.get_relative_knockback(opponent_state)
@@ -48,7 +62,7 @@ class StallChain(Chain, metaclass=ABCMeta):
         remaining_height = cls.__get_remaining_height(smashbot_state.position.y - displacement, smashbot_state, knockback)
 
         while remaining_height > 0:
-            frames += no_charge_stall_frames
+            frames += no_charge_trajectory.frames
             if cls._double_jumps_gained() > 0:
                 new_frames = jump_frames[:num_required]
             else:
