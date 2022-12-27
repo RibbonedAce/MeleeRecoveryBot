@@ -14,11 +14,13 @@ class JumpInward(Chain):
         Chain.__init__(self)
         self.jumped = False
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
         controller = self.controller
         self.interruptable = True
 
-        controller.tilt_analog(Button.BUTTON_MAIN, smashbot_state.get_inward_x(), 0.5)
+        controller.tilt_analog_unit(Button.BUTTON_MAIN, smashbot_state.get_inward_x(), 0)
         if self.jumped and game_state.frame % 2 == 0:
             controller.release_button(Button.BUTTON_Y)
         else:

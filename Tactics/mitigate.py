@@ -31,7 +31,9 @@ class Mitigate(Tactic):
         self.initialized = False
         self.instance = None
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        smashbot_state = propagate[1]
+
         if not self.initialized:
             self.initialized = True
             clazz = self.CLASS_DICTIONARY.get(smashbot_state.character)
@@ -41,5 +43,5 @@ class Mitigate(Tactic):
         if self.instance is None:
             return
 
-        self.instance.step(game_state, smashbot_state, opponent_state)
+        self.instance.step(propagate)
         self.chain = self.instance.chain

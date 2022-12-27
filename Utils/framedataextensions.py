@@ -3,7 +3,9 @@ from collections import defaultdict, OrderedDict
 
 from melee import Action, Character, FrameData
 
-from Utils import MathUtils
+from Utils.ledgebox import LedgeBox
+from Utils.mathutils import MathUtils
+from Utils.vector2 import Vector2
 
 
 class FrameDataExtensions:
@@ -14,9 +16,7 @@ class FrameDataExtensions:
         FrameData.CHARACTER_DATA = FrameDataExtensions.__init_character_data()
 
         FrameData.INSTANCE.get_weight = FrameDataExtensions.__get_weight
-        FrameData.INSTANCE.get_ledge_box_bottom = FrameDataExtensions.__get_ledge_box_bottom
-        FrameData.INSTANCE.get_ledge_box_top = FrameDataExtensions.__get_ledge_box_top
-        FrameData.INSTANCE.get_ledge_box_horizontal = FrameDataExtensions.__get_ledge_box_horizontal
+        FrameData.INSTANCE.get_ledge_box = FrameDataExtensions.__get_ledge_box
         FrameData.INSTANCE.get_air_friction = FrameDataExtensions.__get_air_friction
         FrameData.INSTANCE.get_gravity = FrameDataExtensions.__get_gravity
         FrameData.INSTANCE.get_friction = FrameDataExtensions.__get_friction
@@ -86,16 +86,9 @@ class FrameDataExtensions:
         return FrameData.CHARACTER_DATA[character]["Weight"]
 
     @staticmethod
-    def __get_ledge_box_bottom(character):
-        return FrameData.CHARACTER_DATA[character]["Ledge Box Bottom"]
-
-    @staticmethod
-    def __get_ledge_box_top(character):
-        return FrameData.CHARACTER_DATA[character]["Ledge Box Top"]
-
-    @staticmethod
-    def __get_ledge_box_horizontal(character):
-        return FrameData.CHARACTER_DATA[character]["Ledge Box Horizontal"]
+    def __get_ledge_box(character):
+        character_data = FrameData.CHARACTER_DATA[character]
+        return LedgeBox(character_data["Ledge Box Top"], character_data["Ledge Box Bottom"], character_data["Ledge Box Horizontal"])
 
     @staticmethod
     def __get_air_friction(character):
@@ -127,7 +120,7 @@ class FrameDataExtensions:
 
     @staticmethod
     def __get_dj_speed(character):
-        return FrameData.CHARACTER_DATA[character]["InitDJSpeed_x"], FrameData.CHARACTER_DATA[character]["InitDJSpeed"]
+        return Vector2(FrameData.CHARACTER_DATA[character]["InitDJSpeed_x"], FrameData.CHARACTER_DATA[character]["InitDJSpeed"])
 
     @staticmethod
     def __fast_dj_height(character):

@@ -1,6 +1,7 @@
 from melee.enums import Button
 
 from Chains.chain import Chain
+from Utils import Angle
 
 
 # Struggle out of a grab
@@ -11,8 +12,9 @@ class Struggle(Chain):
 
         return smashbot_state.is_grabbed()
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
         # Just naively press and release every button every other frame
+        game_state = propagate[0]
         controller = self.controller
         self.interruptable = True
 
@@ -33,17 +35,8 @@ class Struggle(Chain):
             controller.release_button(Button.BUTTON_R)
             controller.release_button(Button.BUTTON_Z)
 
-        if (game_state.frame % 4) == 0:
-            controller.tilt_analog(Button.BUTTON_MAIN, .5, 0)
-            controller.tilt_analog(Button.BUTTON_C, .5, 0)
-        if (game_state.frame % 4) == 1:
-            controller.tilt_analog(Button.BUTTON_MAIN, 1, .5)
-            controller.tilt_analog(Button.BUTTON_C, 1, .5)
-        if (game_state.frame % 4) == 2:
-            controller.tilt_analog(Button.BUTTON_MAIN, .5, 1)
-            controller.tilt_analog(Button.BUTTON_C, .5, 1)
-        if (game_state.frame % 4) == 3:
-            controller.tilt_analog(Button.BUTTON_MAIN, 0, .5)
-            controller.tilt_analog(Button.BUTTON_C, 0, .5)
+        angle = Angle((game_state.frame % 4) / 4, Angle.Mode.ROTATIONS)
+        controller.tilt_analog_unit(Button.BUTTON_MAIN, angle.get_x(), angle.get_y())
+        controller.tilt_analog_unit(Button.BUTTON_C, angle.get_x(), angle.get_y())
 
         return True

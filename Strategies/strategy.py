@@ -1,9 +1,7 @@
 from abc import ABCMeta
 
 
-class Strategy:
-    __metaclass__ = ABCMeta
-
+class Strategy(metaclass=ABCMeta):
     def __init__(self):
         self.controller = None
         self.difficulty = None
@@ -13,6 +11,6 @@ class Strategy:
     def pick_tactic(self, tactic):
         if type(self.tactic) != tactic:
             self.tactic = tactic(self.controller, self.difficulty)
-        self.tactic.step(self._propagate[0], self._propagate[1], self._propagate[2])
+        self.tactic.step(self._propagate)
 
-    def step(self, game_state, smashbot_state, opponent_state): ...
+    def step(self, propagate): ...

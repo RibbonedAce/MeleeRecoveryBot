@@ -30,8 +30,8 @@ class Tech(Chain):
             knockback = smashbot_state.get_knockback(opponent_state)
             height = smashbot_state.position.y
 
-            while height > 0 or speed + knockback.get_vertical_displacement() > 0:
-                height += speed + knockback.get_vertical_displacement()
+            while height > 0 or speed + knockback.get_y() > 0:
+                height += speed + knockback.get_y()
                 speed -= FrameData.INSTANCE.get_gravity(smashbot_state.character)
                 speed = max(speed, -FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character))
                 knockback = knockback.with_advanced_frames(1)
@@ -53,7 +53,9 @@ class Tech(Chain):
         else:
             self.direction = direction
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
         controller = self.controller
 
         # If we are off the stage, we're done here
@@ -72,19 +74,19 @@ class Tech(Chain):
 
         self.interruptable = False
         self.teched = True
-        x = smashbot_state.get_inward_x()
+        inward_x = smashbot_state.get_inward_x()
 
         if self.direction == TECH_DIRECTION.TECH_IN_PLACE:
             controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, .5, .5)
+            controller.tilt_analog_unit(Button.BUTTON_MAIN, 0, 0)
             return True
         elif self.direction == TECH_DIRECTION.TECH_FORWARD:
             controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, x, .5)
+            controller.tilt_analog_unit(Button.BUTTON_MAIN, inward_x, 0)
             return True
         elif self.direction == TECH_DIRECTION.TECH_BACK:
             controller.press_button(Button.BUTTON_L)
-            controller.tilt_analog(Button.BUTTON_MAIN, 1 - x, .5)
+            controller.tilt_analog_unit(Button.BUTTON_MAIN, -inward_x, 0)
             return True
 
         return False

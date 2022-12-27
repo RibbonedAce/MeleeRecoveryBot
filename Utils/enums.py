@@ -33,3 +33,13 @@ class STALL_MODE(Enum):
 class FAST_FALL_MODE(Enum):
     NEVER = 0
     ALWAYS = 1
+
+class FRAME_INPUT_TYPE(Enum):
+    FADE_BACKWARD = 0
+    FADE_FORWARD = 1
+    DIRECT = 2
+
+class LEDGE_GRAB_MODE:
+    ALWAYS = 0
+    DURING = 1
+    AFTER = 2

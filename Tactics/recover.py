@@ -28,18 +28,20 @@ class Recover(Tactic):
 
     def __init__(self, controller, difficulty):
         Tactic.__init__(self, controller, difficulty)
-        self.__initialized = False
-        self.__instance = None
+        self.initialized = False
+        self.instance = None
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
-        if not self.__initialized:
-            self.__initialized = True
+    def step_internal(self, propagate):
+        smashbot_state = propagate[1]
+
+        if not self.initialized:
+            self.initialized = True
             clazz = self.CLASS_DICTIONARY.get(smashbot_state.character)
             if clazz is not None:
-                self.__instance = clazz(self.controller, self.difficulty)
+                self.instance = clazz(self.controller, self.difficulty)
 
-        if self.__instance is None:
+        if self.instance is None:
             return
 
-        self.__instance.step(game_state, smashbot_state, opponent_state)
-        self.chain = self.__instance.chain
+        self.instance.step(propagate)
+        self.chain = self.instance.chain

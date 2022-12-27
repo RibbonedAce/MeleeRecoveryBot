@@ -42,8 +42,8 @@ class ESAgent:
             game_state.player[self.opponent_port].invulnerability_left = max(29 - opponent_state.action_frame,
                                                                              opponent_state.invulnerability_left)
 
-        self.strategy.step(game_state,
-                           game_state.player[self.smashbot_port],
-                           game_state.player[self.opponent_port])
+        self.strategy.step((game_state,
+                            game_state.player[self.smashbot_port],
+                            game_state.player[self.opponent_port]))
 
         game_state.update_custom(self.smashbot_port, self.opponent_port)

@@ -1,28 +1,111 @@
 from melee.enums import Character
 
 from Chains.Abstract import FireAnimal
-from Utils import Trajectory
+from Utils import Trajectory, TrajectoryFrame as TF, Vector2 as V2
+from Utils.enums import LEDGE_GRAB_MODE
 
 
 class FireFox(FireAnimal):
-    TRAJECTORY = Trajectory.from_csv_file(Character.FOX, 42, 78, -999, 999, "Data/Trajectories/fire_fox.csv", requires_extra_height=True, include_fall_frames=False)
+    TRAJECTORY = Trajectory(Character.FOX, 42, 78, LEDGE_GRAB_MODE.ALWAYS, True, [
+        TF(lambda v, i: V2(TF.reduce_singular(0.8 * v.x, 0.02), 0), V2(2, 4.26627)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 5.18958)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 5.80825)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 5.53235)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 5.34966)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.91772)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.54156)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.32345)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.31181)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.35564)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.40383)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.38403)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.34747)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.32854)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), 0), V2(2, 4.32772)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.015), V2(2, 4.34386)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.03), V2(2, 4.35088)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.045), V2(2, 4.34066)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.06), V2(2, 4.31133)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.075), V2(2, 4.2935)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.09), V2(2, 4.29494)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.105), V2(2, 4.31026)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.12), V2(2, 4.31902)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.135), V2(2, 4.31316)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.15), V2(2, 4.2915)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.165), V2(2, 4.2772)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.18), V2(2, 4.27565)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.195), V2(2, 4.28283)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.21), V2(2, 4.287)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.225), V2(2, 4.28126)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.24), V2(2, 4.26373)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.255), V2(2, 4.25422)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.27), V2(2, 4.25768)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.285), V2(2, 4.28341)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.3), V2(2, 4.36911)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.315), V2(2, 4.79478)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.33), V2(2, 4.89193)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.345), V2(2, 4.67149)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.36), V2(2, 4.63289)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.375), V2(2, 3.57449)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.39), V2(2, 2.32137)),
+        TF(lambda v, i: V2(TF.reduce_singular(v.x, 0.02), -0.405), V2(3.42337, 2.04703)),
+        TF.angle(3.8),
+        TF.repeat(),
+        TF.repeat(),
+        TF.repeat(),
+        TF.repeat(),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.reduce(0.1),
+        TF.drift(Character.FOX, V2(4.00951, 2.49287)),
+        TF.drift(Character.FOX, V2(3.16311, 3.21647)),
+        TF.drift(Character.FOX, V2(2, 3.29348)),
+        TF.drift(Character.FOX, V2(2, 2.27059)),
+        TF.drift(Character.FOX, V2(2, 1.57691)),
+        TF.drift(Character.FOX, V2(2, 1.90824)),
+        TF.drift(Character.FOX, V2(2, 1.52977)),
+        TF.drift(Character.FOX, V2(2, 1.45309)),
+        TF.drift(Character.FOX, V2(2, 1.83273)),
+        TF.drift(Character.FOX, V2(2, 2.54185)),
+        TF.drift(Character.FOX, V2(2, 3.13248)),
+        TF.drift(Character.FOX, V2(2, 2.80453)),
+        TF.drift(Character.FOX, V2(2, 2.49725)),
+        TF.drift(Character.FOX, V2(2, 2.28819)),
+        TF.drift(Character.FOX, V2(2, 2.09543)),
+        TF.drift(Character.FOX, V2(2, 1.76834)),
+        TF.drift(Character.FOX, V2(2, 1.59851)),
+        TF.drift(Character.FOX, V2(2, 0.79139)),
+        TF.drift(Character.FOX, V2(2.14488, 0)),
+        TF.drift(Character.FOX, V2(2.70596, 0)),
+        TF.drift(Character.FOX)
+    ])
 
     @classmethod
-    def create_trajectory(cls, game_state, smashbot_state, x_velocity, angle=0.0):
-        return cls._adjust_trajectory(cls.TRAJECTORY.copy(), smashbot_state, x_velocity, angle)
+    def create_trajectory(cls, character):
+        return cls.TRAJECTORY
 
     @classmethod
-    def _get_fire_travel_deceleration(cls):
-        return 0.1
-
-    @classmethod
-    def _get_fire_travel_deceleration_start_frame(cls):
-        return 45
-
-    @classmethod
-    def _get_fire_travel_start_speed(cls):
-        return 3.8
-
-    @classmethod
-    def _get_fire_travel_end_frame(cls):
+    def _get_launch_end_frame(cls):
         return 72

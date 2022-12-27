@@ -23,19 +23,19 @@ class Tactic(metaclass=ABCMeta):
 
         # Do empty input to remove any potential inputs that other chains failed to clear
         self.chain.controller.empty_input()
-        self.chain.step(self._propagate[0], self._propagate[1], self._propagate[2])
+        self.chain.step(self._propagate)
 
-    def step_internal(self, game_state, smashbot_state, opponent_state): ...
+    def step_internal(self, propagate): ...
 
-    def step(self, game_state, smashbot_state, opponent_state):
-        self._propagate = (game_state, smashbot_state, opponent_state)
+    def step(self, propagate):
+        self._propagate = propagate
 
         # If we can't interrupt the chain, just continue it
         if self.chain is not None and not self.chain.interruptable:
-            self.chain.step(game_state, smashbot_state, opponent_state)
+            self.chain.step(self._propagate)
             return
 
-        self.step_internal(game_state, smashbot_state, opponent_state)
+        self.step_internal(self._propagate)
 
     def is_interruptable(self):
         if self.chain:

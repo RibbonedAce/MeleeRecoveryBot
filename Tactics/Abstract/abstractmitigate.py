@@ -39,12 +39,13 @@ class AbstractMitigate(Tactic, metaclass=ABCMeta):
         Tactic.__init__(self, controller, difficulty)
         self.ledge_tech = DifficultySettings.should_ledge_tech()
 
-    def step(self, game_state, smashbot_state, opponent_state):
-        self._propagate = (game_state, smashbot_state, opponent_state)
+    def step(self, propagate):
+        self._propagate = propagate
+        smashbot_state = propagate[1]
 
         # If we can't interrupt the chain, just continue it
         if self.chain is not None and not self.chain.interruptable:
-            self.chain.step(game_state, smashbot_state, opponent_state)
+            self.chain.step(propagate)
             return
 
         # Grab escape
@@ -80,7 +81,7 @@ class AbstractMitigate(Tactic, metaclass=ABCMeta):
         # Meteor cancel 8 frames after hit-lag ended
         if JumpInward.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                smashbot_state.jumps_left > 0 and smashbot_state.can_jump_meteor_cancel(game_state):
+                smashbot_state.jumps_left > 0 and smashbot_state.can_jump_meteor_cancel(propagate):
             self.pick_chain(JumpInward)
             return
 
@@ -88,7 +89,7 @@ class AbstractMitigate(Tactic, metaclass=ABCMeta):
         meteor_cancel_class = self._get_meteor_cancel_class()
         if meteor_cancel_class.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                smashbot_state.can_special_meteor_cancel(game_state):
+                smashbot_state.can_special_meteor_cancel(propagate):
             self.pick_chain(meteor_cancel_class)
             return
 

@@ -1,134 +1,87 @@
-import math
 from abc import ABCMeta
+from collections import defaultdict
 
-from melee import FrameData
 from melee.enums import Action, Button
 
 from Chains.Abstract.recoverychain import RecoveryChain
-from Utils import ControlStick, HillClimb, LogUtils, MathUtils, RecoveryTarget, Trajectory
+from Utils import Angle, ControlStick, FrameInput, HillClimb, LogUtils, RecoveryTarget, Trajectory, Vector2
 from Utils.enums import FADE_BACK_MODE
 
 
 class FireAnimal(RecoveryChain, metaclass=ABCMeta):
-    ANGLES_TO_TEST = (ControlStick.from_angle(90).to_edge_coordinate(True),
-                      ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_up_y()).to_edge_coordinate(True),
-                      ControlStick.from_angle(45).to_edge_coordinate(True),
-                      ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True),
-                      ControlStick.from_angle(0).to_edge_coordinate(True),
-                      ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), -ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True),
-                      ControlStick.from_angle(-45).to_edge_coordinate(True),
-                      ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_down_y()).to_edge_coordinate(True),
-                      ControlStick.from_angle(-90).to_edge_coordinate(True))
+    ANGLES_TO_TEST = (ControlStick.from_angle(Angle(90)).to_edge_coordinate(),
+                      ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_up_y()).to_edge_coordinate(),
+                      ControlStick.from_angle(Angle(45)).to_edge_coordinate(),
+                      ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(),
+                      ControlStick.from_angle(Angle(90)).to_edge_coordinate(),
+                      ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), -ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(),
+                      ControlStick.from_angle(Angle(-45)).to_edge_coordinate(),
+                      ControlStick(ControlStick.DEAD_ZONE_ESCAPE, ControlStick(ControlStick.DEAD_ZONE_ESCAPE, 0).get_most_down_y()).to_edge_coordinate(),
+                      ControlStick.from_angle(Angle(-90)).to_edge_coordinate())
 
     @classmethod
-    def _get_fire_travel_deceleration(cls) -> float: ...
+    def create_default_inputs(cls, smashbot_state, game_state):
+        input_frames = defaultdict(lambda: FrameInput.forward())
+        position = smashbot_state.get_relative_position()
+        vector = Vector2.from_angle(Vector2(position.x - game_state.get_stage_edge(), -position.y).to_angle().correct_for_cardinal_strict())
+        for i in range(42, cls._get_launch_end_frame()):
+            input_frames[i] = FrameInput.direct(vector)
+        return input_frames
 
     @classmethod
-    def _get_fire_travel_deceleration_start_frame(cls) -> int: ...
+    def _get_launch_end_frame(cls) -> int: ...
 
-    @classmethod
-    def _get_fire_travel_start_speed(cls) -> float: ...
-
-    @classmethod
-    def _get_fire_travel_end_frame(cls) -> int: ...
-
-    @classmethod
-    def _adjust_trajectory(cls, trajectory, smashbot_state, x_velocity, angle):
-        x_velocity = MathUtils.sign(x_velocity) * max(0.8 * abs(x_velocity) - 0.02, 0)
-
-        for i in range(42):
-            trajectory.frames[i].min_horizontal_velocity = x_velocity
-            trajectory.frames[i].max_horizontal_velocity = x_velocity
-
-            if i == 0:
-                trajectory.frames[i].forward_acceleration = x_velocity
-                trajectory.frames[i].backward_acceleration = x_velocity
-            else:
-                trajectory.frames[i].forward_acceleration = x_velocity - trajectory.frames[i - 1].max_horizontal_velocity
-                trajectory.frames[i].backward_acceleration = x_velocity - trajectory.frames[i - 1].min_horizontal_velocity
-
-            x_velocity = MathUtils.sign(x_velocity) * max(abs(x_velocity) - 0.02, 0)
-
-        x_angle = math.cos(math.radians(angle))
-        y_angle = math.sin(math.radians(angle))
-        magnitude = cls._get_fire_travel_start_speed()
-        travel_end_frame = cls._get_fire_travel_end_frame()
-
-        for i in range(42, travel_end_frame):
-            trajectory.frames[i].vertical_velocity = y_angle * magnitude
-            trajectory.frames[i].min_horizontal_velocity = x_angle * magnitude
-            trajectory.frames[i].max_horizontal_velocity = x_angle * magnitude
-            trajectory.frames[i].forward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].max_horizontal_velocity
-            trajectory.frames[i].backward_acceleration = x_angle * magnitude - trajectory.frames[i - 1].min_horizontal_velocity
-
-            if i > cls._get_fire_travel_deceleration_start_frame():
-                magnitude = max(magnitude - cls._get_fire_travel_deceleration(), 0)
-
-        gravity = FrameData.INSTANCE.get_gravity(smashbot_state.character)
-        terminal_velocity = FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
-        for i in range(travel_end_frame, travel_end_frame + 20):
-            trajectory.frames[i].vertical_velocity = max(trajectory.frames[i - 1].vertical_velocity - gravity, -terminal_velocity)
-
-        trajectory.frames += Trajectory.create_trajectory_frames(smashbot_state.character, trajectory.frames[travel_end_frame + 19].vertical_velocity)
-        return trajectory
-
-    def __init__(self, target_coords=(0, 0), recovery_target=RecoveryTarget.max()):
-        RecoveryChain.__init__(self, target_coords, recovery_target)
+    def __init__(self, target=(0, 0), recovery_target=RecoveryTarget.max()):
+        RecoveryChain.__init__(self, target, recovery_target)
         self.min_angle = self.__determine_initial_min_angle()
-        self.max_angle = ControlStick.from_angle(90).to_edge_coordinate(True)
-        self.best_angle = ControlStick.from_angle(0).to_edge_coordinate(True)
+        self.max_angle = ControlStick.from_angle(Angle(90)).to_edge_coordinate()
+        self.best_angle = ControlStick.from_angle(Angle(0)).to_edge_coordinate()
         self.best_distance = None
-        self.start_x_velocity = 0
         self.hill_climb = None
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        smashbot_state = propagate[1]
+
         # We're done here if...
         if self.current_frame > 0 and smashbot_state.action not in self._applicable_states():
             return False
 
-        inward_x = smashbot_state.get_inward_x()
-
         # If we haven't started yet, hit the input
         if self.current_frame < 0 and smashbot_state.action not in self._applicable_states():
-            return self._input_move(Button.BUTTON_B, (0.5, 1))
+            return self._input_move(Button.BUTTON_B, Vector2(0, 1))
 
         self._increment_current_frame(smashbot_state)
-        knockback = smashbot_state.get_relative_knockback(opponent_state)
-        inward_x_velocity = smashbot_state.get_inward_x_velocity()
 
         # Calculating and applying angle
         if 0 < self.current_frame <= 40:
             if self.current_frame == 1:
                 self.controller.release_button(Button.BUTTON_B)
 
-                self.trajectory = self.create_trajectory(game_state, smashbot_state, inward_x_velocity, ControlStick.coordinate_num_to_angle(self.min_angle))
-                self.start_x_velocity = inward_x_velocity
+                self.trajectory = self.create_trajectory(smashbot_state.character)
 
                 # If going for ledge and facing backwards, do not go straight up or down
                 if self.recovery_target.ledge and not smashbot_state.is_facing_inwards():
-                    self.max_angle = min(self.max_angle, ControlStick.from_angle(90).to_edge_coordinate(True) - 1)
-                    self.min_angle = max(self.min_angle, ControlStick.from_angle(-90).to_edge_coordinate(True) + 1)
+                    self.max_angle = min(self.max_angle, ControlStick.from_angle(Angle(90)).to_edge_coordinate() - 1)
+                    self.min_angle = max(self.min_angle, ControlStick.from_angle(Angle(-90)).to_edge_coordinate() + 1)
 
                 self.hill_climb = HillClimb(self.min_angle, self.max_angle, 40)
 
             next_point = round(self.hill_climb.get_next_point())
             if self.current_frame <= 9 and self.min_angle <= self.ANGLES_TO_TEST[self.current_frame - 1] <= self.max_angle:
                 next_point = self.ANGLES_TO_TEST[self.current_frame - 1]
-            current_angle = ControlStick.from_edge_coordinate(next_point).correct_for_cardinal_strict().to_edge_coordinate(True)
+            current_angle = ControlStick.from_edge_coordinate(next_point).correct_for_cardinal_strict().to_edge_coordinate()
             LogUtils.simple_log(current_angle, self.best_angle)
 
             # Test current angle in trial
-            self.trajectory = self.create_trajectory(game_state, smashbot_state, self.start_x_velocity, ControlStick.coordinate_num_to_angle(current_angle))
-            relative_target = (abs(smashbot_state.position.x) - self.target_coords[0], self.target_coords[1] - smashbot_state.position.y)
-            stage_vertex = self.trajectory.get_relative_stage_vertex(game_state, abs(smashbot_state.position.x), smashbot_state.position.y)
+            self.trajectory = self.create_trajectory(smashbot_state.character)
 
             if self.recovery_target.is_max():
-                recovery_distance = self.trajectory.get_distance_traveled_above_target(inward_x_velocity, relative_target, stage_vertex, knockback, self.current_frame)
+                recovery_distance = self.trajectory.get_distance_traveled_above_target(propagate, target=self.target, frame_range=range(self.current_frame, 600), input_frames=self.__generate_angled_input_frames(current_angle))
             else:
-                recovery_distance = self.trajectory.get_distance(inward_x_velocity, relative_target[1], stage_vertex, self.recovery_target.ledge, knockback, self._generate_fade_back_frames(), self.current_frame)
+                recovery_distance = self.trajectory.get_distance(propagate, target=self.target, ledge=self.recovery_target.ledge, frame_range=range(self.current_frame, 600), input_frames=self.__generate_angled_input_frames(current_angle))
 
             # Record angle for hill-climbing
-            extra_distance = recovery_distance - (abs(smashbot_state.position.x) - self.target_coords[0])
+            extra_distance = recovery_distance - (abs(smashbot_state.position.x) - self.target.x)
             LogUtils.simple_log(extra_distance)
 
             if recovery_distance != Trajectory.TOO_LOW_RESULT:
@@ -160,14 +113,14 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
         # Tilt stick in best angle on last frame
         elif self.current_frame == 41:
             if self.best_distance is None:
-                self.best_angle = ControlStick.from_edge_coordinate(round(self.hill_climb.get_next_point())).correct_for_cardinal_strict().to_edge_coordinate(True)
+                self.best_angle = ControlStick.from_edge_coordinate(round(self.hill_climb.get_next_point())).correct_for_cardinal_strict().to_edge_coordinate()
 
-            xy = ControlStick.from_edge_coordinate(self.best_angle).to_smashbot_xy()
-            LogUtils.simple_log(xy)
-            self.controller.tilt_analog(Button.BUTTON_MAIN, (1 - inward_x) + (2 * inward_x - 1) * xy[0], xy[1])
+            s_input = ControlStick.from_edge_coordinate(self.best_angle).to_vector()
+            LogUtils.simple_log(s_input)
+            self.controller.tilt_analog_unit(Button.BUTTON_MAIN, smashbot_state.get_inward_x() * s_input.x, s_input.y)
 
         elif self.current_frame >= 42:
-            self._perform_fade_back(game_state, smashbot_state, knockback, inward_x_velocity, inward_x)
+            self._perform_fade_back(propagate)
 
         LogUtils.simple_log("frame number:", self.current_frame, smashbot_state.action_frame)
         self.interruptable = False
@@ -176,11 +129,18 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
     def _applicable_states(self):
         return {Action.FIREFOX_AIR, Action.FIREFOX_WAIT_AIR, Action.SWORD_DANCE_1_AIR, Action.DEAD_FALL}
 
+    def __generate_angled_input_frames(self, angle):
+        input_frames = self._generate_input_frames()
+        vector = ControlStick.from_edge_coordinate(angle).to_vector()
+        for i in range(42, self._get_launch_end_frame()):
+            input_frames[i] = FrameInput.direct(vector)
+        return input_frames
+
     def __update_best_angle(self, current_angle, extra_distance):
         self.best_distance = extra_distance
         self.best_angle = current_angle
 
     def __determine_initial_min_angle(self):
         if self.recovery_target.is_sweet_spot():
-            return ControlStick.from_angle(-90).to_edge_coordinate(True)
-        return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate(True)
+            return ControlStick.from_angle(Angle(-90)).to_edge_coordinate()
+        return ControlStick(ControlStick(0, ControlStick.DEAD_ZONE_ESCAPE).get_most_right_x(), ControlStick.DEAD_ZONE_ESCAPE).to_edge_coordinate()

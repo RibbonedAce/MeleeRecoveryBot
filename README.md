@@ -11,7 +11,7 @@ SmashBot that helps the player in practicing edgeguarding. Based on the work of 
 (NOTE: recoveries involving platforms are not yet supported, and the bot has only been extensively tested on Final Destination so far)
 
 # How to get Started
-1. **The bot only functions correctly with Slippi up to version 2.3.1**, so if you do not have that version of Slippi installed, you need to install it separately.
+1. ~~**The bot only functions correctly with Slippi up to version 2.3.1**, so if you do not have that version of Slippi installed, you need to install it separately.~~ The bot now works on all versions of Slippi.
 2. Clone this repository to somewhere on your computer (ideally, a place where you do not need to elevate your permissions to access, such as your Documents folder).
 3. Follow the setup steps found on AltF4's Smashbot, including the part where you run the SmashBot executable.
 4. When the game starts, navigate to the Character Select Screen. The bot will select a character.

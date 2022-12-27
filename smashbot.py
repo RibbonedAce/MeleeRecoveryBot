@@ -125,11 +125,11 @@ if args.bot:
 DifficultySettings.initialize_difficulty(args.difficulty)
 
 def signal_handler(signal, frame):
-    console.stop()
     if args.debug:
         LogUtils.LOGGER.writelog()
         print("")  # because the ^C will be on the terminal
         print("Log file created: " + LogUtils.LOGGER.filename)
+    console.stop()
     print("Shutting down cleanly...")
     sys.exit(0)
 

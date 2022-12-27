@@ -11,10 +11,10 @@ class Chain(metaclass=ABCMeta):
         self.controller = None
         self.difficulty = None
 
-    def step_internal(self, game_state, smashbot_state, opponent_state) -> bool: ...
+    def step_internal(self, propagate) -> bool: ...
 
-    def step(self, game_state, smashbot_state, opponent_state):
-        decided = self.step_internal(game_state, smashbot_state, opponent_state)
+    def step(self, propagate):
+        decided = self.step_internal(propagate)
 
         # Fallback
         if not decided:

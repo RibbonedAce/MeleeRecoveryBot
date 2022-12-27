@@ -1,318 +1,206 @@
-import csv
+from collections import defaultdict
 
 from melee import FrameData
 
-from Utils.knockback import Knockback
+from Utils.enums import FRAME_INPUT_TYPE, LEDGE_GRAB_MODE
+from Utils.frameinput import FrameInput
 from Utils.logutils import LogUtils
 from Utils.trajectoryframe import TrajectoryFrame
+from Utils.vector2 import Vector2
 
 
 class Trajectory:
     TOO_LOW_RESULT = -100
 
     @staticmethod
-    def create_drift_trajectory(character, start_velocity):
-        frames = Trajectory.create_trajectory_frames(character, start_velocity)
-        return Trajectory(character, 0, 0, -999, 999, False, frames)
+    def create_drift_trajectory(character):
+        return Trajectory(character, 0, 0, LEDGE_GRAB_MODE.ALWAYS, False, [TrajectoryFrame.drift(character)])
 
-    @staticmethod
-    def create_trajectory_frames(character, start_velocity):
-        gravity = -FrameData.INSTANCE.get_gravity(character)
-        mobility = FrameData.INSTANCE.get_air_mobility(character)
-        speed = FrameData.INSTANCE.get_air_speed(character)
-        velocity = start_velocity
-        frames = []
-        term_velocity = min(-FrameData.INSTANCE.get_terminal_velocity(character), start_velocity)
-
-        while velocity != term_velocity or len(frames) == 0:
-            velocity = max(velocity + gravity, term_velocity)
-            frames.append(TrajectoryFrame(
-                vertical_velocity=velocity,
-                forward_acceleration=mobility,
-                backward_acceleration=-mobility,
-                max_horizontal_velocity=speed,
-                min_horizontal_velocity=-speed))
-
-        return frames
-
-    @staticmethod
-    def create_jump_trajectory_frames(character):
-        gravity = -FrameData.INSTANCE.get_gravity(character)
-        mobility = FrameData.INSTANCE.get_air_mobility(character)
-        velocity = FrameData.INSTANCE.get_dj_speed(character)[1]
-        frames = []
-        term_velocity = -FrameData.INSTANCE.get_terminal_velocity(character)
-
-        while velocity != term_velocity or len(frames) == 0:
-            if len(frames) == 0:
-                speed = FrameData.INSTANCE.get_air_speed(character)
-            else:
-                speed = FrameData.INSTANCE.get_dj_speed(character)[0]
-
-            velocity = max(velocity + gravity, term_velocity)
-            frames.append(TrajectoryFrame(
-                vertical_velocity=velocity,
-                forward_acceleration=mobility,
-                backward_acceleration=-mobility,
-                max_horizontal_velocity=speed,
-                min_horizontal_velocity=-speed))
-
-        return frames
-
-    @staticmethod
-    def from_csv_file(character, ascent_start, descent_start, min_ledge_grab, max_ledge_grab, path, requires_extra_height=False, include_fall_frames=True):
-        frames = []
-        with open(path) as csv_file:
-            # A list of dicts containing the data
-            csv_reader = list(csv.DictReader(csv_file))
-            # Build a series of nested dicts for faster read access
-            for row in csv_reader:
-                mid_horizontal_velocity = None
-                if row["mid_horizontal_velocity"] != "":
-                    mid_horizontal_velocity = float(row["mid_horizontal_velocity"])
-
-                # Pull out the frame
-                frame = TrajectoryFrame(
-                    float(row["vertical_velocity"]),
-                    float(row["forward_acceleration"]),
-                    float(row["backward_acceleration"]),
-                    float(row["max_horizontal_velocity"]),
-                    mid_horizontal_velocity,
-                    float(row["min_horizontal_velocity"]),
-                    float(row["ecb_bottom"]),
-                    float(row["ecb_inward"]))
-
-                frames.append(frame)
-
-        if include_fall_frames:
-            frames += Trajectory.create_trajectory_frames(character, frames[-1].vertical_velocity)
-
-        return Trajectory(character, ascent_start, descent_start, min_ledge_grab, max_ledge_grab, requires_extra_height, frames)
-
-    def __init__(self, character, ascent_start, descent_start, min_ledge_grab, max_ledge_grab, requires_extra_height, frames):
+    def __init__(self, character, ascent_start, descent_start, ledge_grab_mode, requires_extra_height, frames):
         self.character = character
         self.ascent_start = ascent_start
         self.descent_start = descent_start
-        self.min_ledge_grab = min_ledge_grab
-        self.max_ledge_grab = max_ledge_grab
+        self.ledge_grab_mode = ledge_grab_mode
         self.frames = frames
         self.requires_extra_height = requires_extra_height
         self.max_height = self.__calculate_max_height()
         self.height_displacement = self.__calculate_height_displacement()
 
-    def copy(self):
-        return Trajectory(self.character, self.ascent_start, self.descent_start, self.min_ledge_grab, self.max_ledge_grab, self.requires_extra_height, [f.copy() for f in self.frames])
+    def get_extra_distance(self, propagate, target=Vector2.zero(), ledge=False, frame_range=range(600), position=None, velocity=None, knockback=None, input_frames=None):
+        position, velocity, knockback, input_frames = self.__fill_out_empties(propagate, position, velocity, knockback, input_frames)
 
-    def get_extra_distance(self, game_state, smashbot_state, opponent_state, target, ledge=False, frame_delay=0, start_frame=0, drift_trajectory=None):
-        if drift_trajectory is None:
-            drift_trajectory = Trajectory.create_drift_trajectory(self.character, smashbot_state.speed_y_self)
-
-        knockback = smashbot_state.get_relative_knockback(opponent_state)
-
-        velocity = smashbot_state.get_inward_x_velocity()
-        displacement = drift_trajectory.get_displacement_after_frames(velocity, frame_delay, knockback)
-        position = abs(smashbot_state.position.x) - displacement[0]
-        height = smashbot_state.position.y + displacement[1]
-        stage_vertex = self.get_relative_stage_vertex(game_state, position, height)
-
-        for i in range(frame_delay):
-            acceleration = min(FrameData.INSTANCE.get_air_mobility(smashbot_state.character),
-                               max(FrameData.INSTANCE.get_air_speed(smashbot_state.character) - velocity,
-                                   -FrameData.INSTANCE.get_air_friction(smashbot_state.character)))
-            velocity += acceleration
-
-        max_distance = self.get_distance_at_height(velocity, target[1] - height, stage_vertex, ledge, knockback.with_advanced_frames(frame_delay), start_frame)
+        max_distance = self.get_distance(propagate, target, ledge, frame_range, position, velocity, knockback, input_frames)
         if max_distance == Trajectory.TOO_LOW_RESULT:
             return Trajectory.TOO_LOW_RESULT
-        actual_distance = position - target[0]
-        if max_distance - actual_distance > 0:
-            LogUtils.simple_log("Trajectory Data:", ledge, position, target[0], max_distance - actual_distance)
-        return max_distance - actual_distance
 
-    def get_distance_at_height(self, current_velocity, height, stage_vertex=None, ledge=False, knockback=Knockback.zero(), start_frame=0):
-        if ledge:
-            actual_height = height - FrameData.INSTANCE.get_ledge_box_top(self.character)
-            if actual_height < self.min_ledge_grab:
-                LogUtils.simple_log("Too high:", actual_height, self.min_ledge_grab)
-                return Trajectory.TOO_LOW_RESULT
-            elif actual_height > self.max_ledge_grab:
-                LogUtils.simple_log("Too low:", actual_height, self.max_ledge_grab)
-                return Trajectory.TOO_LOW_RESULT
+        required_distance = position.x - target.x
+        if max_distance - required_distance > 0:
+            LogUtils.simple_log("Trajectory Data:", ledge, position, target.x, max_distance - required_distance)
+        return max_distance - required_distance
 
-        return self.get_distance(current_velocity, height, stage_vertex, ledge, knockback, start_frame=start_frame)
+    def get_distance(self, propagate, target=Vector2.zero(), ledge=False, frame_range=range(600), position=None, velocity=None, knockback=None, input_frames=None):
+        game_state, smashbot_state, opponent_state = propagate
+        position, velocity, knockback, input_frames = self.__fill_out_empties(propagate, position, velocity, knockback, input_frames)
 
-    def get_last_frame_at_height(self, height):
-        actual_height = 0
-        frame_number = 500
-        need_to_update = True
-
-        for i in range(0, 500):
-            actual_height += self.frames[min(i, len(self.frames) - 1)].vertical_velocity
-            if actual_height <= height and need_to_update:
-                frame_number = i - 1
-                need_to_update = False
-            elif actual_height > height and not need_to_update:
-                need_to_update = True
-            if actual_height <= height and i >= self.descent_start:
-                break
-
-        return frame_number
-
-    def get_distance(self, current_velocity, height, stage_vertex, ledge=False, knockback=Knockback.zero(), fade_back_frames=None, start_frame=0):
-        if fade_back_frames is None:
-            fade_back_frames = set()
+        ledge_box = FrameData.INSTANCE.get_ledge_box(self.character)
+        relative_target = Vector2(position.x - target.x, target.y - position.y)
+        stage_vertex = game_state.get_relative_stage_vertex(position)
 
         total_distance = Trajectory.TOO_LOW_RESULT
         actual_distance = 0
         actual_height = 0
-        drag = FrameData.INSTANCE.get_air_friction(self.character)
-        velocity = current_velocity
 
-        ledge_box_top = FrameData.INSTANCE.get_ledge_box_top(self.character)
-        ledge_box_bottom = FrameData.INSTANCE.get_ledge_box_bottom(self.character)
-        ledge_box_horizontal = FrameData.INSTANCE.get_ledge_box_horizontal(self.character)
-
-        for i in range(start_frame, 600):
+        for i in frame_range:
             frame = self.frames[min(i, len(self.frames) - 1)]
+            s_input = self.__get_stick_input(input_frames[i], frame, velocity)
 
-            if i in fade_back_frames:
-                acceleration = max(frame.backward_acceleration, min(frame.min_horizontal_velocity - velocity, drag))
-                if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
-                    acceleration = frame.min_horizontal_velocity - velocity
-
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = min(velocity, frame.mid_horizontal_velocity)
-
-            else:
-                acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
-                if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
-                    acceleration = frame.max_horizontal_velocity - velocity
-
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = max(velocity, frame.mid_horizontal_velocity)
-
+            velocity = frame.velocity(velocity, s_input)
             knockback = knockback.with_advanced_frames(1)
-            extra_velocity = knockback.get_horizontal_displacement()
-            actual_distance += velocity + extra_velocity
-            actual_height += frame.vertical_velocity + knockback.get_vertical_displacement()
+            actual_x_velocity = velocity.x + knockback.get_x()
+
+            actual_distance += actual_x_velocity
+            actual_height += velocity.y + knockback.get_y()
 
             # If we pineapple, back out early
-            if stage_vertex is not None and actual_distance > stage_vertex[0] and actual_height < stage_vertex[1]:
+            if stage_vertex is not None and actual_distance > stage_vertex.x and actual_height < stage_vertex.y:
+                LogUtils.simple_log("Hit vertex", i, actual_distance, actual_height, stage_vertex)
                 return Trajectory.TOO_LOW_RESULT
 
             if ledge:
-                extra_height = ledge_box_top
-                if velocity + extra_velocity < 0 and actual_height + max(ledge_box_bottom, frame.ecb_bottom) >= height:
-                    extra_height = max(ledge_box_bottom, frame.ecb_bottom)
+                extra_height = ledge_box.top
+                if actual_x_velocity < 0 and actual_height + max(ledge_box.bottom, frame.ecb.y) >= relative_target.y:
+                    extra_height = max(ledge_box.bottom, frame.ecb.y)
                 # If a recovery is prone to getting battlefielded, we need a bit more vertical distance
-                if self.requires_extra_height and velocity + extra_velocity >= 0:
+                if self.requires_extra_height and actual_x_velocity >= 0:
                     extra_height -= 2
-                extra_distance = ledge_box_horizontal + frame.ecb_inward
+                extra_distance = ledge_box.horizontal + frame.ecb.x
             else:
-                extra_height = frame.ecb_bottom
+                extra_height = frame.ecb.y
                 extra_distance = 0
 
-            if i >= self.ascent_start and actual_height + extra_height >= height:
+            if i >= self.ascent_start and actual_height + extra_height >= relative_target.y and (not ledge or
+                    self.ledge_grab_mode == LEDGE_GRAB_MODE.ALWAYS or
+                    self.ledge_grab_mode == LEDGE_GRAB_MODE.AFTER and i >= len(self.frames) - 1 or
+                    self.ledge_grab_mode == LEDGE_GRAB_MODE.DURING and i < len(self.frames) - 1):
                 total_distance = actual_distance + extra_distance
-            elif i >= self.descent_start:
-                if velocity + extra_velocity < 0 and total_distance != Trajectory.TOO_LOW_RESULT:
+            elif i >= len(self.frames) - 1 and ledge and self.ledge_grab_mode == LEDGE_GRAB_MODE.DURING and \
+                    actual_height + max(ledge_box.bottom, frame.ecb.y) > relative_target.y:
+                return Trajectory.TOO_LOW_RESULT
+            elif i >= self.descent_start and actual_height + extra_height < relative_target.y:
+                if actual_x_velocity < 0 and total_distance != Trajectory.TOO_LOW_RESULT:
                     total_distance = actual_distance + extra_distance
                 break
 
         return total_distance
 
-    def get_relative_stage_vertex(self, game_state, position, height):
-        stage_vertex = game_state.get_stage_ride_vertex()
-        stage_vertex = (position - stage_vertex[0], stage_vertex[1] - height)
-        return stage_vertex
+    def get_distance_traveled_above_target(self, propagate, target=Vector2.zero(), ledge=False, frame_range=range(600), position=None, velocity=None, knockback=None, input_frames=None):
+        game_state, smashbot_state, opponent_state = propagate
+        position, velocity, knockback, input_frames = self.__fill_out_empties(propagate, position, velocity, knockback, input_frames)
 
-    def get_distance_traveled_above_target(self, current_velocity, target, stage_vertex, knockback=Knockback.zero(), start_frame=0):
-        total_distance = 0
+        relative_target = Vector2(position.x - target.x, target.y - position.y)
+        stage_vertex = game_state.get_relative_stage_vertex(position)
+
+        total_distance = Trajectory.TOO_LOW_RESULT
         actual_distance = 0
         actual_height = 0
-        drag = FrameData.INSTANCE.get_air_friction(self.character)
-        velocity = current_velocity
+        hit_height = False
 
-        for i in range(start_frame, 600):
+        for i in frame_range:
             frame = self.frames[min(i, len(self.frames) - 1)]
+            s_input = self.__get_stick_input(input_frames[i], frame, velocity)
 
-            acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
-            if frame.min_horizontal_velocity == frame.max_horizontal_velocity:
-                acceleration = frame.min_horizontal_velocity - velocity
-
-            velocity += acceleration
-            if frame.mid_horizontal_velocity is not None:
-                velocity = max(velocity, frame.mid_horizontal_velocity)
-
+            velocity = frame.velocity(velocity, s_input)
             knockback = knockback.with_advanced_frames(1)
-            extra_velocity = knockback.get_horizontal_displacement()
-            actual_distance += velocity + extra_velocity
-            actual_height += frame.vertical_velocity + knockback.get_vertical_displacement()
-            extra_height = frame.ecb_bottom
+            actual_x_velocity = velocity.x + knockback.get_x()
+
+            actual_distance += actual_x_velocity
+            actual_height += velocity.y + knockback.get_y()
 
             # If we pineapple, back out early
-            if stage_vertex is not None and actual_distance > stage_vertex[0] and actual_height < stage_vertex[1]:
-                LogUtils.simple_log("Hit vertex", i, actual_distance, actual_height, target, stage_vertex)
+            if stage_vertex is not None and actual_distance > stage_vertex.x and actual_height < stage_vertex.y:
+                LogUtils.simple_log("Hit vertex", i, actual_distance, actual_height, stage_vertex)
                 return Trajectory.TOO_LOW_RESULT
 
-            if actual_height + extra_height < target[1] and i >= self.descent_start:
-                if velocity + extra_velocity < 0:
-                    total_distance += velocity + extra_velocity
-                break
+            extra_height = frame.ecb.y
+            if not hit_height and actual_height + extra_height >= relative_target.y:
+                hit_height = True
 
-            elif actual_height + extra_height >= target[1] or actual_distance < target[0]:
-                total_distance += velocity + extra_velocity
+            if actual_height + extra_height >= relative_target.y:
+                total_distance += actual_x_velocity
+            elif actual_height + extra_height < relative_target.y and i >= self.descent_start:
+                if not hit_height:
+                    return Trajectory.TOO_LOW_RESULT
+                break
 
         return total_distance
 
-    def get_displacement_after_frames(self, current_velocity, num_frames, knockback=Knockback.zero(), fade_back_frames=None):
-        if fade_back_frames is None:
-            fade_back_frames = set()
+    def get_displacement_after_frames(self, propagate, target=Vector2.zero(), ledge=False, frame_range=None, position=None, velocity=None, knockback=None, input_frames=None):
+        position, velocity, knockback, input_frames = self.__fill_out_empties(propagate, position, velocity, knockback, input_frames)
+        if frame_range is None:
+            frame_range = range(len(self.frames))
 
-        actual_distance = 0
-        drag = FrameData.INSTANCE.get_air_friction(self.character)
-        velocity = current_velocity
-
-        for i in range(num_frames):
+        displacement = Vector2.zero()
+        for i in frame_range:
             frame = self.frames[min(i, len(self.frames) - 1)]
+            s_input = self.__get_stick_input(input_frames[i], frame, velocity)
+            velocity = frame.velocity(velocity, s_input)
+            displacement += frame.velocity(velocity, s_input)
 
-            if i in fade_back_frames:
-                acceleration = max(frame.backward_acceleration, min(frame.min_horizontal_velocity - velocity, drag))
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = min(velocity, frame.mid_horizontal_velocity)
+        return displacement + knockback.get_total_displacement(len(frame_range))
 
-            else:
-                acceleration = min(frame.forward_acceleration, max(frame.max_horizontal_velocity - velocity, -drag))
-                velocity += acceleration
-                if frame.mid_horizontal_velocity is not None:
-                    velocity = max(velocity, frame.mid_horizontal_velocity)
+    def get_velocity_after_frames(self, propagate, target=Vector2.zero(), ledge=False, frame_range=None, position=None, velocity=None, knockback=None, input_frames=None):
+        position, velocity, knockback, input_frames = self.__fill_out_empties(propagate, position, velocity, knockback, input_frames)
+        if frame_range is None:
+            frame_range = range(len(self.frames))
 
-            actual_distance += velocity
-
-        return actual_distance + knockback.get_total_displacement(num_frames)[0], \
-               self.get_height_displacement_after_frames(num_frames, knockback)
-
-    def get_height_displacement_after_frames(self, num_frames, knockback=Knockback.zero()):
-        actual_height = 0
-
-        for i in range(num_frames):
+        for i in frame_range:
             frame = self.frames[min(i, len(self.frames) - 1)]
-            actual_height += frame.vertical_velocity
+            s_input = self.__get_stick_input(input_frames[i], frame, velocity)
+            velocity = frame.velocity(velocity, s_input)
 
-        return actual_height + knockback.get_total_displacement(num_frames)[1]
+        return velocity
+
+    def __fill_out_empties(self, propagate, position, velocity, knockback, input_frames):
+        game_state, smashbot_state, opponent_state = propagate
+
+        if position is None:
+            position = smashbot_state.get_relative_position()
+        if velocity is None:
+            velocity = smashbot_state.get_relative_velocity()
+        if knockback is None:
+            knockback = smashbot_state.get_relative_knockback(opponent_state)
+        if input_frames is None:
+            input_frames = defaultdict(lambda: FrameInput.forward())
+
+        return position, velocity, knockback, input_frames
+
+    def __get_stick_input(self, f_input, frame, velocity):
+        sort_key = lambda k: frame.velocity(velocity, k).x
+        s_input = f_input.s_input
+        if f_input.f_type == FRAME_INPUT_TYPE.FADE_FORWARD:
+            s_input = max(Vector2(1, 0), Vector2(0, 0), key=sort_key)
+        elif f_input.f_type == FRAME_INPUT_TYPE.FADE_BACKWARD:
+            s_input = min(Vector2(-1, 0), Vector2(0, 0), key=sort_key)
+        return s_input
 
     def __calculate_max_height(self):
-        max_height = 0
+        velocity = Vector2.zero()
         actual_height = 0
+        max_height = 0
 
         for frame in self.frames:
-            actual_height += frame.vertical_velocity
+            velocity = frame.velocity(velocity, Vector2(0, 1))
+            actual_height += velocity.y
             max_height = max(actual_height, max_height)
 
         return max_height
 
     def __calculate_height_displacement(self):
-        return self.get_height_displacement_after_frames(len(self.frames))
+        velocity = Vector2.zero()
+        actual_height = 0
+
+        for frame in self.frames:
+            velocity = frame.velocity(velocity, Vector2(0, 1))
+            actual_height += velocity.y
+
+        return actual_height

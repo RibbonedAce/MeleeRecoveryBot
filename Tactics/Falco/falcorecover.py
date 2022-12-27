@@ -1,9 +1,9 @@
 from Chains.Abstract import NeverUse
 from Chains.Falco import FalcoPhantasm, FireBird
-from Tactics.Abstract import SpacieRecover
+from Tactics.Abstract import AbstractRecover
 
 
-class FalcoRecover(SpacieRecover):
+class FalcoRecover(AbstractRecover):
     @classmethod
     def _get_primary_recovery_class(cls):
         return FireBird

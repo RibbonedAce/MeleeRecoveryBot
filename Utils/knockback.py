@@ -1,6 +1,5 @@
-import math
-
-from Utils import MathUtils
+from Utils.mathutils import MathUtils
+from Utils.vector2 import Vector2
 
 
 class Knockback:
@@ -8,22 +7,33 @@ class Knockback:
 
     @staticmethod
     def zero():
-        return Knockback(0, 0)
+        return Knockback(Vector2.zero())
 
-    def __init__(self, angle, magnitude):
-        self.angle = angle
-        self.magnitude = magnitude
+    def __init__(self, vector):
+        self.vector = vector
 
     def get_total_displacement(self, num_frames):
-        end_magnitude = max(self.magnitude - Knockback.DECELERATION * num_frames, 0)
-        total_magnitude = MathUtils.linear_sum(self.magnitude, end_magnitude, -0.051)
-        return total_magnitude * math.cos(math.radians(self.angle)), total_magnitude * math.sin(math.radians(self.angle))
+        magnitude = self.vector.get_magnitude()
+        end_magnitude = max(magnitude - Knockback.DECELERATION * num_frames, 0)
+        return self.vector.with_magnitude(MathUtils.linear_sum(magnitude, end_magnitude, -Knockback.DECELERATION))
 
-    def get_horizontal_displacement(self):
-        return math.cos(math.radians(self.angle)) * self.magnitude
+    def get_x(self):
+        return self.vector.x
 
-    def get_vertical_displacement(self):
-        return math.sin(math.radians(self.angle)) * self.magnitude
+    def get_y(self):
+        return self.vector.y
+
+    def to_angle(self):
+        return self.vector.to_angle()
+
+    def with_angle(self, angle):
+        return Knockback(self.vector.with_angle(angle))
+
+    def get_magnitude(self):
+        return self.vector.get_magnitude()
+
+    def with_magnitude(self, magnitude):
+        return Knockback(self.vector.with_magnitude(magnitude))
 
     def with_advanced_frames(self, num_frames):
-        return Knockback(self.angle, max(self.magnitude - Knockback.DECELERATION * num_frames, 0))
+        return Knockback(self.vector.with_magnitude(max(self.vector.get_magnitude() - Knockback.DECELERATION * num_frames, 0)))

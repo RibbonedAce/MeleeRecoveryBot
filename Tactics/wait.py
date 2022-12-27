@@ -18,8 +18,7 @@ class Wait(Tactic):
             return False
 
         # If we're in the cooldown for an attack, just do nothing.
-        if FrameData.INSTANCE.attack_state(smashbot_state.character, smashbot_state.action,
-                                                     smashbot_state.action_frame) == melee.enums.AttackState.COOLDOWN:
+        if FrameData.INSTANCE.attack_state(smashbot_state.character, smashbot_state.action, smashbot_state.action_frame) == melee.enums.AttackState.COOLDOWN:
             return True
 
         # When teetering on the edge, make sure there isn't an opponent pushing on us.
@@ -45,7 +44,7 @@ class Wait(Tactic):
 
         return False
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
         # If we want to drop from an angel platform, do it
         if DropFromAngel.should_use(self._propagate):
             self.pick_chain(DropFromAngel)

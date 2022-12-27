@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from melee import Action, Button, GameState, melee, Stage
 
+from Utils.vector2 import Vector2
+
 
 class GameStateExtensions:
     @staticmethod
@@ -15,7 +17,7 @@ class GameStateExtensions:
         GameState.PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.PREV_PERCENT = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.STOCK_DURATION = {1: 0, 2: 0, 3: 0, 4: 0}
-        GameState.INCURRED_HITLAG = {1: 0, 2: 0, 3: 0, 4: 0}
+        GameState.INCURRED_HIT_LAG = {1: 0, 2: 0, 3: 0, 4: 0}
         GameState.STAGE_DATA = GameStateExtensions.__init_stage_data()
         GameState.SMASHBOT_PORT = 0
         GameState.OPPONENT_PORT = 0
@@ -23,7 +25,8 @@ class GameStateExtensions:
         GameState.get_stage_edge = GameStateExtensions.__get_stage_edge
         GameState.get_left_blast_zone = GameStateExtensions.__get_left_blast_zone
         GameState.get_right_blast_zone = GameStateExtensions.__get_right_blast_zone
-        GameState.get_stage_ride_vertex = GameStateExtensions.__get_stage_ride_vertex
+        GameState.get_stage_vertex = GameStateExtensions.__get_stage_vertex
+        GameState.get_relative_stage_vertex = GameStateExtensions.__get_relative_stage_vertex
         GameState.update_custom = GameStateExtensions.__update_custom
 
     @staticmethod
@@ -58,8 +61,13 @@ class GameStateExtensions:
         return melee.stages.EDGE_GROUND_POSITION[game_state.stage]
 
     @staticmethod
-    def __get_stage_ride_vertex(game_state):
-        return GameState.STAGE_DATA[game_state.stage]["RideVertexX"], GameState.STAGE_DATA[game_state.stage]["RideVertexY"]
+    def __get_stage_vertex(game_state):
+        return Vector2(GameState.STAGE_DATA[game_state.stage]["RideVertexX"], GameState.STAGE_DATA[game_state.stage]["RideVertexY"])
+
+    @staticmethod
+    def __get_relative_stage_vertex(game_state, position):
+        stage_vertex = game_state.get_stage_vertex()
+        return Vector2(position.x - stage_vertex.x, stage_vertex.y - position.y)
 
     @staticmethod
     def __update_custom(game_state, smashbot_port, opponent_port):
@@ -119,5 +127,5 @@ class GameStateExtensions:
                 GameState.STOCK_DURATION[port] = 0
 
             # Incurred hitlag, in frames
-            if player_state.hitlag_left == 0 or player_state.hitlag_left > GameState.INCURRED_HITLAG[port]:
-                GameState.INCURRED_HITLAG[port] = player_state.hitlag_left
+            if player_state.hitlag_left == 0 or player_state.hitlag_left > GameState.INCURRED_HIT_LAG[port]:
+                GameState.INCURRED_HIT_LAG[port] = player_state.hitlag_left

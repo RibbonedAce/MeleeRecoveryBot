@@ -1,36 +1,37 @@
-import math
-
 from melee import Action, Button, FrameData, GameState
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils import AngleUtils, Knockback, MathUtils
+from Utils import Knockback, MathUtils, Vector2
 from Utils.enums import AMSAH_TECH_MODE
 
 
 class AmsahTech(Chain):
     @classmethod
     def should_use(cls, propagate):
+        smashbot_state = propagate[1]
+
+        return cls.primary_conditions_met(propagate) and not cls.more_sdi_needed(smashbot_state)
+
+    @classmethod
+    def primary_conditions_met(cls, propagate):
         game_state = propagate[0]
         smashbot_state = propagate[1]
         opponent_state = propagate[2]
 
-        return cls.primary_conditions_met(smashbot_state, opponent_state, game_state) and not cls.more_sdi_needed(smashbot_state)
-
-    @classmethod
-    def primary_conditions_met(cls, smashbot_state, opponent_state, game_state):
         tech_mode = DifficultySettings.AMSAH_TECH
         # If we do not want to tech, do not
         if tech_mode == AMSAH_TECH_MODE.NEVER:
             return False
 
         # If cannot tech knockback angle/magnitude, do not tech
-        if not cls.__knockback_is_techable(smashbot_state, opponent_state, game_state):
+        if not cls.__knockback_is_techable(propagate):
             return False
 
         stage_edge = game_state.get_stage_edge()
+        x = smashbot_state.position.x
         # Cannot Amsah tech if close to edge (need "- 6" since inputting TDI moves character)
-        if abs(smashbot_state.position.x) > stage_edge - 6:
+        if abs(x) > stage_edge - 6:
             return False
 
         can_slide_off = cls.__should_slide_off(smashbot_state, opponent_state, stage_edge)
@@ -42,15 +43,15 @@ class AmsahTech(Chain):
         if tech_mode == AMSAH_TECH_MODE.ALWAYS:
             return True
 
-        angle = smashbot_state.get_knockback(opponent_state).angle
-        x = math.cos(math.radians(angle))
+        angle = smashbot_state.get_knockback(opponent_state).to_angle()
+        angle_x = angle.get_x()
         # Should not Amsah tech if close to opponent when tech is finished
-        if x > 0 and smashbot_state.position.x > stage_edge - 30 or \
-                x < 0 and smashbot_state.position.x < -(stage_edge - 30):
+        if angle_x > 0 and x > stage_edge - 30 or \
+                angle_x < 0 and x < -(stage_edge - 30):
             # Unless we can slide off or Amsah tech is the only way to survive the hit
             if can_slide_off:
                 return True
-            survival_angle = AngleUtils.get_survival_di_launch_angle(angle, smashbot_state.position.x)
+            survival_angle = angle.to_survival_di_launch(x)
             return smashbot_state.get_knockback_danger(opponent_state, stage_edge, survival_angle) > DifficultySettings.DANGER_THRESHOLD * 2
 
         return True
@@ -68,9 +69,13 @@ class AmsahTech(Chain):
         return False
 
     @classmethod
-    def __knockback_is_techable(cls, smashbot_state, opponent_state, game_state):
+    def __knockback_is_techable(cls, propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
+        opponent_state = propagate[2]
+
         # We should not SDI if the total hit-lag is too large (ECB shenanigans)
-        if smashbot_state.get_incurred_hitlag(game_state) > 9:
+        if smashbot_state.get_incurred_hit_lag(game_state) > 9:
             return False
 
         # Cannot stick on ground if you don't go into knockdown
@@ -78,8 +83,8 @@ class AmsahTech(Chain):
             return False
 
         knockback = smashbot_state.get_knockback(opponent_state)
-        knockback.angle = AngleUtils.get_combo_di_launch_angle(knockback.angle)
-        v_knockback = knockback.get_vertical_displacement()
+        knockback = knockback.with_angle(knockback.to_angle().to_combo_di_launch())
+        v_knockback = knockback.get_y()
         # If not grounded after ASDI down and 1 gravity frame, can't Amsah tech
         if v_knockback > 3 + FrameData.INSTANCE.get_gravity(smashbot_state.character):
             return False
@@ -93,9 +98,8 @@ class AmsahTech(Chain):
             return False
 
         x = smashbot_state.position.x
-        knockback = smashbot_state.get_knockback(opponent_state)
-        knockback.angle = AngleUtils.get_combo_di_launch_angle(knockback.angle)
-        knockback_x = knockback.get_horizontal_displacement()
+        knockback = smashbot_state.get_knockback(opponent_state).to_angle().to_combo_di_launch()
+        knockback_x = knockback.get_x()
         # If knockback is too strong, do not slide off
         if abs(knockback_x) > 3.2:
             return False
@@ -121,23 +125,23 @@ class AmsahTech(Chain):
 
     def __init__(self):
         Chain.__init__(self)
-        self.x = None
-        self.y = None
+        self.s_input = None
         self.teched = False
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
+        opponent_state = propagate[2]
         controller = self.controller
 
-        if self.x is None or self.y is None:
-            inputs = AngleUtils.angle_to_xy(AngleUtils.get_combo_di(smashbot_state.get_knockback(opponent_state).angle))
-            self.x = inputs[0]
-            self.y = inputs[1]
+        if self.s_input is None:
+            self.s_input = Vector2.from_angle(smashbot_state.get_knockback(opponent_state).to_angle().to_combo_di())
 
         # Hold direction for tech
         if not self.teched:
             self.interruptable = False
-            controller.tilt_analog(Button.BUTTON_MAIN, self.x, self.y)
-            controller.tilt_analog(Button.BUTTON_C, 0.5, 0)
+            controller.tilt_analog_unit(Button.BUTTON_MAIN, self.s_input.x, self.s_input.y)
+            controller.tilt_analog_unit(Button.BUTTON_C, 0, -1)
 
             # Input the tech
             if smashbot_state.hitlag_left == 1:

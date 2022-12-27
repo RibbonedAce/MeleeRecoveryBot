@@ -13,10 +13,11 @@ class EdgeDash(Chain):
 
     def __init__(self):
         Chain.__init__(self)
-        self.has_stalled = False
         self.let_go_frame = 0
 
-    def step_internal(self, game_state, smashbot_state, opponent_state):
+    def step_internal(self, propagate):
+        game_state = propagate[0]
+        smashbot_state = propagate[1]
         controller = self.controller
 
         LogUtils.simple_log("Distance to edge:", smashbot_state.position.y + smashbot_state.ecb.bottom.y)
@@ -39,7 +40,7 @@ class EdgeDash(Chain):
                 return True
             self.interruptable = False
             self.let_go_frame = game_state.frame
-            controller.tilt_analog(Button.BUTTON_C, smashbot_state.get_outward_x(), 0.5)
+            controller.tilt_analog_unit(Button.BUTTON_C, smashbot_state.get_outward_x(), 0)
             return True
 
         x = smashbot_state.get_inward_x()
@@ -47,9 +48,9 @@ class EdgeDash(Chain):
         # Once we're falling, jump
         if smashbot_state.action == Action.FALLING:
             self.interruptable = False
-            controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
+            controller.tilt_analog_unit(Button.BUTTON_MAIN, x, 0)
             controller.press_button(Button.BUTTON_Y)
-            controller.tilt_analog(Button.BUTTON_C, 0.5, 0.5)
+            controller.tilt_analog_unit(Button.BUTTON_C, 0, 0)
             return True
 
         # Jumping, stay in the chain and DI in
@@ -58,12 +59,12 @@ class EdgeDash(Chain):
             if smashbot_state.position.y + smashbot_state.ecb.bottom.y > 0 and \
                     abs(smashbot_state.position.x) < game_state.get_stage_edge():
                 self.interruptable = False
-                controller.tilt_analog(Button.BUTTON_MAIN, x, 0.35)
+                controller.tilt_analog_unit(Button.BUTTON_MAIN, x, -0.3)
                 controller.press_button(Button.BUTTON_L)
                 return True
             else:
                 self.interruptable = False
-                controller.tilt_analog(Button.BUTTON_MAIN, x, 0.5)
+                controller.tilt_analog_unit(Button.BUTTON_MAIN, x, 0)
                 return True
 
         return False

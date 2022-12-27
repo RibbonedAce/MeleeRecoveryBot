@@ -11,27 +11,15 @@ class OnlyRecover(Strategy):
         self.set_difficulty = difficulty
         self.difficulty = 4
 
-    def __str__(self):
-        string = "Bait"
-
-        if not self.tactic:
-            return string
-        string += str(type(self.tactic))
-
-        if not self.tactic.chain:
-            return string
-        string += str(type(self.tactic.chain))
-        return string
-
-    def step(self, game_state, smashbot_state, opponent_state):
-        self._propagate = (game_state, smashbot_state, opponent_state)
+    def step(self, propagate):
+        self._propagate = propagate
 
         if Mitigate.should_use(self._propagate):
             self.pick_tactic(Mitigate)
             return
 
         if self.tactic and not self.tactic.is_interruptable():
-            self.tactic.step(game_state, smashbot_state, opponent_state)
+            self.tactic.step(propagate)
             return
 
         # If we're stuck in a lag state, just do nothing. Trying an action might just
@@ -46,3 +34,15 @@ class OnlyRecover(Strategy):
             return
 
         self.pick_tactic(Wait)
+
+    def __str__(self):
+        string = "OnlyRecover"
+
+        if not self.tactic:
+            return string
+        string += str(type(self.tactic))
+
+        if not self.tactic.chain:
+            return string
+        string += str(type(self.tactic.chain))
+        return string

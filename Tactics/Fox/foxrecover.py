@@ -1,9 +1,9 @@
 from Chains.Abstract import NeverUse
 from Chains.Fox import FireFox, FoxIllusion
-from Tactics.Abstract import SpacieRecover
+from Tactics.Abstract import AbstractRecover
 
 
-class FoxRecover(SpacieRecover):
+class FoxRecover(AbstractRecover):
     @classmethod
     def _get_primary_recovery_class(cls):
         return FireFox
