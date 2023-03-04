@@ -84,9 +84,9 @@ class AmsahTech(Chain):
 
         knockback = smashbot_state.get_knockback(opponent_state)
         knockback = knockback.with_angle(knockback.to_angle().to_combo_di_launch())
-        v_knockback = knockback.get_y()
+        knockback_y = knockback.get_y()
         # If not grounded after ASDI down and 1 gravity frame, can't Amsah tech
-        if v_knockback > 3 + FrameData.INSTANCE.get_gravity(smashbot_state.character):
+        if knockback_y > 3 + FrameData.INSTANCE.get_gravity(smashbot_state.character):
             return False
 
         return True
@@ -98,7 +98,8 @@ class AmsahTech(Chain):
             return False
 
         x = smashbot_state.position.x
-        knockback = smashbot_state.get_knockback(opponent_state).to_angle().to_combo_di_launch()
+        knockback = smashbot_state.get_knockback(opponent_state)
+        knockback = knockback.with_angle(knockback.to_angle().to_combo_di_launch())
         knockback_x = knockback.get_x()
         # If knockback is too strong, do not slide off
         if abs(knockback_x) > 3.2:
@@ -109,8 +110,8 @@ class AmsahTech(Chain):
             return False
 
         # There is a point where slide deceleration transfers from normal knockback deceleration to character friction, but the timing
-        # is different for each character, so just use whatever decelerates more
-        deceleration = max(FrameData.INSTANCE.get_friction(smashbot_state.character), Knockback.DECELERATION)
+        # is different for each character, so just use whatever decelerates less for now
+        deceleration = min(FrameData.INSTANCE.get_friction(smashbot_state.character), Knockback.DECELERATION)
 
         frames = 0
         # If we slide off within 30 frames, then it's safe
