@@ -9,19 +9,19 @@ class Angle:
         RADIANS = math.pi / 180
         ROTATIONS = 1 / 360
 
-    @staticmethod
-    def circle():
-        return Angle.non_fit(1, Angle.Mode.ROTATIONS)
+    @classmethod
+    def circle(cls):
+        return Angle.non_fit(1, cls.Mode.ROTATIONS)
 
-    @staticmethod
-    def non_fit(amount, mode):
+    @classmethod
+    def non_fit(cls, amount, mode):
         angle = Angle(amount, mode)
         angle.amount = amount
         return angle
 
-    @staticmethod
-    def from_input(s_input, threshold, magnitude):
-        return Angle(MathUtils.i_lerp(threshold, 1, abs(s_input.x)) * MathUtils.sign(s_input.x) * -magnitude)
+    @classmethod
+    def from_horizontal_input(cls, s_input, threshold, magnitude):
+        return Angle(MathUtils.i_lerp(threshold, 1, abs(s_input)) * MathUtils.sign(s_input) * -magnitude)
 
     def __init__(self, amount, mode=Mode.DEGREES):
         self.amount = amount % (mode / Angle.Mode.ROTATIONS)

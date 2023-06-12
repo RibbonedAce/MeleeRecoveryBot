@@ -47,25 +47,5 @@ class ElementalDive(RecoveryChain, metaclass=ABCMeta):
         self.interruptable = False
         return True
 
-    def _input_fade_back(self, smashbot_state, frame, should_fade_back):
-        velocity = smashbot_state.get_relative_velocity()
-        inward_x = smashbot_state.get_inward_x()
-        sort_key = lambda k: frame.velocity(velocity, Vector2(k, 0)).x
-
-        if should_fade_back:
-            s_input = min(-1, 0, key=sort_key) * inward_x
-            # Do not fully fade-back if it would make us turn around unintentionally
-            if self.trajectory == self._get_normal_trajectory() and self.current_frame == 12:
-                s_input = 0.2 * inward_x
-
-        else:
-            s_input = max(1, 0, key=sort_key) * inward_x
-            # Do not fully fade-forward if it would make us turn around unintentionally
-            if self.trajectory == self._get_reverse_trajectory() and self.current_frame == 12:
-                s_input = -0.2 * inward_x
-
-        self.controller.tilt_analog_unit(Button.BUTTON_MAIN, s_input, 0)
-        return s_input
-
     def _applicable_states(self):
         return {Action.FIREFOX_WAIT_AIR, Action.FIREFOX_GROUND, Action.FIREFOX_AIR, Action.DEAD_FALL}

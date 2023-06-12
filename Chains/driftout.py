@@ -1,7 +1,9 @@
+from collections import defaultdict
+
 from melee import Button, FrameData
 
 from Chains.chain import Chain
-from Utils import TrajectoryFrame, Vector2
+from Utils import FrameInput, Trajectory
 
 
 class DriftOut(Chain):
@@ -23,17 +25,12 @@ class DriftOut(Chain):
             return False
 
         # Should not drift out unless on track to go underneath ledge
-        position = abs(smashbot_state.position.x)
-        velocity = Vector2(smashbot_state.get_inward_x_velocity(), 0)
-        if velocity.x < 0:
-            return False
+        trajectory = Trajectory.create_drift_trajectory(smashbot_state.character)
+        num_frames = int(smashbot_state.get_relative_velocity().x // FrameData.INSTANCE.get_air_mobility(smashbot_state.character)) + 1
+        displacement = trajectory.get_displacement_after_frames(propagate, frame_range=range(num_frames), input_frames=defaultdict(FrameInput.backward))
+        position = smashbot_state.get_relative_position() + displacement
 
-        frame = TrajectoryFrame.drift(smashbot_state.character)
-        while velocity.x >= 0:
-            velocity = frame.velocity(velocity, Vector2(-1, 0))
-            position += velocity.x
-
-        return position < game_state.get_stage_edge()
+        return position.x < game_state.get_stage_edge()
 
     def step_internal(self, propagate):
         smashbot_state = propagate[1]

@@ -93,9 +93,8 @@ class SDI(Chain):
         #   Every SDI targets one of these 8 directions and wiggles back and forth across the direction
 
         if self.cardinal is None:
-            stage_edge = game_state.get_stage_edge()
             knockback = smashbot_state.get_knockback(opponent_state)
-            no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, knockback)
+            no_di_danger = smashbot_state.get_knockback_danger(opponent_state, game_state, knockback)
 
             # Situationally-specific SDI
             #   We're off the stage, or we're hit by a spike, so let's SDI back onto the stage

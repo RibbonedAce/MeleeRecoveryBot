@@ -2,6 +2,7 @@ from abc import ABCMeta
 from collections import defaultdict
 from typing import Type
 
+import ctrajectory
 from melee import FrameData
 from melee.enums import Action
 
@@ -9,7 +10,7 @@ from Chains import AirDodge, DriftIn, DriftOut, EdgeDash, FastFall, JumpInward, 
 from Chains.Abstract import NeverUse, RecoveryChain, StallChain
 from difficultysettings import DifficultySettings
 from Tactics.tactic import Tactic
-from Utils import FrameInput, Knockback, LogUtils, Trajectory, TrajectoryFrame, Vector2
+from Utils import FrameInput, LogUtils, Trajectory, Vector2
 from Utils.enums import RECOVERY_HEIGHT, RECOVERY_MODE
 
 
@@ -109,7 +110,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         self.recovery_mode = DifficultySettings.get_recovery_mode()
         self.recovery_target = DifficultySettings.get_recovery_target()
         self.should_hold_drift = DifficultySettings.should_hold_drift()
-        self.last_distance = Trajectory.TOO_LOW_RESULT
+        self.last_early_distance = Trajectory.TOO_LOW_RESULT
 
     def step_internal(self, propagate):
         self._propagate = propagate
@@ -141,7 +142,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
             return
 
         # Air dodge
-        air_dodge_inputs = defaultdict(lambda: FrameInput.forward())
+        air_dodge_inputs = defaultdict(FrameInput.forward)
         air_dodge_inputs[0] = FrameInput.direct(Vector2(0, 1))
         air_dodge_distance = AirDodge.create_trajectory(smashbot_state.character).get_extra_distance(propagate, target=target, ledge=self.recovery_target.ledge, input_frames=air_dodge_inputs)
         if AirDodge.should_use(self._propagate) and self.recovery_mode == RECOVERY_MODE.AIR_DODGE and \
@@ -172,64 +173,47 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         # Decide how we can perform primary recovery
         if not self.time_to_recover and smashbot_state.jumps_left == 0 and smashbot_state.speed_y_self < 0:
             primary_recovery_trajectory = self._get_primary_recovery_trajectory(smashbot_state)
-            drift_frame = TrajectoryFrame.drift(smashbot_state.character)
+            drift_trajectory = Trajectory.create_drift_trajectory(smashbot_state.character)
 
-            max_descent = target.y - primary_recovery_trajectory.max_height
-            if self.recovery_target.height == RECOVERY_HEIGHT.LEDGE:
-                max_descent -= FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top
-                if primary_recovery_trajectory.requires_extra_height:
-                    max_descent += 2
-            new_position = smashbot_state.get_relative_position()
-            new_velocity = smashbot_state.get_relative_velocity()
-            num_frames = 0
+            max_descent_stage = target.y - primary_recovery_trajectory.stall_height
+            max_descent_ledge = max_descent_stage - FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top
+            if primary_recovery_trajectory.requires_extra_height:
+                max_descent_ledge += 2
 
             stall_class = self._get_stall_class()
-            charge = smashbot_state.stall_is_charged(game_state)
-            jumps_left = 0
-
-            if stall_class is not NeverUse:
-                while True:
-
-                    if stall_class.position_is_good(self._propagate, charge, new_position, new_velocity, Knockback.zero()) and new_velocity.x > stall_class.min_stall_speed(smashbot_state.character):
-                        stall_trajectory = stall_class.create_trajectory(charge)
-                        new_position += stall_trajectory.get_displacement_after_frames(self._propagate, velocity=new_velocity)
-                        new_velocity = stall_trajectory.get_velocity_after_frames(self._propagate, velocity=new_velocity)
-                        num_frames += len(stall_trajectory.frames)
-                        charge = False
-                        jumps_left += stall_class.double_jumps_gained()
-
-                    else:
-                        if jumps_left > 0:
-                            new_velocity = FrameData.INSTANCE.get_dj_speed(smashbot_state.character)
-                            jumps_left -= 1
-                        else:
-                            new_velocity = drift_frame.velocity(new_velocity, Vector2(1, 0))
-
-                        if (new_position + new_velocity).y < max_descent:
-                            break
-                        new_position += new_velocity
-                        num_frames += 1
+            if stall_class is NeverUse:
+                trajectory = None
+                weak_trajectory = None
+                double_jumps_gained = 0
+                min_stall_speed = 999
             else:
-                while new_position.y > max_descent:
-                    new_velocity = drift_frame.velocity(new_velocity, Vector2(1, 0))
-                    if (new_position + new_velocity).y < max_descent:
-                        break
-                    new_position += new_velocity
-                    num_frames += 1
+                trajectory = stall_class.create_trajectory(True).nickname
+                weak_trajectory = stall_class.create_trajectory(False).nickname
+                double_jumps_gained = stall_class.double_jumps_gained()
+                min_stall_speed = stall_class.min_stall_speed(smashbot_state.character)
+
+            descent_data = ctrajectory.get_descent_data(trajectory, weak_trajectory, drift_trajectory.nickname, max_descent_stage, max_descent_ledge, smashbot_state.get_relative_position(), smashbot_state.get_relative_velocity(), smashbot_state.stall_is_charged(game_state), double_jumps_gained, FrameData.INSTANCE.get_dj_speed(smashbot_state.character), min_stall_speed)
+            stage_new_position, stage_new_velocity, stage_frames = descent_data[max_descent_stage]
+            ledge_new_position, ledge_new_velocity, ledge_frames = descent_data[max_descent_ledge]
+            if self.recovery_target.ledge:
+                new_position, new_velocity, num_frames = ledge_new_position, ledge_new_velocity, ledge_frames
+            else:
+                new_position, new_velocity, num_frames = stage_new_position, stage_new_velocity, stage_frames
 
             inputs = self._get_primary_recovery_inputs(smashbot_state, game_state)
-            early_distance = primary_recovery_trajectory.get_extra_distance(self._propagate, target=target, ledge=self.recovery_target.ledge, input_frames=inputs)
-            late_distance = primary_recovery_trajectory.get_extra_distance(self._propagate, target=target, ledge=self.recovery_target.ledge, position=new_position, velocity=new_velocity, input_frames=inputs)
-            max_distance = max(early_distance, late_distance)
+            early_distance = primary_recovery_trajectory.get_extra_distance(self._propagate, target=target, ledge=self.recovery_target.ledge, input_frames=inputs, ignore_stage_vertex=True)
+            late_distance = primary_recovery_trajectory.get_extra_distance(self._propagate, target=target, ledge=self.recovery_target.ledge, position=Vector2(new_position[0], new_position[1]), velocity=Vector2(new_velocity[0], new_velocity[1]), input_frames=inputs, ignore_stage_vertex=True)
+            ledge_distance = primary_recovery_trajectory.get_extra_distance(self._propagate, target=target, ledge=True, position=Vector2(ledge_new_position[0], ledge_new_position[1]), velocity=Vector2(ledge_new_velocity[0], ledge_new_velocity[1]), input_frames=inputs, ignore_stage_vertex=True)
+            max_distance = max(early_distance, late_distance, ledge_distance)
 
-            LogUtils.simple_log("Descent frames:", num_frames)
+            LogUtils.simple_log("Descent frames:", descent_data, early_distance, late_distance)
             # Recover ASAP
             if self.recovery_target.height == RECOVERY_HEIGHT.MAX and self.recovery_mode == RECOVERY_MODE.PRIMARY:
-                if max_distance <= self.last_distance or early_distance > 0:
+                if self.last_early_distance >= early_distance >= late_distance or early_distance > 0:
                     self.time_to_recover = True
-                self.last_distance = max_distance
+                self.last_early_distance = early_distance
             # Recover at the ledge or stage
-            elif num_frames <= 0 or max_distance < 0:
+            elif num_frames <= 0 or (ledge_frames <= 0 and max_distance < 0):
                 self.time_to_recover = True
 
         double_jump_height = FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character) - FrameData.INSTANCE.fast_dj_height(smashbot_state.character)
@@ -264,6 +248,7 @@ class AbstractRecover(Tactic, metaclass=ABCMeta):
         # If we can stall to get back easier, then do so
         stall_class = self._get_stall_class()
         if stall_class.should_use(self._propagate):
+            self.chain = None
             self.pick_chain(stall_class)
             return
 

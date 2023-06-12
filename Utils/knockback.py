@@ -5,8 +5,8 @@ from Utils.vector2 import Vector2
 class Knockback:
     DECELERATION = 0.051
 
-    @staticmethod
-    def zero():
+    @classmethod
+    def zero(cls):
         return Knockback(Vector2.zero())
 
     def __init__(self, vector):
@@ -37,3 +37,6 @@ class Knockback:
 
     def with_advanced_frames(self, num_frames):
         return Knockback(self.vector.with_magnitude(max(self.vector.get_magnitude() - Knockback.DECELERATION * num_frames, 0)))
+
+    def __str__(self):
+        return "Knockback{x=" + str(self.get_x()) + ", y=" + str(self.get_y()) + "}"

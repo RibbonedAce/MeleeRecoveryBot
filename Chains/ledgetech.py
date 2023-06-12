@@ -24,7 +24,7 @@ class LedgeTech(Chain):
             return False
 
         # Figure out if in the proper position to ledge tech
-        tech_point = min(abs(smashbot_state.position.x - smashbot_state.ecb.left.x), abs(smashbot_state.position.x + smashbot_state.ecb.right.x))
+        tech_point = min(abs(smashbot_state.position.x + smashbot_state.ecb.left.x), abs(smashbot_state.position.x + smashbot_state.ecb.right.x))
         result = tech_point <= game_state.get_stage_edge() + 6 and smashbot_state.position.y + smashbot_state.ecb.left.y < 6 / math.sqrt(2)
         return result
 

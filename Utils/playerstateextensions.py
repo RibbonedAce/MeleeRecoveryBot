@@ -1,11 +1,12 @@
 import math
 
+import ctrajectory
 from melee import Action, FrameData, GameState, PlayerState, port_detector
 
 from Utils.angle import Angle
 from Utils.knockback import Knockback
 from Utils.mathutils import MathUtils
-from Utils.trajectoryframe import TrajectoryFrame
+from Utils.trajectory import Trajectory
 from Utils.vector2 import Vector2
 
 
@@ -13,8 +14,6 @@ class PlayerStateExtensions:
     @staticmethod
     def init_extensions():
         PlayerState.get_relative_position = PlayerStateExtensions.__get_relative_position
-        PlayerState.get_position_after_drift = PlayerStateExtensions.__get_position_after_drift
-        PlayerState.get_position_after_hit_stun = PlayerStateExtensions.__get_position_after_hit_stun
         PlayerState.get_knockback_danger = PlayerStateExtensions.__get_knockback_danger
         PlayerState.get_knockback = PlayerStateExtensions.__get_knockback
         PlayerState.get_relative_knockback = PlayerStateExtensions.__get_relative_knockback
@@ -51,56 +50,15 @@ class PlayerStateExtensions:
         return Vector2(abs(player_state.position.x), player_state.position.y)
 
     @staticmethod
-    def __get_position_after_drift(player_state, other_state, frames=1):
-        frame = TrajectoryFrame.drift(player_state.character)
-
-        vel = Vector2(player_state.get_inward_x_velocity(), player_state.speed_y_self)
-        x = player_state.position.x
-        y = player_state.position.y
-
-        for i in range(frames):
-            vel = frame.velocity(vel, Vector2(1, 0))
-            x += -MathUtils.sign(x) * vel.x
-            y += vel.y
-
-        displacement = player_state.get_knockback(other_state).get_total_displacement(frames)
-        return Vector2(x + displacement.x, y + displacement.y)
-
-    @staticmethod
-    def __get_position_after_hit_stun(player_state, other_state, stage_edge, override_angle=None, override_magnitude=None):
-        knockback = player_state.get_knockback(other_state)
-        if override_angle is not None:
-            knockback = knockback.with_angle(override_angle)
-        if override_magnitude is not None:
-            knockback = knockback.with_magnitude(override_magnitude)
-
+    def __get_knockback_danger(player_state, other_state, game_state, override_angle):
+        knockback = player_state.get_knockback(other_state).with_angle(override_angle)
         frames = player_state.get_hit_stun_frames(other_state)
+        position = Vector2(player_state.position.x, player_state.position.y)
+        trajectory = Trajectory.create_drift_trajectory(player_state.character)
+        stage_edge = game_state.get_stage_edge()
 
-        x = player_state.position.x
-        y = player_state.position.y
-        highest_y = y
-
-        frame = TrajectoryFrame.drift(player_state.character)
-        self_vel = player_state.get_self_velocity()
-
-        for i in range(frames):
-            self_vel = frame.velocity(self_vel, Vector2.zero())
-            actual_y_vel = self_vel.y + knockback.get_y()
-            x += knockback.get_x()
-            y += actual_y_vel
-            highest_y = max(y, highest_y)
-
-            # If we are going to hit the stage, just say we landed there
-            if y < -6 < highest_y and abs(x) < stage_edge and actual_y_vel < 0:
-                break
-
-            knockback = knockback.with_advanced_frames(1)
-
-        return Vector2(x, y)
-
-    @staticmethod
-    def __get_knockback_danger(player_state, other_state, stage_edge, override_angle):
-        position = player_state.get_position_after_hit_stun(other_state, stage_edge, override_angle)
+        result = ctrajectory.get_hit_stun_position(trajectory.nickname, position, knockback, frames, stage_edge)
+        position = Vector2(result[0], result[1])
         position = Vector2(abs(position.x) - stage_edge, position.y)
         return (position.to_angle() + Angle(45)).get_x() * position.get_magnitude()
 

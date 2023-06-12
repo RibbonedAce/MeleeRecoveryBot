@@ -15,7 +15,7 @@ class RecoveryChain(Chain, metaclass=ABCMeta):
 
     @classmethod
     def create_default_inputs(cls, smashbot_state, game_state):
-        return defaultdict(lambda: FrameInput.forward())
+        return defaultdict(FrameInput.forward)
 
     @classmethod
     def should_use(cls, propagate):
@@ -40,8 +40,7 @@ class RecoveryChain(Chain, metaclass=ABCMeta):
         self.current_frame = 0
 
         LogUtils.simple_log("smashbot_state.position.x", "smashbot_state.position.y", "smashbot_state.speed_air_x_self", "smashbot_state.speed_y_self", "smashbot_state.speed_x_attack", "smashbot_state.speed_y_attack", "ecb.bottom", "ecb.left", "ecb.right",
-                            "ledge_box_horizontal", "ledge_box_top", "ledge", "fade_back", "input", "should_fade_back_this_frame", "recovery_distance",
-                            "frame.velocity.neutral", "frame.velocity.up", "frame.velocity.down", "frame.velocity.back", "frame.velocity.forward", "frame.ecb")
+                            "ledge_box_horizontal", "ledge_box_top", "ledge", "fade_back", "input", "should_fade_back_this_frame", "trajectory_nickname", "recovery_distance")
 
         return True
 
@@ -51,7 +50,7 @@ class RecoveryChain(Chain, metaclass=ABCMeta):
             self.last_action_frame = smashbot_state.action_frame
 
     def _generate_input_frames(self):
-        default = defaultdict(lambda: FrameInput.forward())
+        default = defaultdict(FrameInput.forward)
         # If we do not want to fade back, then do not
         if self.recovery_target.fade_back_mode == FADE_BACK_MODE.NONE:
             return default
@@ -61,35 +60,22 @@ class RecoveryChain(Chain, metaclass=ABCMeta):
             return default
         # If we can make it by holding a fade back starting this frame, do it
         elif self.recovery_target.fade_back_mode == FADE_BACK_MODE.LATE:
-            return defaultdict(lambda: FrameInput.backward())
+            return defaultdict(FrameInput.backward)
 
     def _perform_fade_back(self, propagate):
         smashbot_state = propagate[1]
         recovery_distance = None
         should_fade_back = False
-
+    
         # See if we can fade back on this frame
         if self.recovery_target.fade_back_mode != FADE_BACK_MODE.NONE:
             recovery_distance = self.trajectory.get_distance(propagate, target=self.target, ledge=self.recovery_target.ledge, frame_range=range(self.current_frame, 600), input_frames=self._generate_input_frames())
             if abs(smashbot_state.position.x) - recovery_distance <= self.target.x:
                 should_fade_back = True
 
-        frame = self.trajectory.frames[min(self.current_frame, len(self.trajectory.frames) - 1)]
-        x_input = self._input_fade_back(smashbot_state, frame, should_fade_back)
+        s_input = self.trajectory.get_fade_back_input(smashbot_state.get_relative_velocity(), self.current_frame, should_fade_back)
+        x_input = smashbot_state.get_inward_x() * s_input[0]
+        self.controller.tilt_analog_unit(Button.BUTTON_MAIN, x_input, s_input[1])
 
         LogUtils.simple_log(smashbot_state.position.x, smashbot_state.position.y, smashbot_state.speed_air_x_self, smashbot_state.speed_y_self, smashbot_state.speed_x_attack, smashbot_state.speed_y_attack, smashbot_state.ecb.bottom.y, smashbot_state.ecb.left.x, smashbot_state.ecb.right.x,
-                            FrameData.INSTANCE.get_ledge_box(smashbot_state.character).horizontal, FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top, self.recovery_target.ledge, self.recovery_target.fade_back_mode, x_input, should_fade_back, recovery_distance,
-                            frame.velocity(smashbot_state.get_relative_velocity(), Vector2.zero()), frame.velocity(smashbot_state.get_relative_velocity(), Vector2(0, 1)), frame.velocity(smashbot_state.get_relative_velocity(), Vector2(0, -1)), frame.velocity(smashbot_state.get_relative_velocity(), Vector2(-1, 0)), frame.velocity(smashbot_state.get_relative_velocity(), Vector2(1, 0)), frame.ecb)
-
-    def _input_fade_back(self, smashbot_state, frame, should_fade_back):
-        velocity = smashbot_state.get_relative_velocity()
-        inward_x = smashbot_state.get_inward_x()
-        sort_key = lambda k: frame.velocity(velocity, Vector2(k, 0)).x
-
-        if should_fade_back:
-            s_input = min(-1, 0, key=sort_key) * inward_x
-        else:
-            s_input = max(1, 0, key=sort_key) * inward_x
-
-        self.controller.tilt_analog_unit(Button.BUTTON_MAIN, s_input, 0)
-        return s_input
+                            FrameData.INSTANCE.get_ledge_box(smashbot_state.character).horizontal, FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top, self.recovery_target.ledge, self.recovery_target.fade_back_mode, x_input, should_fade_back, recovery_distance, self.current_frame, self.trajectory.nickname)

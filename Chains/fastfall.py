@@ -38,7 +38,7 @@ class FastFall(Chain):
         # Should only fast-fall if going to grab ledge or land
         trajectory = Trajectory.create_drift_trajectory(smashbot_state.character)
         target = Vector2(game_state.get_stage_edge(), 0)
-        fast_fall_inputs = defaultdict(lambda: FrameInput.forward())
+        fast_fall_inputs = defaultdict(FrameInput.forward)
         fast_fall_inputs[0] = FrameInput.direct(Vector2(0, -1))
 
         stage_distance = trajectory.get_extra_distance(propagate, target=target, ledge=False, input_frames=fast_fall_inputs)

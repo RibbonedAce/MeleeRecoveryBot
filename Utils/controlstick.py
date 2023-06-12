@@ -10,19 +10,19 @@ class ControlStick:
     MAX_INPUT = 127
     NUM_EDGE_COORDINATES = 1016
 
-    @staticmethod
-    def from_edge_coordinate(n):
-        return ControlStick(ControlStick.MAX_INPUT, 0).get_next_nth_counter_clockwise_input(n % ControlStick.NUM_EDGE_COORDINATES)
+    @classmethod
+    def from_edge_coordinate(cls, n):
+        return ControlStick(cls.MAX_INPUT, 0).get_next_nth_counter_clockwise_input(n % cls.NUM_EDGE_COORDINATES)
 
-    @staticmethod
-    def from_corrected_angle(a):
-        return ControlStick.from_angle(a).correct_for_cardinal_strict()
+    @classmethod
+    def from_corrected_angle(cls, a):
+        return cls.from_angle(a).correct_for_cardinal_strict()
 
-    @staticmethod
-    def from_angle(angle):
-        x = angle.get_x() * ControlStick.MAX_INPUT
-        y = angle.get_y() * ControlStick.MAX_INPUT
-        m = min(ControlStick.MAX_INPUT / max(abs(x), 1), ControlStick.MAX_INPUT / max(abs(y), 1))
+    @classmethod
+    def from_angle(cls, angle):
+        x = angle.get_x() * cls.MAX_INPUT
+        y = angle.get_y() * cls.MAX_INPUT
+        m = min(cls.MAX_INPUT / max(abs(x), 1), cls.MAX_INPUT / max(abs(y), 1))
         x = round(x * m)
         y = round(y * m)
 
@@ -36,118 +36,118 @@ class ControlStick:
             return test_result
         return result
 
-    @staticmethod
-    def normalize_x_input(p):
-        return MathUtils.i_lerp((ControlStick.DEAD_ZONE_ESCAPE - 1) / ControlStick.MAX_INPUT, 1, abs(p)) * MathUtils.sign(p)
+    @classmethod
+    def normalize_x_input(cls, p):
+        return max(MathUtils.i_lerp((cls.DEAD_ZONE_ESCAPE - 1) / cls.MAX_INPUT, 1, abs(p)), 0) * MathUtils.sign(p)
 
-    @staticmethod
-    def __get_next_clockwise_input(coords):
+    @classmethod
+    def __get_next_clockwise_input(cls, coords):
         x = coords.x
         y = coords.y
 
         if x <= 0 and y < 0:
             if abs(x) < abs(y):
                 x -= 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     y += 1
             else:
                 y += 1
-                if ControlStick.__input_is_valid(x - 1, y):
+                if cls.__input_is_valid(x - 1, y):
                     x -= 1
         elif x < 0 and y >= 0:
             if abs(x) <= abs(y):
                 x += 1
-                if ControlStick.__input_is_valid(x, y + 1):
+                if cls.__input_is_valid(x, y + 1):
                     y += 1
             else:
                 y += 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     x += 1
         elif x >= 0 and y <= 0:
             if abs(x) <= abs(y):
                 x -= 1
-                if ControlStick.__input_is_valid(x, y - 1):
+                if cls.__input_is_valid(x, y - 1):
                     y -= 1
             else:
                 y -= 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     x -= 1
         else:
             if abs(x) < abs(y):
                 x += 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     y -= 1
             else:
                 y -= 1
-                if ControlStick.__input_is_valid(x + 1, y):
+                if cls.__input_is_valid(x + 1, y):
                     x += 1
 
         return Vector2(x, y)
 
-    @staticmethod
-    def __get_next_counter_clockwise_input(coords):
+    @classmethod
+    def __get_next_counter_clockwise_input(cls, coords):
         x = coords.x
         y = coords.y
 
         if x < 0 and y <= 0:
             if abs(x) <= abs(y):
                 x += 1
-                if ControlStick.__input_is_valid(x, y - 1):
+                if cls.__input_is_valid(x, y - 1):
                     y -= 1
             else:
                 y -= 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     x += 1
         elif x <= 0 and y > 0:
             if abs(x) < abs(y):
                 x -= 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     y -= 1
             else:
                 y -= 1
-                if ControlStick.__input_is_valid(x - 1, y):
+                if cls.__input_is_valid(x - 1, y):
                     x -= 1
         elif x >= 0 and y < 0:
             if abs(x) < abs(y):
                 x += 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     y += 1
             else:
                 y += 1
-                if ControlStick.__input_is_valid(x + 1, y):
+                if cls.__input_is_valid(x + 1, y):
                     x += 1
         else:
             if abs(x) <= abs(y):
                 x -= 1
-                if ControlStick.__input_is_valid(x, y + 1):
+                if cls.__input_is_valid(x, y + 1):
                     y += 1
             else:
                 y += 1
-                if not ControlStick.__input_is_valid(x, y):
+                if not cls.__input_is_valid(x, y):
                     x -= 1
 
         return Vector2(x, y)
 
-    @staticmethod
-    def __input_is_valid(x, y):
+    @classmethod
+    def __input_is_valid(cls, x, y):
         try:
-            ControlStick.__validate_input(x, y)
+            cls.__validate_input(x, y)
             return True
         except ArithmeticError:
             return False
 
-    @staticmethod
-    def __validate_input(x, y):
-        if abs(x) > ControlStick.MAX_INPUT:
+    @classmethod
+    def __validate_input(cls, x, y):
+        if abs(x) > cls.MAX_INPUT:
             raise ArithmeticError("x value", x, "is invalid for control stick input")
-        if abs(y) > ControlStick.MAX_INPUT:
+        if abs(y) > cls.MAX_INPUT:
             raise ArithmeticError("y value", y, "is invalid for control stick input")
-        # if (x / ControlStick.MAX_INPUT) ** 2 + (y / ControlStick.MAX_INPUT) ** 2 > 1:
+        # if (x / cls.MAX_INPUT) ** 2 + (y / cls.MAX_INPUT) ** 2 > 1:
         #     raise ArithmeticError("x and y coordinates", x, ",", y, "are invalid for control stick input")
 
-    @staticmethod
-    def __refit_coordinate(coordinate):
-        return (coordinate + ControlStick.NUM_EDGE_COORDINATES) % ControlStick.NUM_EDGE_COORDINATES
+    @classmethod
+    def __refit_coordinate(cls, coordinate):
+        return (coordinate + cls.NUM_EDGE_COORDINATES) % cls.NUM_EDGE_COORDINATES
 
     def __init__(self, x, y):
         ControlStick.__validate_input(x, y)

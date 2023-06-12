@@ -4,12 +4,12 @@ from Utils.angle import Angle
 
 
 class Vector2:
-    @staticmethod
-    def zero():
+    @classmethod
+    def zero(cls):
         return Vector2(0, 0)
 
-    @staticmethod
-    def from_angle(angle, magnitude=1.0):
+    @classmethod
+    def from_angle(cls, angle, magnitude=1.0):
         return Vector2(angle.get_x(), angle.get_y()) * magnitude
 
     def __init__(self, x, y):
@@ -38,6 +38,9 @@ class Vector2:
 
     def with_angle(self, angle):
         return Vector2.from_angle(angle, self.get_magnitude())
+
+    def to_tuple(self):
+        return self.x, self.y
 
     def __str__(self):
         return "Vector2({}, {})".format(self.x, self.y)

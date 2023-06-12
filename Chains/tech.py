@@ -66,6 +66,10 @@ class Tech(Chain):
         if smashbot_state.action != Action.TUMBLING and not smashbot_state.is_flying_in_hit_stun() and not (smashbot_state.is_teching() and smashbot_state.action_frame < 2):
             return False
 
+        # If we're hit again, we're done here
+        if smashbot_state.hitlag_left > 0:
+            return False
+
         # Wait for tech lockout to end
         if not self.teched and not smashbot_state.can_tech(game_state):
             self.interruptable = False

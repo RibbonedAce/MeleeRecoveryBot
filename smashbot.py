@@ -95,7 +95,9 @@ stage_dict = {
 args = parser.parse_args()
 
 if args.debug:
-    LogUtils.LOGGER = melee.logger.Logger()
+    LogUtils.set_logger(melee.logger.Logger())
+else:
+    LogUtils.set_logger(None)
 
 # Options here are:
 #    GCN_ADAPTER will use your WiiU adapter for live human-controlled play
@@ -107,7 +109,7 @@ if not args.bot:
 
 # Create our console object. This will be the primary object that we will interface with
 console = melee.console.Console(path=args.dolphinexecutable,
-                                logger=LogUtils.LOGGER)
+                                logger=LogUtils.logger)
 
 controller_one = melee.controller.Controller(console=console, port=args.port)
 controller_two = melee.controller.Controller(console=console,
@@ -126,9 +128,9 @@ DifficultySettings.initialize_difficulty(args.difficulty)
 
 def signal_handler(signal, frame):
     if args.debug:
-        LogUtils.LOGGER.writelog()
+        LogUtils.logger.writelog()
         print("")  # because the ^C will be on the terminal
-        print("Log file created: " + LogUtils.LOGGER.filename)
+        print("Log file created: " + LogUtils.logger.filename)
     console.stop()
     print("Shutting down cleanly...")
     sys.exit(0)
@@ -168,19 +170,19 @@ def smashbot_loop():
                 agent1.controller.empty_input()
                 if agent2:
                     agent2.controller.empty_input()
-                if LogUtils.LOGGER:
+                if LogUtils.logger:
                     print("Exception thrown:", repr(error))
                     LogUtils.simple_log("Exception thrown:", repr(error))
                 else:
                     raise error
             LogUtils.simple_log("Goals:", agent1.strategy)
-            if LogUtils.LOGGER:
-                LogUtils.LOGGER.logframe(game_state)
-                LogUtils.LOGGER.writeframe()
+            if LogUtils.logger:
+                LogUtils.logger.logframe(game_state)
+                LogUtils.logger.writeframe()
         elif game_state.menu_state == melee.enums.Menu.CHARACTER_SELECT:
             melee.menuhelper.MenuHelper.choose_character(args.character, game_state, controller_one)
-            if LogUtils.LOGGER:
-                LogUtils.LOGGER.skipframe()
+            if LogUtils.logger:
+                LogUtils.logger.skipframe()
 
 if args.profile:
     cProfile.run("smashbot_loop()", sort=SortKey.CUMULATIVE)

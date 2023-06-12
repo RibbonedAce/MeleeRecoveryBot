@@ -21,7 +21,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
 
     @classmethod
     def create_default_inputs(cls, smashbot_state, game_state):
-        input_frames = defaultdict(lambda: FrameInput.forward())
+        input_frames = defaultdict(FrameInput.forward)
         position = smashbot_state.get_relative_position()
         vector = Vector2.from_angle(Vector2(position.x - game_state.get_stage_edge(), -position.y).to_angle().correct_for_cardinal_strict())
         for i in range(42, cls._get_launch_end_frame()):
@@ -31,7 +31,7 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
     @classmethod
     def _get_launch_end_frame(cls) -> int: ...
 
-    def __init__(self, target=(0, 0), recovery_target=RecoveryTarget.max()):
+    def __init__(self, target=Vector2.zero(), recovery_target=RecoveryTarget.max()):
         RecoveryChain.__init__(self, target, recovery_target)
         self.min_angle = self.__determine_initial_min_angle()
         self.max_angle = ControlStick.from_angle(Angle(90)).to_edge_coordinate()
@@ -56,7 +56,6 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
         if 0 < self.current_frame <= 40:
             if self.current_frame == 1:
                 self.controller.release_button(Button.BUTTON_B)
-
                 self.trajectory = self.create_trajectory(smashbot_state.character)
 
                 # If going for ledge and facing backwards, do not go straight up or down
@@ -71,14 +70,13 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
                 next_point = self.ANGLES_TO_TEST[self.current_frame - 1]
             current_angle = ControlStick.from_edge_coordinate(next_point).correct_for_cardinal_strict().to_edge_coordinate()
             LogUtils.simple_log(current_angle, self.best_angle)
+            input_frames = self.__generate_angled_input_frames(current_angle)
 
             # Test current angle in trial
-            self.trajectory = self.create_trajectory(smashbot_state.character)
-
             if self.recovery_target.is_max():
-                recovery_distance = self.trajectory.get_distance_traveled_above_target(propagate, target=self.target, frame_range=range(self.current_frame, 600), input_frames=self.__generate_angled_input_frames(current_angle))
+                recovery_distance = self.trajectory.get_distance_traveled_above_target(propagate, target=self.target, frame_range=range(self.current_frame, 600), input_frames=input_frames)
             else:
-                recovery_distance = self.trajectory.get_distance(propagate, target=self.target, ledge=self.recovery_target.ledge, frame_range=range(self.current_frame, 600), input_frames=self.__generate_angled_input_frames(current_angle))
+                recovery_distance = self.trajectory.get_distance(propagate, target=self.target, ledge=self.recovery_target.ledge, frame_range=range(self.current_frame, 600), input_frames=input_frames)
 
             # Record angle for hill-climbing
             extra_distance = recovery_distance - (abs(smashbot_state.position.x) - self.target.x)
@@ -130,8 +128,8 @@ class FireAnimal(RecoveryChain, metaclass=ABCMeta):
         return {Action.FIREFOX_AIR, Action.FIREFOX_WAIT_AIR, Action.SWORD_DANCE_1_AIR, Action.DEAD_FALL}
 
     def __generate_angled_input_frames(self, angle):
-        input_frames = self._generate_input_frames()
-        vector = ControlStick.from_edge_coordinate(angle).to_vector()
+        input_frames = defaultdict(FrameInput.forward)
+        vector = Vector2.from_angle(ControlStick.from_edge_coordinate(angle).to_angle())
         for i in range(42, self._get_launch_end_frame()):
             input_frames[i] = FrameInput.direct(vector)
         return input_frames

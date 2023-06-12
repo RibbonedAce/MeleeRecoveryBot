@@ -29,14 +29,13 @@ class TDI(Chain):
         #   2) Combo TDI
         #   3) Situationally-specific TDI
 
-        stage_edge = game_state.get_stage_edge()
         angle = smashbot_state.get_knockback(opponent_state).to_angle()
         actual_jumps_left = smashbot_state.jumps_left
         if smashbot_state.is_being_thrown():
             actual_jumps_left = 1
 
-        combo_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, angle.to_combo_di_launch())
-        no_di_danger = smashbot_state.get_knockback_danger(opponent_state, stage_edge, angle)
+        combo_di_danger = smashbot_state.get_knockback_danger(opponent_state, game_state, angle.to_combo_di_launch())
+        no_di_danger = smashbot_state.get_knockback_danger(opponent_state, game_state, angle)
         danger_threshold = DifficultySettings.DANGER_THRESHOLD * (actual_jumps_left + 1)
 
         # Survival TDI

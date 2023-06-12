@@ -41,6 +41,7 @@ class AbstractMitigate(Tactic, metaclass=ABCMeta):
 
     def step(self, propagate):
         self._propagate = propagate
+        game_state = propagate[0]
         smashbot_state = propagate[1]
 
         # If we can't interrupt the chain, just continue it
@@ -89,7 +90,7 @@ class AbstractMitigate(Tactic, metaclass=ABCMeta):
         meteor_cancel_class = self._get_meteor_cancel_class()
         if meteor_cancel_class.should_use(self._propagate) and \
                 smashbot_state.speed_y_attack < 0 and smashbot_state.action_frame >= DifficultySettings.METEOR_CANCEL_FRAME and \
-                smashbot_state.can_special_meteor_cancel(propagate):
+                smashbot_state.can_special_meteor_cancel(game_state):
             self.pick_chain(meteor_cancel_class)
             return
 

@@ -11,7 +11,6 @@ from Utils.mathutils import MathUtils
 from Utils.playerstateextensions import PlayerStateExtensions
 from Utils.recoverytarget import RecoveryTarget
 from Utils.trajectory import Trajectory
-from Utils.trajectoryframe import TrajectoryFrame
 from Utils.vector2 import Vector2
 
 FrameDataExtensions.init_extensions()

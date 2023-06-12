@@ -9,11 +9,7 @@ class MathUtils:
 
     @staticmethod
     def sign(x):
-        if x > 0:
-            return 1
-        elif x < 0:
-            return -1
-        return 0
+        return int(x > 1) - int(x < 1)
 
     @staticmethod
     def linear_sum(start, end, increase):

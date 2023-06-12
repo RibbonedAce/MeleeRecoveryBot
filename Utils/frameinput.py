@@ -3,16 +3,16 @@ from Utils.vector2 import Vector2
 
 
 class FrameInput:
-    @staticmethod
-    def forward():
+    @classmethod
+    def forward(cls):
         return FrameInput(FRAME_INPUT_TYPE.FADE_FORWARD)
 
-    @staticmethod
-    def backward():
+    @classmethod
+    def backward(cls):
         return FrameInput(FRAME_INPUT_TYPE.FADE_BACKWARD)
 
-    @staticmethod
-    def direct(s_input):
+    @classmethod
+    def direct(cls, s_input):
         return FrameInput(FRAME_INPUT_TYPE.DIRECT, s_input)
 
     def __init__(self, f_type, s_input=Vector2.zero()):

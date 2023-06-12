@@ -52,7 +52,7 @@ class AmsahTech(Chain):
             if can_slide_off:
                 return True
             survival_angle = angle.to_survival_di_launch(x)
-            return smashbot_state.get_knockback_danger(opponent_state, stage_edge, survival_angle) > DifficultySettings.DANGER_THRESHOLD * 2
+            return smashbot_state.get_knockback_danger(opponent_state, game_state, survival_angle) > DifficultySettings.DANGER_THRESHOLD * 2
 
         return True
 
@@ -102,7 +102,7 @@ class AmsahTech(Chain):
         knockback = knockback.with_angle(knockback.to_angle().to_combo_di_launch())
         knockback_x = knockback.get_x()
         # If knockback is too strong, do not slide off
-        if abs(knockback_x) > 3.2:
+        if abs(knockback_x) > 3:
             return False
 
         # If facing away from knockback, do not slide off

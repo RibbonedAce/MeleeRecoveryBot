@@ -4,7 +4,7 @@ from melee import FrameData
 
 from Chains.chain import Chain
 from difficultysettings import DifficultySettings
-from Utils import Trajectory, TrajectoryFrame, Vector2
+from Utils import Trajectory
 from Utils.enums import STALL_MODE
 
 
@@ -49,8 +49,10 @@ class StallChain(Chain, metaclass=ABCMeta):
         # Should not stall if too close unless we want to
         if stall_mode == STALL_MODE.SMART:
             diff_x = position.x - game_state.get_stage_edge()
+            diff_y = -position.y
             trajectory = cls.create_trajectory(smashbot_state.stall_is_charged(game_state))
-            return diff_x >= 40 + trajectory.get_displacement_after_frames(propagate).x
+            displacement = trajectory.get_displacement_after_frames(propagate)
+            return diff_x >= 40 + displacement.x or diff_y >= 40 + displacement.y
 
         return True
 
@@ -63,21 +65,21 @@ class StallChain(Chain, metaclass=ABCMeta):
             return False
 
         # Should not stall if not high enough to recover after
-        if cls.__get_remaining_height(smashbot_state, knockback) + position.y <= 0:
+        if cls.__get_remaining_height(smashbot_state, charge, knockback) + position.y <= 0:
             return False
 
         # Should not stall if moving too slowly
         if velocity.x < cls.min_stall_speed(smashbot_state.character):
             return False
 
-        stall_angle = cls.__get_stall_displacement_angle(propagate, charge, velocity)
-        return velocity.to_angle() <= stall_angle
+        stall_angle = cls.create_trajectory(charge).get_stall_displacement_angle(propagate, velocity=velocity, jumps_gained=cls.double_jumps_gained())
+        return velocity.x < 0 or velocity.to_angle().get_y() < stall_angle.get_y()
 
     @classmethod
     def _get_recovery_height(cls) -> float: ...
 
     @classmethod
-    def _get_stall_height_loss(cls) -> float: ...
+    def _get_stall_height_loss(cls, charge) -> float: ...
 
     @classmethod
     def _get_stall_duration(cls) -> int: ...
@@ -87,33 +89,10 @@ class StallChain(Chain, metaclass=ABCMeta):
         return True
 
     @classmethod
-    def __get_stall_displacement_angle(cls, propagate, charge, velocity):
-        smashbot_state = propagate[1]
-
-        displacement = cls.create_trajectory(charge).get_displacement_after_frames(propagate, velocity=velocity)
-        best_angle = displacement.to_angle()
-        if cls.double_jumps_gained() <= 0:
-            return best_angle
-
-        jump_velocity = FrameData.INSTANCE.get_dj_speed(smashbot_state.character)
-        drift_frame = TrajectoryFrame.drift(smashbot_state.character)
-        prev_angle = best_angle
-
-        for i in range(600):
-            displacement += jump_velocity
-            best_angle = max(best_angle, displacement.to_angle())
-            if prev_angle == best_angle:
-                return best_angle
-            prev_angle = best_angle
-            jump_velocity = drift_frame.velocity(jump_velocity, Vector2(1, 0))
-
-        return best_angle
-
-    @classmethod
-    def __get_remaining_height(cls, smashbot_state, knockback):
-        return cls._get_stall_height_loss() + knockback.get_total_displacement(cls._get_stall_duration()).y + \
+    def __get_remaining_height(cls, smashbot_state, charge, knockback):
+        return cls._get_stall_height_loss(charge) + knockback.get_total_displacement(cls._get_stall_duration()).y + \
                FrameData.INSTANCE.fast_dj_height(smashbot_state.character) * (cls.double_jumps_gained() + smashbot_state.jumps_left) + \
-               cls._get_recovery_height() + FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top - 2
+               cls._get_recovery_height() + FrameData.INSTANCE.get_ledge_box(smashbot_state.character).top - 2 - 2 * FrameData.INSTANCE.get_terminal_velocity(smashbot_state.character)
 
     def __init__(self):
         Chain.__init__(self)
